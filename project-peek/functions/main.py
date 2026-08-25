@@ -104,15 +104,26 @@ def _tget(path, extra):
 
 
 def fetch_trello(url):
-    if not (_tkey() and _ttok()) or not url or "/invite/" in url:
-        return None
+    """Return (snapshot|None, reason). `reason` explains skips so the UI can show them."""
+    if not (_tkey() and _ttok()):
+        return None, "no Trello credentials configured"
+    if not url:
+        return None, "no board link"
+    if "/invite/" in url:
+        return None, "invite link (API can't read - needs the plain /b/<id> URL)"
     bid = trello_board_id(url)
     if not bid:
-        return None
+        return None, "unrecognized board link"
     try:
         lists = _tget(f"boards/{bid}/lists", {"cards": "open", "card_fields": "idMembers", "fields": "name"})
-    except Exception:
-        return None
+    except urllib.error.HTTPError as e:
+        if e.code in (401, 403):
+            return None, f"{e.code} - board is private and the account isn't a member"
+        if e.code == 404:
+            return None, "404 - board not found"
+        return None, f"HTTP {e.code} {e.reason}"
+    except Exception as e:
+        return None, f"error: {e}"
     out = [{"name": l.get("name", "?"), "count": len(l.get("cards", []))} for l in lists]
     result = {"total_cards": sum(x["count"] for x in out), "lists": out}
 
@@ -158,7 +169,7 @@ def fetch_trello(url):
         result["activity"] = {"window_days": ACTIVITY_DAYS, "moves": moves, "into_done": into_done,
                               "created": created, "by_member": [{"n": n, "c": c} for n, c in by.most_common()],
                               "recent": recent}
-    return result
+    return result, "ok"
 
 
 # ---------- activity object ----------
@@ -176,35 +187,83 @@ def build_act(commits_by_day, contributors, trello=None, contrib_notes=None, obs
             "commits_by_day": cbd, "contribs": contribs, "obs": obs, "trello": trello}
 
 
+def _github_reason(exc):
+    """Human-readable explanation for a failed GitHub fetch."""
+    if isinstance(exc, urllib.error.HTTPError):
+        if exc.code == 404:
+            return "404 - repo not found, renamed, or private (no token configured)"
+        if exc.code == 403:
+            return "403 - API rate limit reached (60/hour unauthenticated) or access denied"
+        if exc.code == 401:
+            return "401 - not authorized"
+        return f"HTTP {exc.code} {exc.reason}"
+    return f"error: {exc}"
+
+
 def _sync_uid(db, uid):
+    """Sync every team's activity. Returns per-team results so the UI can show
+    what actually happened rather than a bare success count."""
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     courses = teams = 0
+    issues = []          # only the entries that need attention
+    results = []         # every team, for a full report
+
     for c in db.collection(f"users/{uid}/courses").stream():
         courses += 1
+        code = (c.to_dict() or {}).get("code", c.id)
         cref = db.document(f"users/{uid}/courses/{c.id}")
         for tdoc in cref.collection("teams").stream():
             d = tdoc.to_dict() or {}
+            name = d.get("team", tdoc.id)
             github = d.get("github", "") or ""; trello = d.get("trello", "") or ""
             old_act = d.get("act", {}) or {}; contrib_notes = d.get("contrib_notes", {}) or {}
+
+            gh_status = "ok"
             cbd, contributors = {}, []
-            if github:
+            if not github:
+                gh_status = "no repo link"
+            else:
                 try:
                     cbd, contributors = fetch_commits(slug_from_github(github))
-                except Exception:
-                    pass
+                    if not cbd:
+                        gh_status = "no commits found"
+                except Exception as e:
+                    gh_status = _github_reason(e)
+
+            tr_status = "ok"
             trello_snap = old_act.get("trello")
-            if trello:
-                snap = fetch_trello(trello)
+            if not trello:
+                tr_status = "no board link"
+            else:
+                snap, reason = fetch_trello(trello)
                 if snap:
                     snap["date"] = today; trello_snap = {"date": today, **snap}
+                else:
+                    tr_status = reason
+
+            # Preserve prior commit data rather than zeroing a team we couldn't reach.
+            stale = False
             if not cbd and old_act.get("commits_by_day"):
                 act = dict(old_act); act["trello"] = trello_snap or old_act.get("trello")
+                stale = True
             else:
                 act = build_act(cbd, contributors, trello_snap, contrib_notes, old_act.get("obs", ""))
+
             cref.collection("teams").document(tdoc.id).set({"act": act}, merge=True)
             teams += 1
+
+            entry = {"course": code, "team": name, "id": tdoc.id,
+                     "github": gh_status, "trello": tr_status,
+                     "commits": act.get("total", 0) if act.get("ok") else 0,
+                     "stale": stale}
+            results.append(entry)
+            if gh_status != "ok" or tr_status not in ("ok", "no board link"):
+                issues.append(entry)
+
     db.document(f"users/{uid}").set({"lastSync": gcf.SERVER_TIMESTAMP}, merge=True)
-    return {"courses": courses, "teams": teams}
+    return {"courses": courses, "teams": teams,
+            "ok": teams - len(issues), "issues": issues, "results": results,
+            "syncedAt": datetime.now(timezone.utc).isoformat(timespec="seconds")}
 
 
 @https_fn.on_request()
