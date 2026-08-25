@@ -1,5 +1,6 @@
 {
   "courses": [
-    "courses/pro100.json"
+    "courses/pro100.json",
+    "courses/pro385.json"
   ]
 }

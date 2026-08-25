@@ -1,0 +1,33 @@
+{
+  "id": "pro385",
+  "code": "PRO385",
+  "name": "Game Engine Projects",
+  "term": "Summer 2026",
+  "report_date": "Aug 23, 2026",
+  "output_basename": "PRO385_Team_Tracker",
+  "type": "solo",
+  "teams": [
+    {
+      "id": "kevin-mejia-vazquez-tdc5",
+      "team": "Kevin Mejia Vazquez",
+      "type": "solo",
+      "project": "",
+      "members": "",
+      "github": "https://github.com/parZyKMV/ImTheManager-",
+      "trello": "https://trello.com/invite/b/6a469e03a5a420dc410532a9/ATTI7be35f7f3895b330cda74bf40738dd1bAAB2735C/im-the-manager",
+      "status": "watch",
+      "notes": "",
+      "why": "",
+      "objectives": "",
+      "prop": {
+        "concept": "",
+        "features": "",
+        "tech": "",
+        "flag": ""
+      },
+      "sprint": null,
+      "contrib_notes": {},
+      "activity_obs": ""
+    }
+  ]
+}
