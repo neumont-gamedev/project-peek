@@ -14,15 +14,25 @@ from datetime import datetime, timezone, timedelta
 
 from firebase_functions import https_fn, options
 from firebase_admin import initialize_app
-from google.cloud import firestore as gcf
+from firebase_admin import firestore as admin_firestore
+from google.cloud import firestore as gcf   # kept for SERVER_TIMESTAMP
 
 initialize_app()
 
 
 def get_db():
-    # REST transport avoids a Cloud Run gRPC bug that percent-encodes the default
-    # database id ("(default)" -> "%28default%29"), which the backend rejects.
-    return gcf.Client(database="(default)", transport="rest")
+    """Firestore client for the project's default database.
+
+    Do NOT pass database="(default)" explicitly: google-cloud-firestore
+    percent-encodes it into the resource path ("%28default%29") and the backend
+    rejects every query with InvalidArgument. Letting firebase_admin resolve the
+    default database sidesteps it -- this is what the local collector
+    (tracker/sync_firestore.py) has always done, which is why it never hit this.
+
+    ("transport='rest'" is not an option here: firestore.Client.__init__ takes
+    no such parameter and raises TypeError.)
+    """
+    return admin_firestore.client()
 
 ALLOWED_DOMAIN = "neumont.edu"
 ACTIVITY_DAYS = 14
