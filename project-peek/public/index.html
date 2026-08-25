@@ -1,0 +1,755 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project Peek</title>
+<style>
+  :root {
+    --ground:#eaecf1; --surface:#ffffff; --surface-2:#f5f6f9;
+    --ink:#1a2130; --ink-soft:#5a6579; --ink-faint:#8b93a3;
+    --line:#dde1e9; --line-soft:#e9ecf2;
+    --accent:#3b5bd9; --accent-ink:#2f49b0; --accent-soft:rgba(59,91,217,.10);
+    --healthy:#2f8f4e; --healthy-bg:rgba(47,143,78,.12);
+    --watch:#b5720a;  --watch-bg:rgba(181,114,10,.13);
+    --risk:#c8402f;   --risk-bg:rgba(200,64,47,.12);
+    --noaccess:#6b7688; --noaccess-bg:rgba(107,118,136,.12);
+    --shadow:0 1px 2px rgba(20,28,45,.04), 0 4px 16px rgba(20,28,45,.06);
+    --font-sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --font-mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:#0f1219; --surface:#171c26; --surface-2:#1e2430;
+      --ink:#e7eaf1; --ink-soft:#9aa3b5; --ink-faint:#6c7688;
+      --line:#2b3240; --line-soft:#242b38;
+      --accent:#8098f7; --accent-ink:#9fb2ff; --accent-soft:rgba(128,152,247,.14);
+      --healthy:#5ec27f; --healthy-bg:rgba(94,194,127,.14);
+      --watch:#e0a341;  --watch-bg:rgba(224,163,65,.15);
+      --risk:#ef6d5c;   --risk-bg:rgba(239,109,92,.15);
+      --noaccess:#8a94a6; --noaccess-bg:rgba(138,148,166,.14);
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.28);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#0f1219; --surface:#171c26; --surface-2:#1e2430;
+    --ink:#e7eaf1; --ink-soft:#9aa3b5; --ink-faint:#6c7688;
+    --line:#2b3240; --line-soft:#242b38;
+    --accent:#8098f7; --accent-ink:#9fb2ff; --accent-soft:rgba(128,152,247,.14);
+    --healthy:#5ec27f; --healthy-bg:rgba(94,194,127,.14);
+    --watch:#e0a341;  --watch-bg:rgba(224,163,65,.15);
+    --risk:#ef6d5c;   --risk-bg:rgba(239,109,92,.15);
+    --noaccess:#8a94a6; --noaccess-bg:rgba(138,148,166,.14);
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.28);
+  }
+  * { box-sizing:border-box; }
+  [hidden] { display: none !important; }   /* ensure the hidden attribute wins over .app/.signin display rules */
+  body { margin:0; background:var(--ground); color:var(--ink); font-family:var(--font-sans);
+    line-height:1.55; -webkit-font-smoothing:antialiased; }
+  a { color:var(--accent-ink); text-underline-offset:2px; }
+
+  /* sign-in */
+  .signin { min-height:100vh; display:grid; place-items:center; padding:24px; }
+  .signin .card { background:var(--surface); border:1px solid var(--line); border-radius:16px;
+    box-shadow:var(--shadow); padding:40px 36px; max-width:400px; text-align:center; }
+  .signin .logo { font-family:var(--font-mono); font-size:12px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--accent-ink); font-weight:600; }
+  .signin h1 { font-size:26px; font-weight:680; letter-spacing:-.02em; margin:8px 0 6px; }
+  .signin p { color:var(--ink-soft); font-size:14px; margin:0 0 24px; }
+  .btn { all:unset; cursor:pointer; display:inline-flex; align-items:center; gap:10px; justify-content:center;
+    background:var(--accent); color:#fff; font-weight:600; font-size:14.5px; padding:11px 20px; border-radius:10px; }
+  .btn:hover { background:var(--accent-ink); }
+  .btn:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .muted { color:var(--ink-faint); font-size:12px; }
+
+  .app { display:grid; grid-template-columns:264px minmax(0,1fr); min-height:100vh; }
+  .side { position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+    background:var(--surface); border-right:1px solid var(--line); padding:22px 16px;
+    display:flex; flex-direction:column; }
+  .brand { display:flex; flex-direction:column; gap:2px; padding:0 8px 14px; margin-bottom:6px;
+    border-bottom:1px solid var(--line-soft); }
+  .brand .code { font-family:var(--font-mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--accent-ink); font-weight:600; }
+  .brand .name { font-size:16px; font-weight:650; letter-spacing:-.01em; }
+  .switcher { margin:12px 4px 4px; }
+  .switcher select { width:100%; font-family:var(--font-sans); font-size:13.5px; color:var(--ink);
+    background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:8px 10px; }
+  .nav { display:flex; flex-direction:column; gap:1px; margin-top:8px; }
+  .nav-label { font-family:var(--font-mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--ink-faint); padding:12px 8px 6px; }
+  .nav button { all:unset; cursor:pointer; display:flex; align-items:center; gap:9px;
+    padding:7px 8px; border-radius:7px; font-size:13.5px; color:var(--ink-soft); }
+  .nav button:hover { background:var(--surface-2); color:var(--ink); }
+  .nav button.active { background:var(--accent-soft); color:var(--ink); font-weight:600; }
+  .nav button:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
+  .nav .dot { width:8px; height:8px; border-radius:50%; flex:0 0 auto; }
+  .nav .home { font-family:var(--font-mono); font-size:13px; }
+  .nav .tname { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .dot.healthy{background:var(--healthy);} .dot.watch{background:var(--watch);}
+  .dot.risk{background:var(--risk);} .dot.noaccess{background:var(--noaccess);}
+
+  .side-foot { margin-top:auto; padding-top:14px; border-top:1px solid var(--line-soft); font-size:12px;
+    color:var(--ink-soft); display:flex; flex-direction:column; gap:8px; }
+  .side-foot .who { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .side-foot button { all:unset; cursor:pointer; color:var(--accent-ink); font-size:12.5px; }
+  .side-foot button:hover { text-decoration:underline; }
+
+  .main { padding:34px clamp(20px,4vw,56px) 80px; max-width:1040px; }
+  .view { display:none; }
+  .view.active { display:block; }
+  .eyebrow { font-family:var(--font-mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--ink-faint); }
+  h1 { font-size:clamp(24px,3.4vw,33px); font-weight:680; letter-spacing:-.02em; margin:6px 0 0; text-wrap:balance; }
+  h2 { font-size:13px; font-family:var(--font-mono); letter-spacing:.12em; text-transform:uppercase;
+    color:var(--ink-soft); font-weight:600; margin:0 0 14px; padding-bottom:9px; border-bottom:1px solid var(--line-soft); }
+  .lede { color:var(--ink-soft); font-size:15px; max-width:64ch; margin:14px 0 0; }
+
+  .tiles { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:26px 0 30px; }
+  .tile { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:15px 16px;
+    box-shadow:var(--shadow); position:relative; overflow:hidden; }
+  .tile::before { content:""; position:absolute; left:0; top:0; bottom:0; width:3px; }
+  .tile.healthy::before{background:var(--healthy);} .tile.watch::before{background:var(--watch);}
+  .tile.risk::before{background:var(--risk);} .tile.noaccess::before{background:var(--noaccess);}
+  .tile .n { font-family:var(--font-mono); font-size:30px; font-weight:600; line-height:1; font-variant-numeric:tabular-nums; }
+  .tile.healthy .n{color:var(--healthy);} .tile.watch .n{color:var(--watch);}
+  .tile.risk .n{color:var(--risk);} .tile.noaccess .n{color:var(--noaccess);}
+  .tile .l { font-size:12.5px; color:var(--ink-soft); margin-top:6px; }
+
+  .prio { display:flex; flex-direction:column; gap:10px; margin-bottom:34px; }
+  .prio-item { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:14px;
+    background:var(--surface); border:1px solid var(--line); border-left-width:3px; border-radius:10px;
+    padding:13px 16px; box-shadow:var(--shadow); cursor:pointer; text-align:left; all:unset; box-sizing:border-box; }
+  .prio-item:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .prio-item.risk{border-left-color:var(--risk);} .prio-item.watch{border-left-color:var(--watch);}
+  .prio-item:hover{ background:var(--surface-2); }
+  .prio-item .team { font-weight:640; font-size:14.5px; }
+  .prio-item .why { color:var(--ink-soft); font-size:13px; }
+  .prio-item .go { font-family:var(--font-mono); font-size:12px; color:var(--accent-ink); }
+
+  .tablewrap { overflow-x:auto; border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow); background:var(--surface); }
+  table { border-collapse:collapse; width:100%; font-size:13.5px; min-width:720px; }
+  thead th { text-align:left; font-family:var(--font-mono); font-size:10.5px; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--ink-faint); font-weight:600; padding:12px 16px;
+    border-bottom:1px solid var(--line); background:var(--surface-2); }
+  tbody td { padding:12px 16px; border-bottom:1px solid var(--line-soft); vertical-align:middle; }
+  tbody tr:last-child td { border-bottom:none; }
+  tbody tr { cursor:pointer; }
+  tbody tr:hover { background:var(--surface-2); }
+  td .tm { font-weight:640; } td .pj { color:var(--ink-soft); }
+  td.num { font-family:var(--font-mono); font-variant-numeric:tabular-nums; color:var(--ink-soft); }
+
+  .pill { display:inline-flex; align-items:center; gap:6px; font-family:var(--font-mono); font-size:11px;
+    font-weight:600; letter-spacing:.04em; padding:3px 9px 3px 7px; border-radius:20px; white-space:nowrap; }
+  .pill .d{ width:7px; height:7px; border-radius:50%; }
+  .pill.healthy{color:var(--healthy); background:var(--healthy-bg);} .pill.healthy .d{background:var(--healthy);}
+  .pill.watch{color:var(--watch); background:var(--watch-bg);} .pill.watch .d{background:var(--watch);}
+  .pill.risk{color:var(--risk); background:var(--risk-bg);} .pill.risk .d{background:var(--risk);}
+  .pill.noaccess{color:var(--noaccess); background:var(--noaccess-bg);} .pill.noaccess .d{background:var(--noaccess);}
+
+  .legend { display:flex; flex-wrap:wrap; gap:16px; margin-top:16px; font-size:12.5px; color:var(--ink-soft); }
+  .legend span { display:inline-flex; align-items:center; gap:7px; }
+  .footnote { font-size:12px; color:var(--ink-faint); margin-top:22px; max-width:74ch; }
+
+  .thead { display:flex; flex-wrap:wrap; align-items:flex-start; gap:14px 18px; }
+  .thead .titles{ flex:1 1 320px; }
+  .thead .project { font-family:var(--font-mono); color:var(--accent-ink); font-size:14px; margin-top:8px; }
+  .members { color:var(--ink-soft); font-size:13.5px; margin-top:10px; }
+  .members b{ color:var(--ink); font-weight:600; }
+  .chips { display:flex; flex-wrap:wrap; gap:9px; margin:18px 0 4px; }
+  .chip { display:inline-flex; align-items:center; gap:7px; font-size:13px; text-decoration:none; color:var(--ink);
+    background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:7px 12px; box-shadow:var(--shadow); }
+  .chip:hover{ border-color:var(--accent); color:var(--accent-ink); }
+  .chip .ic{ font-family:var(--font-mono); font-size:11px; color:var(--ink-faint); letter-spacing:.06em; }
+  .chip.disabled{ opacity:.55; pointer-events:none; }
+
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:22px 24px;
+    box-shadow:var(--shadow); margin-top:22px; }
+  .kv { display:grid; grid-template-columns:132px 1fr; gap:8px 18px; font-size:14px; }
+  .kv dt{ font-family:var(--font-mono); font-size:11.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-faint); padding-top:2px; }
+  .kv dd{ margin:0; color:var(--ink); } .kv dd.soft{ color:var(--ink-soft); }
+  .flag { display:flex; gap:10px; margin-top:16px; padding:12px 14px; border-radius:10px;
+    background:var(--watch-bg); font-size:13.5px; color:var(--ink); }
+  .flag .ic{ color:var(--watch); font-weight:700; font-family:var(--font-mono); }
+
+  .metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:18px; }
+  .metric { background:var(--surface-2); border:1px solid var(--line-soft); border-radius:10px; padding:13px 15px; }
+  .metric .n{ font-family:var(--font-mono); font-size:22px; font-weight:600; font-variant-numeric:tabular-nums; }
+  .metric .l{ font-size:11.5px; color:var(--ink-soft); margin-top:3px; font-family:var(--font-mono); letter-spacing:.03em; }
+  .chart{ margin:2px 0 20px; } .chart svg{ width:100%; height:auto; display:block; }
+  .chart-cap{ display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:11px; color:var(--ink-faint); margin-bottom:6px; }
+  .bar-rect{ fill:var(--accent); }
+  .axis-base{ stroke:var(--line); stroke-width:1; }
+  .today-line{ stroke:var(--watch); stroke-width:1; stroke-dasharray:2 3; opacity:.8; }
+  .axis-label{ fill:var(--ink-faint); font-family:var(--font-mono); font-size:9px; }
+  .spark{ display:inline-block; width:132px; height:26px; vertical-align:middle; } .spark svg{ width:132px; height:26px; } .spark .bar-rect{ opacity:.9; }
+  .contribs { display:flex; flex-direction:column; gap:9px; margin-bottom:18px; }
+  .crow .top{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; font-size:13px; margin-bottom:5px; }
+  .crow .who{ font-family:var(--font-mono); } .crow .who .note{ color:var(--ink-faint); font-family:var(--font-sans); font-size:12px; }
+  .crow .cnt{ font-family:var(--font-mono); font-variant-numeric:tabular-nums; color:var(--ink-soft); font-size:12.5px; }
+  .bar { height:7px; border-radius:5px; background:var(--surface-2); overflow:hidden; }
+  .bar > i{ display:block; height:100%; background:linear-gradient(90deg,var(--accent),var(--accent-ink)); border-radius:5px; }
+  .obs { font-size:14px; color:var(--ink-soft); }
+  .obj { font-size:14.5px; color:var(--ink); white-space:pre-wrap; margin:0; }
+  .noaccess-box{ display:flex; gap:12px; align-items:flex-start; font-size:14px; color:var(--ink-soft); } .noaccess-box .ic{ font-size:20px; }
+  .tlists{ display:flex; flex-wrap:wrap; gap:10px; }
+  .tlist{ flex:1 1 120px; min-width:110px; background:var(--surface-2); border:1px solid var(--line-soft); border-radius:10px; padding:11px 13px; }
+  .tlist .tn{ font-family:var(--font-mono); font-size:22px; font-weight:600; font-variant-numeric:tabular-nums; }
+  .tlist .tl{ font-size:12px; color:var(--ink-soft); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .tsum{ font-size:13px; color:var(--ink-faint); font-family:var(--font-mono); margin-bottom:14px; }
+  .tby{ font-size:13px; color:var(--ink-soft); margin:14px 0 4px; }
+  .tby-lbl{ font-family:var(--font-mono); font-size:11px; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-faint); margin-right:8px; }
+  .trecent{ list-style:none; margin:12px 0 0; padding:0; display:flex; flex-direction:column; gap:1px; }
+  .trecent li{ display:grid; grid-template-columns:1.6fr 1.4fr auto; gap:12px; align-items:baseline;
+    padding:8px 0; border-top:1px solid var(--line-soft); font-size:13px; }
+  .trecent .rcard{ color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .trecent .rmove{ font-family:var(--font-mono); font-size:12px; color:var(--ink-soft); }
+  .trecent .rby{ font-family:var(--font-mono); font-size:11.5px; color:var(--ink-faint); white-space:nowrap; }
+  @media (max-width:860px){ .trecent li{ grid-template-columns:1fr; gap:2px; } }
+  .notes-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .saved{ font-family:var(--font-mono); font-size:11px; color:var(--healthy); opacity:0; transition:opacity .3s; }
+  .saved.show{ opacity:1; }
+  label.nlbl{ display:block; font-family:var(--font-mono); font-size:11px; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-faint); margin:14px 0 6px; }
+  textarea{ width:100%; min-height:96px; resize:vertical; font-family:var(--font-sans); font-size:14px; color:var(--ink);
+    background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:11px 13px; line-height:1.5; }
+  textarea:focus{ outline:2px solid var(--accent); outline-offset:0; border-color:transparent; }
+  textarea::placeholder{ color:var(--ink-faint); }
+  .btn.secondary { background:transparent; color:var(--ink-soft); border:1px solid var(--line); }
+  .btn.secondary:hover { background:var(--surface-2); color:var(--ink); }
+  .mgr-head { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:14px;
+    background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 18px;
+    box-shadow:var(--shadow); margin-top:18px; }
+  .mgr-lbl { font-family:var(--font-mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-faint); }
+  .mgr-course { font-weight:640; font-size:15px; margin-top:3px; }
+  .mgr-head-btns { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .mgr { display:flex; flex-direction:column; gap:1px; border:1px solid var(--line); border-radius:12px;
+    overflow:hidden; box-shadow:var(--shadow); background:var(--surface); }
+  .mrow { display:grid; grid-template-columns:auto 1.4fr 2fr auto; align-items:center; gap:14px;
+    padding:12px 16px; border-bottom:1px solid var(--line-soft); }
+  .mrow:last-child { border-bottom:none; }
+  .mname { font-weight:640; font-size:14px; }
+  .mproj { color:var(--ink-soft); font-size:13.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .mbtns { display:flex; gap:12px; }
+  .linkbtn { all:unset; cursor:pointer; font-size:13px; color:var(--accent-ink); }
+  .linkbtn:hover { text-decoration:underline; }
+  .linkbtn.danger { color:var(--risk); }
+  .linkbtn:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .form { display:grid; grid-template-columns:repeat(2,1fr); gap:14px 18px; }
+  .form label { display:flex; flex-direction:column; gap:6px; font-family:var(--font-mono);
+    font-size:11px; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-faint); }
+  .form input, .form select { font-family:var(--font-sans); font-size:14px; color:var(--ink);
+    background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:9px 11px; text-transform:none; letter-spacing:normal; }
+  .form input:focus, .form select:focus { outline:2px solid var(--accent); outline-offset:0; border-color:transparent; }
+  @media (max-width:860px){ .mrow{ grid-template-columns:1fr auto; } .mproj{ display:none; } .form{ grid-template-columns:1fr; } }
+  .empty { background:var(--surface); border:1px dashed var(--line); border-radius:14px; padding:26px; margin-top:24px; }
+  .empty code { font-family:var(--font-mono); font-size:12.5px; background:var(--surface-2); padding:2px 6px; border-radius:5px; }
+  .theme-btn{ all:unset; cursor:pointer; display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--ink-soft); padding:6px 8px; border-radius:7px; }
+  .theme-btn:hover{ background:var(--surface-2); color:var(--ink); }
+
+  @media (max-width: 860px){
+    .app{ grid-template-columns:1fr; }
+    .side{ position:static; height:auto; border-right:none; border-bottom:1px solid var(--line); }
+    .nav{ flex-flow:row wrap; } .nav-label{ width:100%; } .nav .tname{ max-width:130px; }
+    .tiles{ grid-template-columns:repeat(2,1fr); } .metrics{ grid-template-columns:1fr; }
+    .kv{ grid-template-columns:1fr; gap:2px 0; } .kv dt{ padding-top:12px; }
+    .main{ padding:26px 20px 70px; } .side-foot{ margin-top:16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="signin" id="signin" hidden>
+  <div class="card">
+    <div class="logo">Project Peek</div>
+    <h1>Team Tracker</h1>
+    <p>Sign in to see your courses, team activity, and review notes.</p>
+    <button class="btn" id="signInBtn">Sign in with Google</button>
+    <p class="muted" id="signinErr" style="margin-top:16px;color:var(--risk)"></p>
+  </div>
+</div>
+
+<div class="app" id="app" hidden>
+  <aside class="side">
+    <div class="brand">
+      <span class="code">Project Peek</span>
+      <span class="name">Team Tracker</span>
+    </div>
+    <div class="switcher"><select id="courseSel" aria-label="Course"></select></div>
+    <nav class="nav" id="nav"></nav>
+    <div class="side-foot">
+      <button class="btn" id="syncBtn" style="justify-content:center">⟳ Sync now</button>
+      <button class="theme-btn" id="themeBtn">◐ Theme</button>
+      <span class="who" id="who"></span>
+      <button id="signOutBtn">Sign out</button>
+    </div>
+  </aside>
+  <main class="main" id="main"></main>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFunctions, httpsCallable }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDzGJ8x1-Pk9_hil_ebkxmmuKZ9e5QAB6U",
+  // Auth runs on firebaseapp.com. Open the app at https://project-peek.firebaseapp.com
+  // so the app and the auth handler share one origin (no cross-domain cookie loop).
+  authDomain: "project-peek.firebaseapp.com",
+  projectId: "project-peek",
+  storageBucket: "project-peek.firebasestorage.app",
+  messagingSenderId: "876068621064",
+  appId: "1:876068621064:web:ba627ae61bc37ec7737abd",
+  measurementId: "G-KFFN4R1GM4"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const functions = getFunctions(app);
+
+const STATUS_LABEL = { healthy:"Healthy", watch:"Watch", risk:"At risk", noaccess:"No access" };
+const STATUS_ORDER = ["risk","watch","healthy","noaccess"];
+const esc = s => (s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function L(){   // course-level collective labels ("teams" only when the whole course is team)
+  const team = ((COURSE && COURSE.type) || "team") === "team";
+  return { team, unit: team?"team":"project", Unit: team?"Team":"Project",
+    units: team?"teams":"projects", Units: team?"Teams":"Projects" };
+}
+function Lt(t){  // per-entry labels: each project can be team or solo
+  const solo = (t.type || ((COURSE && COURSE.type === "solo") ? "solo" : "team")) === "solo";
+  return { solo, who: solo ? "Student" : "Members" };
+}
+
+let UID=null, COURSES=[], COURSE=null, TEAMS=[], NOTES={}, RANGE=[null,null], ALLDAYS=[];
+const TODAY = new Date().toISOString().slice(0,10);
+
+/* ---------- auth ---------- */
+const $ = id => document.getElementById(id);
+const ALLOWED_DOMAIN = "neumont.edu";
+function googleProvider(){
+  const p = new GoogleAuthProvider();
+  // prompt: always show the account chooser; hd: hint the Neumont Google Workspace.
+  p.setCustomParameters({ prompt: "select_account", hd: ALLOWED_DOMAIN });
+  return p;
+}
+async function doSignIn(){
+  // Full-page redirect (no popup) — avoids Cross-Origin-Opener-Policy issues that
+  // block popup sign-in in many browsers. Same-origin with the auth handler, so it
+  // persists cleanly.
+  $("signinErr").textContent = "";
+  try {
+    await signInWithRedirect(auth, googleProvider());
+  } catch (e) {
+    console.error("sign-in failed:", e.code, e.message);
+    $("signinErr").textContent = e.code + " — " + e.message;
+  }
+}
+$("signInBtn").onclick = doSignIn;
+$("signOutBtn").onclick = () => signOut(auth);
+getRedirectResult(auth).catch(e => { console.error("redirect result:", e); $("signinErr").textContent = e.code + " — " + e.message; });
+
+onAuthStateChanged(auth, async user => {
+  console.log("auth state:", user ? user.uid : "(signed out)");
+  if (!user) { $("app").hidden = true; $("signin").hidden = false; return; }
+
+  // Enforce the @neumont.edu domain (rules enforce it too; this is the friendly gate).
+  const email = (user.email || "").toLowerCase();
+  if (!user.emailVerified || !email.endsWith("@" + ALLOWED_DOMAIN)) {
+    await signOut(auth);
+    $("app").hidden = true; $("signin").hidden = false;
+    $("signinErr").textContent = "Please sign in with your @" + ALLOWED_DOMAIN + " account.";
+    return;
+  }
+
+  UID = user.uid; $("signin").hidden = true; $("app").hidden = false;
+  $("who").textContent = user.email || user.uid;
+  try { await loadCourses(); }
+  catch (e) {
+    console.error("loadCourses failed:", e);
+    $("main").innerHTML = `<h1>Couldn't load data</h1><p class="lede">${(e.code||"")+" "+(e.message||e)}</p>`;
+  }
+});
+
+/* ---------- data ---------- */
+async function loadCourses(){
+  COURSES = [];
+  const snap = await getDocs(collection(db, `users/${UID}/courses`));
+  snap.forEach(d => COURSES.push({ id:d.id, ...d.data() }));
+  COURSES.sort((a,b)=> (a.name||a.id).localeCompare(b.name||b.id));
+  const sel = $("courseSel");
+  sel.innerHTML = COURSES.map(c=>`<option value="${esc(c.id)}">${esc(c.code||c.id)}</option>`).join("");
+  sel.onchange = () => loadCourse(sel.value);
+  if (!COURSES.length){ renderNoCourses(); return; }
+  await loadCourse(COURSES[0].id);
+}
+
+async function loadCourse(cid){
+  COURSE = COURSES.find(c=>c.id===cid) || COURSES[0];
+  $("courseSel").value = COURSE.id;
+  TEAMS = []; NOTES = {};
+  const tSnap = await getDocs(collection(db, `users/${UID}/courses/${cid}/teams`));
+  tSnap.forEach(d => TEAMS.push({ id:d.id, ...d.data() }));
+  const nSnap = await getDocs(collection(db, `users/${UID}/courses/${cid}/notes`));
+  nSnap.forEach(d => NOTES[d.id] = d.data());
+  computeRange();
+  renderNav();
+  render();
+  show(location.hash.slice(1) || "dashboard");
+}
+
+/* ---------- charts ---------- */
+function computeRange(){
+  let min=null,max=null;
+  TEAMS.forEach(t=>{ const cbd=(t.act&&t.act.commits_by_day)||{};
+    Object.keys(cbd).forEach(d=>{ if(!min||d<min)min=d; if(!max||d>max)max=d; }); });
+  if(!max||TODAY>max) max=TODAY;
+  RANGE=[min,max]; ALLDAYS=eachDay(min,max);
+}
+function eachDay(min,max){ const out=[]; if(!min) return out;
+  let d=new Date(min+"T00:00:00Z"); const end=new Date(max+"T00:00:00Z"); let g=0;
+  while(d<=end && g<400){ out.push(d.toISOString().slice(0,10)); d.setUTCDate(d.getUTCDate()+1); g++; } return out; }
+function chartSVG(cbd,{spark=false}={}){
+  if(!ALLDAYS.length) return "";
+  const w=spark?132:680,h=spark?26:96,padX=spark?1:10,padTop=spark?2:8,padBot=spark?2:16;
+  const innerW=w-padX*2,innerH=h-padTop-padBot,n=ALLDAYS.length,bw=innerW/n;
+  const vals=ALLDAYS.map(d=>cbd[d]||0),maxV=Math.max(1,...vals),baseY=h-padBot;
+  let bars="";
+  ALLDAYS.forEach((d,i)=>{ const v=cbd[d]||0; if(!v)return;
+    const bh=Math.max(spark?1.5:2, v/maxV*innerH), x=padX+i*bw+bw*0.16, y=baseY-bh;
+    bars+=`<rect class="bar-rect" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${(bw*0.68).toFixed(1)}" height="${bh.toFixed(1)}" rx="1">`+
+          (spark?"":`<title>${d}: ${v} commit${v==1?"":"s"}</title>`)+`</rect>`; });
+  let extra="";
+  if(!spark){ const ti=ALLDAYS.indexOf(TODAY), tx=ti>=0?padX+ti*bw+bw*0.5:padX+innerW;
+    extra+=`<line class="axis-base" x1="${padX}" y1="${baseY+0.5}" x2="${padX+innerW}" y2="${baseY+0.5}"/>`;
+    extra+=`<line class="today-line" x1="${tx.toFixed(1)}" y1="${padTop}" x2="${tx.toFixed(1)}" y2="${baseY}"/>`;
+    extra+=`<text class="axis-label" x="${padX}" y="${h-4}">${ALLDAYS[0]}</text>`;
+    extra+=`<text class="axis-label" x="${padX+innerW}" y="${h-4}" text-anchor="end">${ALLDAYS[ALLDAYS.length-1]}</text>`; }
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img" aria-label="commits per day">${extra}${bars}</svg>`;
+}
+function peak(cbd){ return Math.max(0, ...Object.values(cbd||{})); }
+function rateStats(cbd){
+  const days = Object.keys(cbd||{}).sort(); if (!days.length) return null;
+  const total = Object.values(cbd).reduce((a,b)=>a+b,0);
+  const first = new Date(days[0]+"T00:00:00Z"), last = new Date(days[days.length-1]+"T00:00:00Z");
+  const spanDays = Math.max(1, Math.round((last-first)/86400000) + 1);
+  const perWeek = Math.round(total / (spanDays/7) * 10) / 10;
+  const cutoff = new Date(Date.now() - 14*86400000).toISOString().slice(0,10);
+  const last14 = days.filter(d=>d>=cutoff).reduce((s,d)=>s+cbd[d],0);
+  return { perWeek, last14, spanDays };
+}
+
+/* ---------- nav ---------- */
+function renderNav(){
+  const nav=$("nav");
+  const teams=[...TEAMS].sort((a,b)=>(a.team||"").localeCompare(b.team||""));
+  nav.innerHTML = `<div class="nav-label">Overview</div>
+    <button data-view="dashboard" class="home"><span>▚ Dashboard</span></button>
+    <button data-view="manage" class="home"><span>⚙ Manage ${L().units}</span></button>
+    <div class="nav-label">${L().Units}</div>` +
+    teams.map(t=>`<button data-view="${t.id}"><span class="dot ${t.status}"></span><span class="tname">${esc(t.team)}</span></button>`).join("");
+}
+
+/* ---------- render ---------- */
+function counts(){ const c={healthy:0,watch:0,risk:0,noaccess:0}; TEAMS.forEach(t=>c[t.status]=(c[t.status]||0)+1); return c; }
+function dashboardHTML(){
+  const c=counts();
+  const rows=[...TEAMS].sort((a,b)=>STATUS_ORDER.indexOf(a.status)-STATUS_ORDER.indexOf(b.status));
+  const prio=rows.filter(t=>t.status==="risk"||t.status==="watch");
+  return `<div class="view active" id="view-dashboard">
+    <span class="eyebrow">as of ${esc(COURSE.report_date||"")}</span>
+    <h1>Team Dashboard</h1>
+    <p class="lede">${TEAMS.length} ${L().units} in ${esc(COURSE.name||COURSE.code||"")}. Status reflects GitHub commit activity.</p>
+    <div class="tiles">
+      <div class="tile risk"><div class="n">${c.risk}</div><div class="l">At risk</div></div>
+      <div class="tile watch"><div class="n">${c.watch}</div><div class="l">Watch</div></div>
+      <div class="tile healthy"><div class="n">${c.healthy}</div><div class="l">Healthy</div></div>
+      <div class="tile noaccess"><div class="n">${c.noaccess}</div><div class="l">No repo access</div></div>
+    </div>
+    ${prio.length?`<h2>Needs attention first</h2><div class="prio">${prio.map(t=>`<button class="prio-item ${t.status}" data-goto="${t.id}">
+      <span class="pill ${t.status}"><span class="d"></span>${STATUS_LABEL[t.status]}</span>
+      <span><span class="team">${esc(t.team)}</span> &nbsp;<span class="why">${esc(t.why||"")}</span></span>
+      <span class="go">open →</span></button>`).join("")}</div>`:""}
+    <h2>All ${L().units}</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>${L().Unit}</th><th>Project</th><th>Commits</th><th>Trend (commits/day)</th><th>Status</th></tr></thead>
+      <tbody>${rows.map(t=>`<tr data-goto="${t.id}">
+        <td><span class="tm">${esc(t.team)}</span></td><td class="pj">${esc(t.project)}</td>
+        <td class="num">${t.act&&t.act.ok?esc(t.act.total):"—"}</td>
+        <td>${t.act&&t.act.ok?`<span class="spark">${chartSVG(t.act.commits_by_day,{spark:true})}</span>`:'<span class="num">—</span>'}</td>
+        <td><span class="pill ${t.status}"><span class="d"></span>${STATUS_LABEL[t.status]}</span></td></tr>`).join("")}</tbody>
+    </table></div>
+    <div class="legend"><span><span class="dot healthy"></span>Healthy</span><span><span class="dot watch"></span>Watch</span>
+      <span><span class="dot risk"></span>At risk</span><span><span class="dot noaccess"></span>No repo access</span></div>
+    <p class="footnote">Commit counts are a discussion signal, not a measure of contribution size. Charts share one timeline; a dashed line marks today, so a team whose bars stop early has gone quiet. Review notes are saved to your account.</p>
+  </div>`;
+}
+function contribHTML(a){ return a.contribs.map(x=>`<div class="crow"><div class="top">
+  <span class="who">${esc(x.n)}${x.note?` <span class="note">· ${esc(x.note)}</span>`:""}</span>
+  <span class="cnt">${x.c} · ${x.p}%</span></div><div class="bar"><i style="width:${x.p}%"></i></div></div>`).join(""); }
+function teamHTML(t){
+  const s=t.sprint,a=t.act||{ok:false,obs:"No data."};
+  return `<div class="view" id="view-${t.id}">
+    <span class="eyebrow">${esc(STATUS_LABEL[t.status])}</span>
+    <div class="thead"><div class="titles"><h1>${esc(t.team)}</h1>
+      ${t.project?`<div class="project">▸ ${esc(t.project)}</div>`:""}
+      ${t.members?`<div class="members"><b>${Lt(t).who}:</b> ${esc(t.members)}</div>`:""}</div>
+      <span class="pill ${t.status}" style="margin-top:6px"><span class="d"></span>${STATUS_LABEL[t.status]}</span></div>
+    <div class="chips">
+      <a class="chip" href="${esc(t.github)}" target="_blank" rel="noopener"><span class="ic">GH</span>GitHub</a>
+      ${t.trello?`<a class="chip" href="${esc(t.trello)}" target="_blank" rel="noopener"><span class="ic">TR</span>Trello</a>`:`<span class="chip disabled"><span class="ic">TR</span>No Trello</span>`}
+    </div>
+    <div class="card"><h2>Project Summary</h2><dl class="kv">
+      <dt>Concept</dt><dd>${esc(t.prop.concept)}</dd>
+      <dt>Key features</dt><dd class="soft">${esc(t.prop.features)}</dd>
+      <dt>Tech</dt><dd class="soft">${esc(t.prop.tech)}</dd></dl>
+      ${t.prop.flag?`<div class="flag"><span class="ic">!</span><span>${esc(t.prop.flag)}</span></div>`:""}</div>
+    ${t.objectives?`<div class="card"><h2>Sprint Goal / Objectives</h2><p class="obj">${esc(t.objectives)}</p></div>`:""}
+    ${s?`<div class="card"><h2>Sprint Planning</h2><dl class="kv">
+        <dt>Product Owner</dt><dd>${esc(s.po)}</dd><dt>Scrum Master</dt><dd>${esc(s.sm)}</dd>
+        <dt>Developers</dt><dd>${esc(s.devs)}</dd><dt>Sprint Goal</dt><dd class="soft">${esc(s.goal)}</dd>
+        ${s.hours?`<dt>Est. hours</dt><dd class="soft">${esc(s.hours)}</dd>`:""}</dl></div>`:""}
+    <div class="card"><h2>GitHub Activity · as of ${esc(COURSE.report_date||"")}</h2>
+      ${a.ok?`<div class="metrics"><div class="metric"><div class="n">${esc(a.total)}</div><div class="l">commits</div></div>
+        <div class="metric"><div class="n">${esc(a.days)}</div><div class="l">active days</div></div>
+        <div class="metric"><div class="n">${esc(a.last_fmt||a.last)}</div><div class="l">last commit</div></div></div>
+        ${(()=>{const rs=rateStats(a.commits_by_day); return rs?`<div class="tby"><span class="tby-lbl">Rate</span> ≈ ${rs.perWeek} commits/week over ${rs.spanDays} days · <b>${rs.last14}</b> in the last 14 days</div>`:"";})()}
+        <div class="chart-cap"><span>commits per day</span><span>peak ${peak(a.commits_by_day)}/day · span ${esc(a.span)}</span></div>
+        <div class="chart">${chartSVG(a.commits_by_day)}</div>
+        <div class="contribs">${contribHTML(a)}</div><p class="obs">${esc(a.obs)}</p>`
+      :`<div class="noaccess-box"><span class="ic">🔒</span><span>${esc(a.obs)}</span></div>`}</div>
+    ${a.trello?`<div class="card"><h2>Trello Board · as of ${esc(a.trello.date||"")}</h2>
+      <div class="tsum">${a.trello.total_cards} open cards · ${a.trello.lists.length} lists</div>
+      <div class="tlists">${a.trello.lists.map(l=>`<div class="tlist"><div class="tn">${l.count}</div><div class="tl" title="${esc(l.name)}">${esc(l.name)}</div></div>`).join("")}</div>
+      ${a.trello.assignees?`<div class="tby"><span class="tby-lbl">Cards by assignee</span> ${a.trello.assignees.by&&a.trello.assignees.by.length?a.trello.assignees.by.map(m=>`${esc(m.n)} <b>${m.c}</b>`).join(" · "):"none assigned"}${a.trello.assignees.unassigned?` · Unassigned <b>${a.trello.assignees.unassigned}</b>`:""}</div>`:""}
+      ${a.trello.activity?(()=>{const ac=a.trello.activity; return `
+        <h2 style="margin-top:24px">Card Activity · last ${ac.window_days} days</h2>
+        <div class="metrics">
+          <div class="metric"><div class="n">${ac.moves}</div><div class="l">card moves</div></div>
+          <div class="metric"><div class="n">${ac.into_done}</div><div class="l">into Done</div></div>
+          <div class="metric"><div class="n">${ac.created}</div><div class="l">cards created</div></div>
+        </div>
+        ${ac.by_member&&ac.by_member.length?`<div class="tby"><span class="tby-lbl">Moves by member</span> ${ac.by_member.map(m=>`${esc(m.n)} <b>${m.c}</b>`).join(" · ")}</div>`:""}
+        ${ac.recent&&ac.recent.length?`<ul class="trecent">${ac.recent.map(r=>`<li><span class="rcard">${esc(r.card||"(card)")}</span><span class="rmove">${esc(r.frm)} → ${esc(r.to)}</span><span class="rby">${esc(r.by)} · ${esc(r.date)}</span></li>`).join("")}</ul>`:'<p class="muted">No card moves in this window.</p>'}`;})():""}
+      </div>`:""}
+    <div class="card"><div class="notes-head"><h2 style="border:none;margin:0;padding:0">Sprint Review Notes</h2><span class="saved" id="saved-${t.id}">saved ✓</span></div>
+      <label class="nlbl" for="rev-${t.id}">Sprint review</label>
+      <textarea id="rev-${t.id}" data-team="${t.id}" data-field="review" placeholder="What did they demo? Progress vs. sprint goal, blockers, action items…"></textarea>
+      <label class="nlbl" for="gen-${t.id}">General notes</label>
+      <textarea id="gen-${t.id}" data-team="${t.id}" data-field="general" placeholder="Anything to carry between reviews…"></textarea></div>
+  </div>`;
+}
+function manageHTML(){
+  const teams=[...TEAMS].sort((a,b)=>(a.team||"").localeCompare(b.team||"")); const l=L();
+  return `<div class="view" id="view-manage">
+    <span class="eyebrow">Manage</span>
+    <h1>Manage ${l.units}</h1>
+    <div class="mgr-head">
+      <div><span class="mgr-lbl">Course</span><div class="mgr-course">${esc(COURSE.code||"")} — ${esc(COURSE.name||"")}</div></div>
+      <div class="mgr-head-btns">
+        <button class="btn secondary" data-mact="course-edit">Edit course</button>
+        <button class="btn secondary" data-mact="course-add">+ New course</button>
+        <button class="linkbtn danger" data-mact="course-remove" data-cid="${COURSE.id}">Remove course</button>
+      </div>
+    </div>
+    <div id="courseForm" hidden></div>
+    <p class="lede">Add, edit, or remove ${l.units} for ${esc(COURSE.name||COURSE.code||"")}. Commit and Trello activity fill in automatically from each ${l.unit}'s GitHub/Trello links on the next daily sync.</p>
+    <div style="margin:18px 0"><button class="btn" data-mact="add">+ Add ${l.unit}</button></div>
+    <div id="teamForm" hidden></div>
+    <div class="mgr">${teams.map(t=>`<div class="mrow">
+      <span class="pill ${t.status}"><span class="d"></span>${STATUS_LABEL[t.status]}</span>
+      <span class="mname">${esc(t.team)}</span>
+      <span class="mproj">${esc(t.project)}</span>
+      <span class="mbtns"><button class="linkbtn" data-mact="edit" data-tid="${t.id}">Edit</button>
+        <button class="linkbtn danger" data-mact="remove" data-tid="${t.id}">Remove</button></span>
+    </div>`).join("") || `<p class="muted">No ${l.units} yet — add one above.</p>`}</div>
+  </div>`;
+}
+function teamFormHTML(t){
+  const v = t || {team:"",project:"",members:"",github:"",trello:"",status:"watch",objectives:"",type:""};
+  const statuses=["healthy","watch","risk","noaccess"];
+  const defType = v.type || ((COURSE && COURSE.type === "solo") ? "solo" : "team");
+  return `<div class="card"><h2>${t?"Edit":"Add"} ${L().unit}</h2>
+    <div class="form">
+      <label>Name<input id="f_team" value="${esc(v.team)}" placeholder="team or project name"></label>
+      <label>Type<select id="f_type"><option value="team"${defType==="team"?" selected":""}>Team</option><option value="solo"${defType==="solo"?" selected":""}>Solo</option></select></label>
+      <label>Project title (optional)<input id="f_project" value="${esc(v.project)}" placeholder="e.g. Hero's Blacksmith"></label>
+      <label>Members / student<input id="f_members" value="${esc(v.members)}" placeholder="names, comma-separated"></label>
+      <label>GitHub URL<input id="f_github" value="${esc(v.github)}" placeholder="https://github.com/owner/repo"></label>
+      <label>Trello URL<input id="f_trello" value="${esc(v.trello)}" placeholder="https://trello.com/b/xxxx (optional)"></label>
+      <label>Status<select id="f_status">${statuses.map(s=>`<option value="${s}"${s===v.status?" selected":""}>${STATUS_LABEL[s]}</option>`).join("")}</select></label>
+    </div>
+    <label class="nlbl" for="f_objectives" style="margin-top:14px">Sprint goal / objectives (optional)</label>
+    <textarea id="f_objectives" placeholder="This sprint's goal or objectives…">${esc(v.objectives||"")}</textarea>
+    <div style="margin-top:16px;display:flex;gap:10px">
+      <button class="btn" data-mact="save"${t?` data-tid="${t.id}"`:""}>Save</button>
+      <button class="btn secondary" data-mact="cancel">Cancel</button>
+    </div>
+    <p class="muted" id="formErr" style="color:var(--risk);margin-top:12px"></p></div>`;
+}
+function render(){
+  const main=$("main");
+  main.innerHTML = dashboardHTML() + TEAMS.map(teamHTML).join("") + manageHTML();
+  // fill notes + wire autosave
+  document.querySelectorAll("textarea[data-team]").forEach(ta=>{
+    const tid=ta.dataset.team, field=ta.dataset.field;
+    if(NOTES[tid] && NOTES[tid][field]!=null) ta.value = NOTES[tid][field];
+    let tmr;
+    ta.addEventListener("input", ()=>{
+      clearTimeout(tmr);
+      tmr=setTimeout(async ()=>{
+        try{
+          await setDoc(doc(db, `users/${UID}/courses/${COURSE.id}/notes/${tid}`),
+            { [field]: ta.value, updatedAt: serverTimestamp() }, { merge:true });
+          const b=$("saved-"+tid); if(b){ b.classList.add("show"); setTimeout(()=>b.classList.remove("show"),1200);}
+        }catch(e){ console.error(e); }
+      }, 600);
+    });
+  });
+}
+async function onMainClick(e){
+  const g = e.target.closest("[data-goto]"); if (g) { show(g.dataset.goto); return; }
+  const m = e.target.closest("[data-mact]"); if (!m) return;
+  const act = m.dataset.mact, tid = m.dataset.tid;
+  // team actions
+  if (act === "add")         openForm(null);
+  else if (act === "edit")   openForm(TEAMS.find(t=>t.id===tid));
+  else if (act === "cancel"){ const f=$("teamForm"); if(f){f.hidden=true; f.innerHTML="";} }
+  else if (act === "save")   await saveTeam(tid);
+  else if (act === "remove"){ if (confirm("Remove this team? Its collected activity is deleted too. This can't be undone.")) await removeTeam(tid); }
+  // course actions
+  else if (act === "course-add")    openCourseForm(null);
+  else if (act === "course-edit")   openCourseForm(COURSE);
+  else if (act === "course-cancel"){ const f=$("courseForm"); if(f){f.hidden=true; f.innerHTML="";} }
+  else if (act === "course-save")   await saveCourse(m.dataset.cid);
+  else if (act === "course-remove"){
+    if (confirm("Remove this ENTIRE course and all its teams, activity, and notes? This can't be undone.")) await removeCourse(m.dataset.cid);
+  }
+}
+function openForm(t){ const f=$("teamForm"); f.hidden=false; f.innerHTML=teamFormHTML(t); f.scrollIntoView({behavior:"smooth", block:"nearest"}); }
+function fval(id){ const el=$(id); return el ? el.value.trim() : ""; }
+function slugId(name){
+  const base = name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,24) || "team";
+  return base + "-" + Date.now().toString(36).slice(-4);
+}
+async function saveTeam(tid){
+  const data = { team:fval("f_team"), project:fval("f_project"), members:fval("f_members"),
+                 github:fval("f_github"), trello:fval("f_trello"), status:fval("f_status"),
+                 objectives:fval("f_objectives"), type:fval("f_type")||"team" };
+  if (!data.team){ $("formErr").textContent = "Name is required."; return; }
+  let id = tid, payload = { ...data };
+  if (!id){ id = slugId(data.team); payload.prop={concept:"",features:"",tech:"",flag:""}; payload.sprint=null; payload.why=""; payload.notes=""; }
+  try {
+    await setDoc(doc(db, `users/${UID}/courses/${COURSE.id}/teams/${id}`), payload, { merge:true });
+    await loadCourse(COURSE.id); show("manage");
+  } catch(e){ console.error(e); const fe=$("formErr"); if(fe) fe.textContent = e.code+" — "+e.message; }
+}
+async function removeTeam(tid){
+  try {
+    await deleteDoc(doc(db, `users/${UID}/courses/${COURSE.id}/teams/${tid}`));
+    await deleteDoc(doc(db, `users/${UID}/courses/${COURSE.id}/notes/${tid}`)).catch(()=>{});
+    await loadCourse(COURSE.id); show("manage");
+  } catch(e){ console.error(e); alert("Couldn't remove: " + (e.message||e)); }
+}
+
+/* ---------- course management ---------- */
+function todayLabel(){
+  const M=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const d=new Date(); return `${M[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+}
+function courseId(code){
+  let base = code.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,24) || "course";
+  const ids = new Set(COURSES.map(c=>c.id)); let id=base, i=2;
+  while (ids.has(id)){ id = base+"-"+i; i++; }
+  return id;
+}
+function courseFormHTML(c){
+  const v = c || { code:"", name:"", term:"", report_date: todayLabel(), type:"team" };
+  const ty = v.type || "team";
+  return `<div class="card"><h2>${c?"Edit course":"New course"}</h2>
+    <div class="form">
+      <label>Course code<input id="c_code" value="${esc(v.code)}" placeholder="e.g. BIT221"></label>
+      <label>Course name<input id="c_name" value="${esc(v.name)}" placeholder="e.g. BIT221 – Data Structures"></label>
+      <label>Default type<select id="c_type"><option value="team"${ty==="team"?" selected":""}>Team projects</option><option value="solo"${ty==="solo"?" selected":""}>Solo projects</option><option value="mixed"${ty==="mixed"?" selected":""}>Mixed</option></select></label>
+      <label>Term<input id="c_term" value="${esc(v.term)}" placeholder="e.g. Fall 2026"></label>
+      <label>Report date<input id="c_report" value="${esc(v.report_date)}" placeholder="e.g. ${todayLabel()}"></label>
+    </div>
+    <div style="margin-top:16px;display:flex;gap:10px">
+      <button class="btn" data-mact="course-save"${c?` data-cid="${c.id}"`:""}>Save</button>
+      <button class="btn secondary" data-mact="course-cancel">Cancel</button>
+    </div>
+    <p class="muted" id="courseErr" style="color:var(--risk);margin-top:12px"></p></div>`;
+}
+function openCourseForm(c){ const f=$("courseForm"); if(!f) return; f.hidden=false; f.innerHTML=courseFormHTML(c); f.scrollIntoView({behavior:"smooth", block:"nearest"}); }
+async function saveCourse(cid){
+  const code=fval("c_code"), name=fval("c_name"), term=fval("c_term"), report=fval("c_report"), type=fval("c_type")||"team";
+  if(!code){ const ce=$("courseErr"); if(ce) ce.textContent="Course code is required."; return; }
+  const id = cid || courseId(code);
+  try {
+    await setDoc(doc(db, `users/${UID}/courses/${id}`),
+      { code, name: name || code, term, report_date: report || todayLabel(), type }, { merge:true });
+    await loadCourses();      // refresh switcher
+    await loadCourse(id);     // switch to the new/edited course
+    show("manage");
+  } catch(e){ console.error(e); const ce=$("courseErr"); if(ce) ce.textContent = e.code+" — "+e.message; }
+}
+async function removeCourse(cid){
+  try {
+    for (const sub of ["teams","notes"]){
+      const snap = await getDocs(collection(db, `users/${UID}/courses/${cid}/${sub}`));
+      for (const d of snap.docs){ await deleteDoc(d.ref); }
+    }
+    await deleteDoc(doc(db, `users/${UID}/courses/${cid}`));
+    await loadCourses();
+    if (COURSES.length){ await loadCourse(COURSES[0].id); show("manage"); }
+    else renderNoCourses();
+  } catch(e){ console.error(e); alert("Couldn't remove course: " + (e.message||e)); }
+}
+function renderNoCourses(){
+  $("nav").innerHTML=`<div class="nav-label">Overview</div>`; $("courseSel").innerHTML="";
+  $("main").innerHTML = `<span class="eyebrow">Getting started</span><h1>Create your first course</h1>
+    <p class="lede">Add a course, then add its teams. The daily sync will fill in each team's commit and Trello activity.</p>
+    <div style="margin:18px 0"><button class="btn" data-mact="course-add">+ New course</button></div>
+    <div id="courseForm" hidden></div>
+    <div class="empty">
+      <p style="color:var(--ink-soft)">Prefer to seed from local files instead? Your account UID (for the collector) is:</p>
+      <p><code>${esc(UID)}</code></p>
+    </div>`;
+}
+
+/* ---------- routing + theme ---------- */
+function show(view){
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  (document.getElementById("view-"+view)||document.getElementById("view-dashboard"))?.classList.add("active");
+  document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active", b.dataset.view===view));
+  window.scrollTo({top:0});
+  if(location.hash.slice(1)!==view) history.replaceState(null,"","#"+view);
+}
+window.addEventListener("hashchange", ()=>show(location.hash.slice(1)||"dashboard"));
+$("nav").addEventListener("click", e=>{ const b=e.target.closest("button[data-view]"); if(b) show(b.dataset.view); });
+$("main").addEventListener("click", onMainClick);   // delegated: team + course actions (works on all views)
+const root=document.documentElement;
+$("themeBtn").onclick=()=>{ const cur=root.getAttribute("data-theme");
+  const dark=cur?cur==="dark":matchMedia("(prefers-color-scheme: dark)").matches;
+  root.setAttribute("data-theme", dark?"light":"dark"); };
+
+$("syncBtn").onclick = async () => {
+  const b=$("syncBtn"); if(b.disabled) return;
+  const label=b.textContent; b.disabled=true; b.textContent="⟳ Syncing…";
+  try{
+    const res = await httpsCallable(functions, "sync_now", { timeout: 300000 })();
+    const d = res.data || {};
+    if (COURSE) await loadCourse(COURSE.id);
+    b.textContent = `✓ Synced ${d.teams!=null?d.teams:""}`.trim();
+    setTimeout(()=>{ b.textContent=label; b.disabled=false; }, 2500);
+  }catch(e){
+    console.error("sync_now failed:", e);
+    alert("Sync failed: " + (e.message||e) + "\n\n(If this says the function isn't found, the Cloud Function may not be deployed yet.)");
+    b.textContent=label; b.disabled=false;
+  }
+};
+</script>
+</body>
+</html>

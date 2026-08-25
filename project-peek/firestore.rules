@@ -1,0 +1,29 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Each instructor owns everything under /users/{their uid}.
+    // The local collector uses the Admin SDK, which bypasses these rules, so it
+    // can write course/team data. From the browser, course + team data is
+    // READ-ONLY; only the review notes are writable. That guarantees the app can
+    // never clobber collected data.
+
+    // Only verified @neumont.edu accounts are allowed, and only to their own data.
+    function isNeumont() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email.matches('.*@neumont[.]edu');
+    }
+    function isOwner(uid) {
+      return isNeumont() && request.auth.uid == uid;
+    }
+
+    // An instructor has full read/write over their own subtree (courses, teams, notes).
+    // The app writes the fields you edit (via merge) and your notes; the local collector
+    // uses the Admin SDK (bypasses rules) to write only the measured `act` field. Because
+    // each side merges disjoint fields, they never clobber each other.
+    match /users/{uid}/{document=**} {
+      allow read, write: if isOwner(uid);
+    }
+  }
+}

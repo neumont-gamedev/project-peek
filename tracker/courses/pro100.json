@@ -1,0 +1,324 @@
+{
+  "id": "pro100",
+  "code": "PRO100",
+  "name": "PRO100 – Introductory Software Projects",
+  "term": "",
+  "report_date": "Aug 23, 2026",
+  "output_basename": "PRO100_Team_Tracker",
+  "teams": [
+    {
+      "id": "eldrazi",
+      "team": "Eldrazi Titans",
+      "project": "Tower of Spite",
+      "members": "Bode Anderson, Daniel Starr, Tommy",
+      "github": "https://github.com/SpiteTowers/Tower-of-Spite",
+      "trello": "https://trello.com/b/gWOfR5Kj",
+      "status": "healthy",
+      "notes": "",
+      "prop": {
+        "concept": "A roguelike tower-climbing game where enemies evolve and grow harder the higher you climb.",
+        "features": "Procedurally generated floors with enemies and hazards; pick a new evolution or danger each floor; a shop to buy items and upgrades.",
+        "tech": "Godot (new to the team), Visual Studio, Piskel for sprite art.",
+        "flag": ""
+      },
+      "sprint": {
+        "po": "Bode Anderson",
+        "sm": "Daniel",
+        "devs": "Tommy",
+        "goal": "Have a basis for the game with a player, stage, and basic hazards.",
+        "hours": "Bode 10 hrs, Daniel 4 hrs, Tommy 6 hrs"
+      },
+      "contrib_notes": {},
+      "activity_obs": "Healthy. Steady work across many active days with all three members contributing fairly evenly."
+    },
+    {
+      "id": "magic",
+      "team": "Magic in Cards",
+      "project": "Fitness Tracker of OOO",
+      "members": "Kathy Woods, Thomas Coburn, Alexis Garcia Castro",
+      "github": "https://github.com/woodskathy2006-cell/Well-then",
+      "trello": "https://trello.com/b/WL2AqTW5/fitness-tracker-of-ooo",
+      "status": "watch",
+      "notes": "",
+      "prop": {
+        "concept": "A specialized fitness calendar that reminds beginners to do a daily minimum (gym, lifting, stretching, balanced diet).",
+        "features": "Daily fitness goals with reminders; user-created incentives and rewards (e.g. a treat or a rest day); functions as a specialized reminder calendar.",
+        "tech": "Java, IntelliJ.",
+        "flag": "Proposal titles the project “Calander Fitness”; the Trello board is named “Fitness Tracker of OOO.” Confirm the actual project name."
+      },
+      "sprint": {
+        "po": "Thomas Coburn",
+        "sm": "Alexis GC",
+        "devs": "Kathy",
+        "goal": "Create a program that lets the user select a workout routine, populate it, and customize the routine as they see fit.",
+        "hours": "Kathy – create workout lists (4 hrs); Thomas – populate workout lists (≥ 5 hrs); Alexis – enable customization (~3–4 hrs)"
+      },
+      "contrib_notes": {
+        "woodskathy2006-cell": "Kathy",
+        "AlexisGarciaCastro": "Alexis",
+        "CommanderLack": "likely Thomas"
+      },
+      "activity_obs": "All three members are contributing with a reasonable spread, using feature branches and merges. A Java project with essential folders, a MainMenu, and activity lists in place. Watch: check the commit chart for recent gaps — it trailed the other teams late in the sprint. A few low-detail messages (“Test point”, “Bug fix”).",
+      "why": "Balanced 3-way work, but the repo went quiet late in the sprint"
+    },
+    {
+      "id": "nerds",
+      "team": "Nerds with Ag",
+      "project": "PRO100 Main Project",
+      "members": "Michael Lueders, Evan Westermann, Tyler Klemann, Emmalee Rich",
+      "github": "https://github.com/FoistName/PRO100-MainProject",
+      "trello": "https://trello.com/b/RtHIyLxU/pro100-mainproject",
+      "status": "healthy",
+      "notes": "GitHub repo is private, but the instructor has been granted access. (collect.py needs a GITHUB_TOKEN with access to pull it automatically.)",
+      "prop": {
+        "concept": "A habit-tracker app that reminds you to do habits and tracks your history of completing them.",
+        "features": "Set reminders for specific times (mark complete early), view history of completed goals, add/remove goals, data persists. Secondary: timeline and consistency view. Stretch: points, a “Little Guy,” and cosmetic rewards.",
+        "tech": "Java, Java GUI (new to the team), IntelliJ.",
+        "flag": "Full roster is four people; the unnamed Product Owner from sprint planning is one of Michael Lueders or Evan Westermann (the FoistName / Riordan0407 accounts)."
+      },
+      "sprint": {
+        "po": "Unassigned — listed as <INSERT NAME>, follow up",
+        "sm": "Tyler Klemann",
+        "devs": "Tyler (1 hr), Emmalee (4 hrs), Michael (4 hrs), <unnamed> (5 hrs)",
+        "goal": "Not clearly defined — meeting notes state “we all have different goals.” Needs a unified sprint goal.",
+        "hours": "Tyler 1, Emmalee 4, Michael 4, <unnamed> 5"
+      },
+      "contrib_notes": {
+        "Tyler-Klemann": "Tyler",
+        "EmmaleeRich": "Emmalee"
+      },
+      "activity_obs": "Healthy and balanced — all four contributing fairly evenly, using feature branches and pull requests. Coaching points: much work lands straight on main, and several messages are low-detail (“test”, “proof of existence”). The planning gaps (no named PO, undefined goal) still stand despite the solid activity.",
+      "manual": {
+        "commits_by_day": {
+          "2026-08-04": 1,
+          "2026-08-05": 3,
+          "2026-08-10": 10,
+          "2026-08-11": 12,
+          "2026-08-12": 10,
+          "2026-08-13": 4,
+          "2026-08-17": 7
+        },
+        "contributors": [
+          {
+            "n": "FoistName",
+            "c": 14
+          },
+          {
+            "n": "Tyler-Klemann",
+            "c": 13
+          },
+          {
+            "n": "Riordan0407",
+            "c": 11
+          },
+          {
+            "n": "EmmaleeRich",
+            "c": 9
+          }
+        ]
+      }
+    },
+    {
+      "id": "paladins",
+      "team": "Paladins is Fun",
+      "project": "Palarivals Watch",
+      "members": "Robert Goodman, Asdel (Damon) Nelsen, Nicholas Griffin",
+      "github": "https://github.com/Nicholas-Griffin/project_palarivals_watch",
+      "trello": "https://trello.com/b/KfqESfYi/pro100",
+      "status": "watch",
+      "notes": "Repo is now public (was private earlier).",
+      "prop": {
+        "concept": "A browser auto-battler using characters from hero-shooter games, styled after Super Auto Pets.",
+        "features": "Auto-battle against AI; player and hero stats; defeat enemies to drain their HP (last team standing wins); build your team in a between-round shop with earned money; view heroes and stats from the main menu.",
+        "tech": "HTML/CSS/JS, Node.js, Visual Studio.",
+        "flag": ""
+      },
+      "sprint": null,
+      "contrib_notes": {
+        "Nicholas-Griffin": "Nicholas"
+      },
+      "activity_obs": "Repo came public after being private. Solid activity — 55 commits across 7 active days, all three members contributing and still active late in the sprint, though ShadowVoid22 accounts for well over half the commits. Flag: no Sprint 1 planning was submitted, so there are no roles or a sprint goal on record — ask the team for those.",
+      "why": "No sprint plan on record; one member wrote over half the commits"
+    },
+    {
+      "id": "sc2a",
+      "team": "PRO100 SC2A Standard Group",
+      "project": "Mathium (SC2 Project)",
+      "members": "Orion Keller, Porter Palmer, Shylah Mosqueda, Zackaria Stanley",
+      "github": "https://github.com/PorterPalmer/PRO100_-_SC2_Project_Repository",
+      "trello": "https://trello.com/b/mfqwMYBO",
+      "status": "risk",
+      "notes": "",
+      "prop": {
+        "concept": "“Mathium” — a child edutainment app teaching math fundamentals with light game-design elements.",
+        "features": "Dynamic question generation; addition, subtraction, multiplication, division and basic algebra; track score, high score, streak and grade; learning aids; switch grade levels on the fly; save progress between sessions.",
+        "tech": "C# (new to one member), GitHub (new), Visual Studio.",
+        "flag": ""
+      },
+      "sprint": {
+        "po": "Porter Palmer",
+        "sm": "Zackaria Stanley",
+        "devs": "Shylah Mosqueda, Orion Keller",
+        "goal": "Get the basic application working with the user able to interact with the UI for the core features: selecting a grade level, accessing resources to learn grade-level math operations, and taking quizzes to assess understanding.",
+        "hours": "Orion 21, Porter 20, Shylah 18, Zackaria 18"
+      },
+      "contrib_notes": {
+        "Onion4179": "likely Orion",
+        "shyMos-coder": "likely Shylah"
+      },
+      "activity_obs": "Lowest overall volume of any accessible team — a handful of commits across only a few active days, with both developers (Orion, Shylah) at just 1–2 commits. They did resume on Aug 18 after a multi-day gap (a positive), but participation and total volume remain the concern. The repo language reads as HTML, which may not match the planned application.",
+      "why": "Lowest commit volume; both developers barely committing"
+    },
+    {
+      "id": "teama",
+      "team": "Team A",
+      "project": "2 Racoons in a Trench Coat",
+      "members": "Edward Vargas, Cody Mays",
+      "github": "https://github.com/cmays-maker/solid-broccoli",
+      "trello": "https://trello.com/b/w8uoPLw4/2-racoons-in-a-trench-coat",
+      "status": "risk",
+      "notes": "No Sprint 1 planning submitted. As of Aug 18 the repo is no longer publicly accessible (made private, renamed, or removed) — re-confirm access.",
+      "prop": {
+        "concept": "A reference website for building Arma 3 loadouts/kits with the guild's mods.",
+        "features": "Proposal is very thin — essentially “a reference for making a loadout with the guild mods.” Few concrete features listed.",
+        "tech": "GitHub Pages (hosting), VS Code, HTML/CSS/JS, Trello.",
+        "flag": "Direction is unclear: the proposal describes an Arma 3 kit WEBSITE, the Trello is named “2 Racoons in a Trench Coat,” and the repo mixed C# card/deck/player game classes with a website index file. Nail down what they are actually building."
+      },
+      "sprint": null,
+      "contrib_notes": {
+        "cmays-maker": "Cody"
+      },
+      "activity_obs": "Very early stage and stalled. Only 3 commits — class shells (deck / player / card) plus a website “index” file. Only two members committed. Combined with no Sprint 1 planning, this is the team furthest behind. Repo went private/inaccessible on Aug 18 — re-confirm access.",
+      "why": "Only 3 commits, no sprint plan, repo went private Aug 18",
+      "manual": {
+        "commits_by_day": {
+          "2026-08-12": 2,
+          "2026-08-13": 1
+        },
+        "contributors": [
+          {
+            "n": "cmays-maker",
+            "c": 2
+          },
+          {
+            "n": "L0cKo-ThE-bLoCkO",
+            "c": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "teamb",
+      "team": "Team B",
+      "project": "Productivity Manager",
+      "members": "Ammon Wanner, Landon Miura, Marvin Lazo Morales, G Rodriguez-Rubio",
+      "github": "https://github.com/SOTKingsman/ProductivityManager",
+      "trello": "https://trello.com/b/B6jLH8j4/productivity-manager",
+      "status": "healthy",
+      "notes": "",
+      "prop": {
+        "concept": "“Productivity Manager” — a weekly planner for scheduling tasks and deadlines with desktop notifications as deadlines approach.",
+        "features": "Task lists, scheduled tasks, desktop notifications. Stretch: calendar view, categorization, task-progress indicator.",
+        "tech": "C# with the DateTime package and a C# GUI (C# is new to two members).",
+        "flag": "GitHub handles: Ammon Wanner ≈ SOTKingsman, G Rodriguez-Rubio ≈ bygbuggygmoneybags, Landon Miura = LandonMiu917, Marvin = MLazoM."
+      },
+      "sprint": {
+        "po": "G",
+        "sm": "Ammon",
+        "devs": "Landon, Marvin",
+        "goal": "By the end of the sprint, implement the task model and have a functional UI.",
+        "hours": ""
+      },
+      "contrib_notes": {
+        "SOTKingsman": "likely Ammon / SM",
+        "LandonMiu917": "Landon",
+        "MLazoM": "Marvin",
+        "bygbuggygmoneybags": "likely G / PO"
+      },
+      "activity_obs": "Healthy — all four contributing, with per-person branches (landon, ammon, marvin, G) and pull requests: a mature workflow for this class. Progress matches the sprint goal — Task Model, a basic database, and page design with button functionality are in place. Caveats: many early commits are Git-setup churn and noise; the Product Owner (G) has the fewest commits."
+    },
+    {
+      "id": "teamc",
+      "team": "Team C",
+      "project": "Rags to Riches",
+      "members": "Sam Perry, Lyla Holloway, Jose Hernandez",
+      "github": "https://github.com/joseluhern/RagsToRiches",
+      "trello": "https://trello.com/b/2d6HyYHE/rags-to-riches",
+      "status": "watch",
+      "notes": "",
+      "prop": {
+        "concept": "“Rags to Riches” — a life-sim where the user alternates between a day job and gambling, aiming to make as much money as possible.",
+        "features": "A money tracker is the core; choose to work (a trash-search mini-game) or gamble (slots, blackjack, roulette); mood/personal tracker; wealth drives a good or bad ending.",
+        "tech": "C#, VS Code, plus a graphics library for images and game logic (both new).",
+        "flag": ""
+      },
+      "sprint": {
+        "po": "Jose",
+        "sm": "Sam",
+        "devs": "Lyla",
+        "goal": "Start the UI for everything and connect it together, aiming to start adding the games and logic next sprint. UI design: a roulette table for the start menu; every menu in red and black.",
+        "hours": ""
+      },
+      "contrib_notes": {
+        "joseluhern": "Jose",
+        "sperry042": "likely Sam",
+        "lilacwasplanted": "likely Lyla"
+      },
+      "activity_obs": "Uneven division of labor. Jose (Product Owner) is doing most of the coding, while Lyla — the team's only listed developer — has just 1 commit. Worth discussing workload balance.",
+      "why": "Lopsided workload: PO writing most of it, the sole dev has 1 commit"
+    },
+    {
+      "id": "bigpig",
+      "team": "The Big Pig Boies",
+      "project": "Ant Colony",
+      "members": "Jeremy Williams, Dylan Pratt, Brett Beloin, Caleb McCool",
+      "github": "https://github.com/brettbeloin/Ant-Colony",
+      "trello": "https://trello.com/b/xgXZWkeV/the-big-pig-bois-squad",
+      "status": "healthy",
+      "notes": "",
+      "prop": {
+        "concept": "“Ant Colony” — a resource-management dungeon crawler where you build up an ant colony and prepare to survive an enemy invasion.",
+        "features": "Allocate ants to gather resources, feed ants, lay eggs, tend larva, manage combat units; limited actions per day; send ants into a dungeon for risk/reward; ants level up and gain gear; survive a final enemy-colony invasion to win.",
+        "tech": "C# (confirmed), GitHub, Trello.",
+        "flag": "Language is settled on C#. Scope was the team's other self-identified risk — worth confirming it still feels achievable."
+      },
+      "sprint": {
+        "po": "Dylan Pratt",
+        "sm": "Brett Beloin",
+        "devs": "Caleb McCool, Jeremy William",
+        "goal": "Finish setting up GitHub and Trello, set up the project framework, and implement the methods needed in later weeks. Priority: finish GitHub and Trello user stories, create all needed files, implement methods for later.",
+        "hours": "~40 hrs total, ~10 hrs each"
+      },
+      "contrib_notes": {
+        "jeremyjwill0893-sys": "Jeremy"
+      },
+      "status_note": "",
+      "activity_obs": "Healthy — all four members now contributing, including Jeremy, who has caught up (he had only 1 commit earlier in the sprint). Strong, sustained activity across many active days; Perihelion707 leads at roughly 40%."
+    },
+    {
+      "id": "coders",
+      "team": "The Coders",
+      "project": "Hero's Blacksmith",
+      "members": "Austin Woods, Izak Fernandez, Lucas Booth, Zachary Borda",
+      "github": "https://github.com/ieatyoureggrolls/TheCodersRepo",
+      "trello": "https://trello.com/b/LRgSZUc6/the-coders",
+      "status": "healthy",
+      "notes": "",
+      "prop": {
+        "concept": "“Hero's Blacksmith” — you play a blacksmith crafting weapons powerful enough for heroes to defeat evil.",
+        "features": "Weapon stats and magic enchantments that vary by how a weapon is made; an auto-battler where victory depends on weapon quality; craft to counter enemy weaknesses. Optional: durability, armor, ranged weapons, team/AoE combat.",
+        "tech": "C#, Visual Studio.",
+        "flag": ""
+      },
+      "sprint": {
+        "po": "Izak Fernandez",
+        "sm": "Austin Woods",
+        "devs": "Zachary Borda, Lucas Booth",
+        "goal": "By the end of the sprint, have the bare necessities for the game to run: an auto-battler, weapon crafting, proper console outputs, and a story to tie them together.",
+        "hours": "~8 hrs per person / week (~32 hrs total)"
+      },
+      "contrib_notes": {},
+      "activity_obs": "Best-balanced team. All four members committing steadily across many active days. Healthy."
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+# ---------------------------------------------------------------
+# SECRETS — never commit. These grant live access to Firebase,
+# GitHub, and Trello. The .template files ARE committed.
+# ---------------------------------------------------------------
+secrets.local.ps1
+*.local.ps1
+!*.local.ps1.template
+serviceAccountKey.json
+**/serviceAccountKey*.json
+*-service-account*.json
+.env
+.env.*
+!.env.example
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+env/
+*.egg-info/
+
+# --- Firebase ---
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+.runtimeconfig.json
+
+# --- Generated output (rebuild with: python tracker/run_all.py) ---
+/*.html
+/*.docx
+~$*.docx
+tracker/logs/
+
+# --- OS / OneDrive noise ---
+Thumbs.db
+desktop.ini
+.DS_Store

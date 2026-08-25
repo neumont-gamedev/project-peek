@@ -1,0 +1,493 @@
+<title>__COURSE_CODE__ Team Tracker</title>
+<style>
+  :root {
+    --ground:#eaecf1; --surface:#ffffff; --surface-2:#f5f6f9;
+    --ink:#1a2130; --ink-soft:#5a6579; --ink-faint:#8b93a3;
+    --line:#dde1e9; --line-soft:#e9ecf2;
+    --accent:#3b5bd9; --accent-ink:#2f49b0; --accent-soft:rgba(59,91,217,.10);
+    --healthy:#2f8f4e; --healthy-bg:rgba(47,143,78,.12);
+    --watch:#b5720a;  --watch-bg:rgba(181,114,10,.13);
+    --risk:#c8402f;   --risk-bg:rgba(200,64,47,.12);
+    --noaccess:#6b7688; --noaccess-bg:rgba(107,118,136,.12);
+    --shadow:0 1px 2px rgba(20,28,45,.04), 0 4px 16px rgba(20,28,45,.06);
+    --font-sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --font-mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:#0f1219; --surface:#171c26; --surface-2:#1e2430;
+      --ink:#e7eaf1; --ink-soft:#9aa3b5; --ink-faint:#6c7688;
+      --line:#2b3240; --line-soft:#242b38;
+      --accent:#8098f7; --accent-ink:#9fb2ff; --accent-soft:rgba(128,152,247,.14);
+      --healthy:#5ec27f; --healthy-bg:rgba(94,194,127,.14);
+      --watch:#e0a341;  --watch-bg:rgba(224,163,65,.15);
+      --risk:#ef6d5c;   --risk-bg:rgba(239,109,92,.15);
+      --noaccess:#8a94a6; --noaccess-bg:rgba(138,148,166,.14);
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.28);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#0f1219; --surface:#171c26; --surface-2:#1e2430;
+    --ink:#e7eaf1; --ink-soft:#9aa3b5; --ink-faint:#6c7688;
+    --line:#2b3240; --line-soft:#242b38;
+    --accent:#8098f7; --accent-ink:#9fb2ff; --accent-soft:rgba(128,152,247,.14);
+    --healthy:#5ec27f; --healthy-bg:rgba(94,194,127,.14);
+    --watch:#e0a341;  --watch-bg:rgba(224,163,65,.15);
+    --risk:#ef6d5c;   --risk-bg:rgba(239,109,92,.15);
+    --noaccess:#8a94a6; --noaccess-bg:rgba(138,148,166,.14);
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.28);
+  }
+
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--ground); color:var(--ink); font-family:var(--font-sans);
+    line-height:1.55; -webkit-font-smoothing:antialiased; }
+  a { color:var(--accent-ink); text-underline-offset:2px; }
+  ::selection { background:var(--accent-soft); }
+
+  .app { display:grid; grid-template-columns:264px minmax(0,1fr); min-height:100vh; }
+
+  .side { position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+    background:var(--surface); border-right:1px solid var(--line); padding:22px 16px; }
+  .brand { display:flex; flex-direction:column; gap:2px; padding:0 8px 16px; margin-bottom:8px;
+    border-bottom:1px solid var(--line-soft); }
+  .brand .code { font-family:var(--font-mono); font-size:12px; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--accent-ink); font-weight:600; }
+  .brand .name { font-size:16px; font-weight:650; letter-spacing:-.01em; }
+  .brand .meta { font-family:var(--font-mono); font-size:11px; color:var(--ink-faint); margin-top:3px; }
+  .nav { display:flex; flex-direction:column; gap:1px; margin-top:12px; }
+  .nav-label { font-family:var(--font-mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--ink-faint); padding:12px 8px 6px; }
+  .nav button { all:unset; cursor:pointer; display:flex; align-items:center; gap:9px;
+    padding:7px 8px; border-radius:7px; font-size:13.5px; color:var(--ink-soft); }
+  .nav button:hover { background:var(--surface-2); color:var(--ink); }
+  .nav button.active { background:var(--accent-soft); color:var(--ink); font-weight:600; }
+  .nav button:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
+  .nav .dot { width:8px; height:8px; border-radius:50%; flex:0 0 auto; }
+  .nav .home { font-family:var(--font-mono); font-size:13px; }
+  .nav .tname { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+  .dot.healthy{background:var(--healthy);} .dot.watch{background:var(--watch);}
+  .dot.risk{background:var(--risk);} .dot.noaccess{background:var(--noaccess);}
+
+  .main { padding:34px clamp(20px,4vw,56px) 80px; max-width:1040px; }
+  .view { display:none; animation:fade .22s ease; }
+  .view.active { display:block; }
+  @keyframes fade { from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;} }
+  @media (prefers-reduced-motion: reduce){ .view.active{animation:none;} }
+
+  .eyebrow { font-family:var(--font-mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--ink-faint); }
+  h1 { font-size:clamp(24px,3.4vw,33px); font-weight:680; letter-spacing:-.02em; margin:6px 0 0;
+    text-wrap:balance; }
+  h2 { font-size:13px; font-family:var(--font-mono); letter-spacing:.12em; text-transform:uppercase;
+    color:var(--ink-soft); font-weight:600; margin:0 0 14px; padding-bottom:9px;
+    border-bottom:1px solid var(--line-soft); }
+  .lede { color:var(--ink-soft); font-size:15px; max-width:64ch; margin:14px 0 0; }
+
+  .tiles { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:26px 0 30px; }
+  .tile { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:15px 16px;
+    box-shadow:var(--shadow); position:relative; overflow:hidden; }
+  .tile::before { content:""; position:absolute; left:0; top:0; bottom:0; width:3px; }
+  .tile.healthy::before{background:var(--healthy);} .tile.watch::before{background:var(--watch);}
+  .tile.risk::before{background:var(--risk);} .tile.noaccess::before{background:var(--noaccess);}
+  .tile .n { font-family:var(--font-mono); font-size:30px; font-weight:600; line-height:1;
+    font-variant-numeric:tabular-nums; }
+  .tile.healthy .n{color:var(--healthy);} .tile.watch .n{color:var(--watch);}
+  .tile.risk .n{color:var(--risk);} .tile.noaccess .n{color:var(--noaccess);}
+  .tile .l { font-size:12.5px; color:var(--ink-soft); margin-top:6px; }
+
+  .prio { display:flex; flex-direction:column; gap:10px; margin-bottom:34px; }
+  .prio-item { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:14px;
+    background:var(--surface); border:1px solid var(--line); border-left-width:3px; border-radius:10px;
+    padding:13px 16px; box-shadow:var(--shadow); cursor:pointer; text-align:left; all:unset;
+    box-sizing:border-box; }
+  .prio-item:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .prio-item.risk{border-left-color:var(--risk);} .prio-item.watch{border-left-color:var(--watch);}
+  .prio-item:hover{ background:var(--surface-2); }
+  .prio-item .team { font-weight:640; font-size:14.5px; }
+  .prio-item .why { color:var(--ink-soft); font-size:13px; }
+  .prio-item .go { font-family:var(--font-mono); font-size:12px; color:var(--accent-ink); }
+
+  .tablewrap { overflow-x:auto; border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow);
+    background:var(--surface); }
+  table { border-collapse:collapse; width:100%; font-size:13.5px; min-width:720px; }
+  thead th { text-align:left; font-family:var(--font-mono); font-size:10.5px; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--ink-faint); font-weight:600; padding:12px 16px;
+    border-bottom:1px solid var(--line); background:var(--surface-2); }
+  tbody td { padding:12px 16px; border-bottom:1px solid var(--line-soft); vertical-align:middle; }
+  tbody tr:last-child td { border-bottom:none; }
+  tbody tr { cursor:pointer; }
+  tbody tr:hover { background:var(--surface-2); }
+  td .tm { font-weight:640; }
+  td .pj { color:var(--ink-soft); }
+  td.num { font-family:var(--font-mono); font-variant-numeric:tabular-nums; color:var(--ink-soft); }
+
+  .pill { display:inline-flex; align-items:center; gap:6px; font-family:var(--font-mono); font-size:11px;
+    font-weight:600; letter-spacing:.04em; padding:3px 9px 3px 7px; border-radius:20px; white-space:nowrap; }
+  .pill .d{ width:7px; height:7px; border-radius:50%; }
+  .pill.healthy{color:var(--healthy); background:var(--healthy-bg);} .pill.healthy .d{background:var(--healthy);}
+  .pill.watch{color:var(--watch); background:var(--watch-bg);} .pill.watch .d{background:var(--watch);}
+  .pill.risk{color:var(--risk); background:var(--risk-bg);} .pill.risk .d{background:var(--risk);}
+  .pill.noaccess{color:var(--noaccess); background:var(--noaccess-bg);} .pill.noaccess .d{background:var(--noaccess);}
+
+  .legend { display:flex; flex-wrap:wrap; gap:16px; margin-top:16px; font-size:12.5px; color:var(--ink-soft); }
+  .legend span { display:inline-flex; align-items:center; gap:7px; }
+  .footnote { font-size:12px; color:var(--ink-faint); margin-top:22px; max-width:74ch; }
+
+  .thead { display:flex; flex-wrap:wrap; align-items:flex-start; gap:14px 18px; }
+  .thead .titles{ flex:1 1 320px; }
+  .thead .project { font-family:var(--font-mono); color:var(--accent-ink); font-size:14px; margin-top:8px; }
+  .members { color:var(--ink-soft); font-size:13.5px; margin-top:10px; }
+  .members b{ color:var(--ink); font-weight:600; }
+  .chips { display:flex; flex-wrap:wrap; gap:9px; margin:18px 0 4px; }
+  .chip { display:inline-flex; align-items:center; gap:7px; font-size:13px; text-decoration:none;
+    color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:8px;
+    padding:7px 12px; box-shadow:var(--shadow); }
+  .chip:hover{ border-color:var(--accent); color:var(--accent-ink); }
+  .chip .ic{ font-family:var(--font-mono); font-size:11px; color:var(--ink-faint); letter-spacing:.06em; }
+  .chip.disabled{ opacity:.55; pointer-events:none; }
+
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:22px 24px;
+    box-shadow:var(--shadow); margin-top:22px; }
+  .kv { display:grid; grid-template-columns:132px 1fr; gap:8px 18px; font-size:14px; }
+  .kv dt{ font-family:var(--font-mono); font-size:11.5px; letter-spacing:.04em; text-transform:uppercase;
+    color:var(--ink-faint); padding-top:2px; }
+  .kv dd{ margin:0; color:var(--ink); }
+  .kv dd.soft{ color:var(--ink-soft); }
+
+  .flag { display:flex; gap:10px; margin-top:16px; padding:12px 14px; border-radius:10px;
+    background:var(--watch-bg); border:1px solid transparent; font-size:13.5px; color:var(--ink); }
+  .flag .ic{ color:var(--watch); font-weight:700; font-family:var(--font-mono); }
+
+  .metrics { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:18px; }
+  .metric { background:var(--surface-2); border:1px solid var(--line-soft); border-radius:10px; padding:13px 15px; }
+  .metric .n{ font-family:var(--font-mono); font-size:22px; font-weight:600; font-variant-numeric:tabular-nums; }
+  .metric .l{ font-size:11.5px; color:var(--ink-soft); margin-top:3px; font-family:var(--font-mono);
+    letter-spacing:.03em; }
+
+  /* charts */
+  .chart{ margin:2px 0 20px; }
+  .chart svg{ width:100%; height:auto; display:block; }
+  .chart-cap{ display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:11px;
+    color:var(--ink-faint); margin-bottom:6px; }
+  .bar-rect{ fill:var(--accent); }
+  .axis-base{ stroke:var(--line); stroke-width:1; }
+  .today-line{ stroke:var(--watch); stroke-width:1; stroke-dasharray:2 3; opacity:.8; }
+  .axis-label{ fill:var(--ink-faint); font-family:var(--font-mono); font-size:9px; }
+  .spark{ display:inline-block; width:132px; height:26px; vertical-align:middle; }
+  .spark svg{ width:132px; height:26px; }
+  .spark .bar-rect{ opacity:.9; }
+
+  .contribs { display:flex; flex-direction:column; gap:9px; margin-bottom:18px; }
+  .crow .top{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; font-size:13px;
+    margin-bottom:5px; }
+  .crow .who{ font-family:var(--font-mono); }
+  .crow .who .note{ color:var(--ink-faint); font-family:var(--font-sans); font-size:12px; }
+  .crow .cnt{ font-family:var(--font-mono); font-variant-numeric:tabular-nums; color:var(--ink-soft);
+    font-size:12.5px; }
+  .bar { height:7px; border-radius:5px; background:var(--surface-2); overflow:hidden; }
+  .bar > i{ display:block; height:100%; background:linear-gradient(90deg,var(--accent),var(--accent-ink));
+    border-radius:5px; }
+  .obs { font-size:14px; color:var(--ink-soft); }
+  .noaccess-box{ display:flex; gap:12px; align-items:flex-start; font-size:14px; color:var(--ink-soft); }
+  .noaccess-box .ic{ font-size:20px; }
+
+  /* trello */
+  .tlists{ display:flex; flex-wrap:wrap; gap:10px; }
+  .tlist{ flex:1 1 120px; min-width:110px; background:var(--surface-2); border:1px solid var(--line-soft);
+    border-radius:10px; padding:11px 13px; }
+  .tlist .tn{ font-family:var(--font-mono); font-size:22px; font-weight:600; font-variant-numeric:tabular-nums; }
+  .tlist .tl{ font-size:12px; color:var(--ink-soft); margin-top:2px; overflow:hidden; text-overflow:ellipsis;
+    white-space:nowrap; }
+  .tsum{ font-size:13px; color:var(--ink-faint); font-family:var(--font-mono); margin-bottom:14px; }
+
+  .notes-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .saved{ font-family:var(--font-mono); font-size:11px; color:var(--healthy); opacity:0; transition:opacity .3s; }
+  .saved.show{ opacity:1; }
+  label.nlbl{ display:block; font-family:var(--font-mono); font-size:11px; letter-spacing:.04em;
+    text-transform:uppercase; color:var(--ink-faint); margin:14px 0 6px; }
+  textarea{ width:100%; min-height:96px; resize:vertical; font-family:var(--font-sans); font-size:14px;
+    color:var(--ink); background:var(--surface-2); border:1px solid var(--line); border-radius:10px;
+    padding:11px 13px; line-height:1.5; }
+  textarea:focus{ outline:2px solid var(--accent); outline-offset:0; border-color:transparent; }
+  textarea::placeholder{ color:var(--ink-faint); }
+
+  .theme-btn{ all:unset; cursor:pointer; margin-top:16px; display:flex; align-items:center; gap:8px;
+    font-size:12.5px; color:var(--ink-soft); padding:7px 8px; border-radius:7px; }
+  .theme-btn:hover{ background:var(--surface-2); color:var(--ink); }
+  .theme-btn:focus-visible{ outline:2px solid var(--accent); }
+
+  @media (max-width: 860px){
+    .app{ grid-template-columns:1fr; }
+    .side{ position:static; height:auto; border-right:none; border-bottom:1px solid var(--line); }
+    .nav{ flex-flow:row wrap; }
+    .nav-label{ width:100%; }
+    .nav .tname{ max-width:130px; }
+    .tiles{ grid-template-columns:repeat(2,1fr); }
+    .metrics{ grid-template-columns:1fr; }
+    .kv{ grid-template-columns:1fr; gap:2px 0; }
+    .kv dt{ padding-top:12px; }
+    .main{ padding:26px 20px 70px; }
+  }
+</style>
+
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <span class="code">__COURSE_CODE__</span>
+      <span class="name">Team Tracker</span>
+      <span class="meta" id="brandMeta"></span>
+    </div>
+    <nav class="nav" id="nav"></nav>
+    <button class="theme-btn" id="themeBtn" aria-label="Toggle color theme">◐ Theme</button>
+  </aside>
+  <main class="main" id="main"></main>
+</div>
+
+<script>
+const TEAMS = __TEAMS__;
+const COURSE = __COURSE__;
+const REPORT_DATE = "__REPORT_DATE__";
+const STATUS_LABEL = { healthy:"Healthy", watch:"Watch", risk:"At risk", noaccess:"No access" };
+const STATUS_ORDER = ["risk","watch","healthy","noaccess"];
+const esc = s => (s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ---------- shared commit timeline ---------- */
+function isoToday(){ return new Date().toISOString().slice(0,10); }
+function computeRange(){
+  let min=null,max=null;
+  TEAMS.forEach(t=>{ const cbd=(t.act&&t.act.commits_by_day)||{};
+    Object.keys(cbd).forEach(d=>{ if(!min||d<min)min=d; if(!max||d>max)max=d; }); });
+  const today=isoToday();
+  if(!max||today>max) max=today;
+  return [min,max];
+}
+function eachDay(min,max){
+  const out=[]; if(!min) return out;
+  let d=new Date(min+"T00:00:00Z"); const end=new Date(max+"T00:00:00Z");
+  let guard=0;
+  while(d<=end && guard<400){ out.push(d.toISOString().slice(0,10)); d.setUTCDate(d.getUTCDate()+1); guard++; }
+  return out;
+}
+const RANGE = computeRange();
+const ALLDAYS = eachDay(RANGE[0], RANGE[1]);
+const TODAY = isoToday();
+
+function chartSVG(cbd, {spark=false}={}){
+  if(!ALLDAYS.length) return "";
+  const w = spark?132:680, h = spark?26:96;
+  const padX = spark?1:10, padTop = spark?2:8, padBot = spark?2:16;
+  const innerW = w-padX*2, innerH = h-padTop-padBot;
+  const n = ALLDAYS.length, bw = innerW/n;
+  const vals = ALLDAYS.map(d=>cbd[d]||0);
+  const maxV = Math.max(1, ...vals);
+  const baseY = h-padBot;
+  let bars="";
+  ALLDAYS.forEach((d,i)=>{
+    const v = cbd[d]||0;
+    if(!v) return;
+    const bh = Math.max(spark?1.5:2, v/maxV*innerH);
+    const x = padX + i*bw + bw*0.16;
+    const y = baseY - bh;
+    bars += `<rect class="bar-rect" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${(bw*0.68).toFixed(1)}" height="${bh.toFixed(1)}" rx="1">`+
+            (spark?"":`<title>${d}: ${v} commit${v==1?"":"s"}</title>`)+`</rect>`;
+  });
+  let extra="";
+  if(!spark){
+    // today marker
+    const ti = ALLDAYS.indexOf(TODAY);
+    const tx = ti>=0 ? padX + ti*bw + bw*0.5 : padX+innerW;
+    extra += `<line class="axis-base" x1="${padX}" y1="${baseY+0.5}" x2="${padX+innerW}" y2="${baseY+0.5}"/>`;
+    extra += `<line class="today-line" x1="${tx.toFixed(1)}" y1="${padTop}" x2="${tx.toFixed(1)}" y2="${baseY}"/>`;
+    extra += `<text class="axis-label" x="${padX}" y="${h-4}">${ALLDAYS[0]}</text>`;
+    extra += `<text class="axis-label" x="${padX+innerW}" y="${h-4}" text-anchor="end">${ALLDAYS[ALLDAYS.length-1]}</text>`;
+  }
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img" aria-label="commits per day">${extra}${bars}</svg>`;
+}
+function peakPerDay(cbd){ return Math.max(0, ...Object.values(cbd||{})); }
+
+/* ---------- nav ---------- */
+document.getElementById("brandMeta").textContent = `${COURSE.term ? COURSE.term + " · " : ""}${TEAMS.length} teams`;
+const nav = document.getElementById("nav");
+nav.innerHTML = `<div class="nav-label">Overview</div>
+  <button data-view="dashboard" class="home"><span>▚ Dashboard</span></button>
+  <div class="nav-label">Teams</div>` +
+  TEAMS.map(t=>`<button data-view="${t.id}"><span class="dot ${t.status}"></span><span class="tname">${esc(t.team)}</span></button>`).join("");
+
+/* ---------- dashboard ---------- */
+function counts(){ const c={healthy:0,watch:0,risk:0,noaccess:0}; TEAMS.forEach(t=>c[t.status]++); return c; }
+function dashboardHTML(){
+  const c = counts();
+  const rows = [...TEAMS].sort((a,b)=>STATUS_ORDER.indexOf(a.status)-STATUS_ORDER.indexOf(b.status));
+  const prio = rows.filter(t=>t.status==="risk"||t.status==="watch");
+  return `
+  <div class="view active" id="view-dashboard">
+    <span class="eyebrow">Sprint 1 · as of ${esc(REPORT_DATE)}</span>
+    <h1>Team Dashboard</h1>
+    <p class="lede">${TEAMS.length} teams in ${esc(COURSE.name)}. Status reflects GitHub commit activity and sprint-planning submissions. Pick a team from the sidebar, or jump straight to the ones that need attention.</p>
+
+    <div class="tiles">
+      <div class="tile risk"><div class="n">${c.risk}</div><div class="l">At risk</div></div>
+      <div class="tile watch"><div class="n">${c.watch}</div><div class="l">Watch</div></div>
+      <div class="tile healthy"><div class="n">${c.healthy}</div><div class="l">Healthy</div></div>
+      <div class="tile noaccess"><div class="n">${c.noaccess}</div><div class="l">No repo access</div></div>
+    </div>
+
+    ${prio.length?`<h2>Needs attention first</h2>
+    <div class="prio">
+      ${prio.map(t=>`<button class="prio-item ${t.status}" data-goto="${t.id}">
+        <span class="pill ${t.status}"><span class="d"></span>${STATUS_LABEL[t.status]}</span>
+        <span><span class="team">${esc(t.team)}</span> &nbsp;<span class="why">${esc(t.why||"")}</span></span>
+        <span class="go">open →</span></button>`).join("")}
+    </div>`:""}
+
+    <h2>All teams</h2>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Team</th><th>Project</th><th>Commits</th><th>Trend (commits/day)</th><th>Status</th></tr></thead>
+        <tbody>
+          ${rows.map(t=>`<tr data-goto="${t.id}">
+            <td><span class="tm">${esc(t.team)}</span></td>
+            <td class="pj">${esc(t.project)}</td>
+            <td class="num">${t.act.ok?esc(t.act.total):"—"}</td>
+            <td>${t.act.ok?`<span class="spark">${chartSVG(t.act.commits_by_day,{spark:true})}</span>`:'<span class="num">—</span>'}</td>
+            <td><span class="pill ${t.status}"><span class="d"></span>${STATUS_LABEL[t.status]}</span></td>
+          </tr>`).join("")}
+        </tbody>
+      </table>
+    </div>
+    <div class="legend">
+      <span><span class="dot healthy"></span>Healthy</span>
+      <span><span class="dot watch"></span>Watch</span>
+      <span><span class="dot risk"></span>At risk</span>
+      <span><span class="dot noaccess"></span>No repo access</span>
+    </div>
+    <p class="footnote">Commit counts are a discussion signal, not a measure of contribution size. Charts share one timeline (${esc(ALLDAYS[0]||"")} → today); a dashed line marks today, so a team whose bars stop early has gone quiet. Some GitHub usernames were matched to students by inference (marked "likely"). Review notes are saved in this browser only (per device).</p>
+  </div>`;
+}
+
+/* ---------- team panel ---------- */
+function contribHTML(a){
+  return a.contribs.map(x=>`
+    <div class="crow">
+      <div class="top">
+        <span class="who">${esc(x.n)}${x.note?` <span class="note">· ${esc(x.note)}</span>`:""}</span>
+        <span class="cnt">${x.c} · ${x.p}%</span>
+      </div>
+      <div class="bar"><i style="width:${x.p}%"></i></div>
+    </div>`).join("");
+}
+function teamHTML(t){
+  const s = t.sprint, a = t.act;
+  return `
+  <div class="view" id="view-${t.id}">
+    <span class="eyebrow">${esc(STATUS_LABEL[t.status])} · Sprint 1</span>
+    <div class="thead">
+      <div class="titles">
+        <h1>${esc(t.team)}</h1>
+        <div class="project">▸ ${esc(t.project)}</div>
+        <div class="members"><b>Members:</b> ${esc(t.members)}</div>
+      </div>
+      <span class="pill ${t.status}" style="margin-top:6px"><span class="d"></span>${STATUS_LABEL[t.status]}</span>
+    </div>
+
+    <div class="chips">
+      <a class="chip" href="${esc(t.github)}" target="_blank" rel="noopener"><span class="ic">GH</span>GitHub</a>
+      ${t.trello?`<a class="chip" href="${esc(t.trello)}" target="_blank" rel="noopener"><span class="ic">TR</span>Trello</a>`
+        :`<span class="chip disabled"><span class="ic">TR</span>No Trello</span>`}
+    </div>
+
+    <div class="card">
+      <h2>Project Summary</h2>
+      <dl class="kv">
+        <dt>Concept</dt><dd>${esc(t.prop.concept)}</dd>
+        <dt>Key features</dt><dd class="soft">${esc(t.prop.features)}</dd>
+        <dt>Tech</dt><dd class="soft">${esc(t.prop.tech)}</dd>
+      </dl>
+      ${t.prop.flag?`<div class="flag"><span class="ic">!</span><span>${esc(t.prop.flag)}</span></div>`:""}
+    </div>
+
+    <div class="card">
+      <h2>Sprint 1 Planning</h2>
+      ${s?`<dl class="kv">
+        <dt>Product Owner</dt><dd>${esc(s.po)}</dd>
+        <dt>Scrum Master</dt><dd>${esc(s.sm)}</dd>
+        <dt>Developers</dt><dd>${esc(s.devs)}</dd>
+        <dt>Sprint Goal</dt><dd class="soft">${esc(s.goal)}</dd>
+        ${s.hours?`<dt>Est. hours</dt><dd class="soft">${esc(s.hours)}</dd>`:""}
+      </dl>`:`<div class="flag" style="background:var(--risk-bg)"><span class="ic" style="color:var(--risk)">!</span><span>No Sprint 1 planning was submitted.</span></div>`}
+    </div>
+
+    <div class="card">
+      <h2>GitHub Activity · as of ${esc(REPORT_DATE)}</h2>
+      ${a.ok?`
+        <div class="metrics">
+          <div class="metric"><div class="n">${esc(a.total)}</div><div class="l">commits</div></div>
+          <div class="metric"><div class="n">${esc(a.days)}</div><div class="l">active days</div></div>
+          <div class="metric"><div class="n">${esc(a.last_fmt||a.last)}</div><div class="l">last commit</div></div>
+        </div>
+        <div class="chart-cap"><span>commits per day</span><span>peak ${peakPerDay(a.commits_by_day)}/day · span ${esc(a.span)}</span></div>
+        <div class="chart">${chartSVG(a.commits_by_day)}</div>
+        <div class="contribs">${contribHTML(a)}</div>
+        <p class="obs">${esc(a.obs)}</p>`
+      :`<div class="noaccess-box"><span class="ic">🔒</span><span>${esc(a.obs)}</span></div>`}
+    </div>
+
+    ${a.trello?`<div class="card">
+      <h2>Trello Board · as of ${esc(a.trello.date||"")}</h2>
+      <div class="tsum">${a.trello.total_cards} open cards · ${a.trello.lists.length} lists</div>
+      <div class="tlists">
+        ${a.trello.lists.map(l=>`<div class="tlist"><div class="tn">${l.count}</div><div class="tl" title="${esc(l.name)}">${esc(l.name)}</div></div>`).join("")}
+      </div>
+    </div>`:""}
+
+    <div class="card">
+      <div class="notes-head"><h2 style="border:none;margin:0;padding:0">Sprint Review Notes</h2><span class="saved" id="saved-${t.id}">saved ✓</span></div>
+      <label class="nlbl" for="rev-${t.id}">Sprint 1 review</label>
+      <textarea id="rev-${t.id}" data-note="${t.id}:review" placeholder="What did they demo? Progress vs. sprint goal, blockers, action items…"></textarea>
+      <label class="nlbl" for="gen-${t.id}">General notes</label>
+      <textarea id="gen-${t.id}" data-note="${t.id}:general" placeholder="Anything to carry between reviews…"></textarea>
+    </div>
+  </div>`;
+}
+
+/* ---------- render ---------- */
+const main = document.getElementById("main");
+main.innerHTML = dashboardHTML() + TEAMS.map(teamHTML).join("");
+
+/* ---------- notes persistence ---------- */
+const NS = "pro100tracker:";
+document.querySelectorAll("textarea[data-note]").forEach(ta=>{
+  const key = NS + ta.dataset.note;
+  try { const v = localStorage.getItem(key); if(v!=null) ta.value = v; } catch(e){}
+  let tmr;
+  ta.addEventListener("input", ()=>{
+    try { localStorage.setItem(key, ta.value); } catch(e){}
+    const id = ta.dataset.note.split(":")[0];
+    const badge = document.getElementById("saved-"+id);
+    if(badge){ badge.classList.add("show"); clearTimeout(tmr); tmr=setTimeout(()=>badge.classList.remove("show"),1200); }
+  });
+});
+
+/* ---------- routing ---------- */
+function show(view){
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  (document.getElementById("view-"+view)||document.getElementById("view-dashboard")).classList.add("active");
+  document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active", b.dataset.view===view));
+  window.scrollTo({top:0});
+  if(location.hash.slice(1)!==view) history.replaceState(null,"","#"+view);
+}
+nav.addEventListener("click", e=>{ const b=e.target.closest("button[data-view]"); if(b) show(b.dataset.view); });
+main.addEventListener("click", e=>{ const g=e.target.closest("[data-goto]"); if(g) show(g.dataset.goto); });
+window.addEventListener("hashchange", ()=>show(location.hash.slice(1)||"dashboard"));
+
+/* ---------- theme ---------- */
+const root = document.documentElement;
+document.getElementById("themeBtn").addEventListener("click", ()=>{
+  const cur = root.getAttribute("data-theme");
+  const isDark = cur ? cur==="dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  root.setAttribute("data-theme", isDark ? "light" : "dark");
+});
+
+show(location.hash.slice(1)||"dashboard");
+</script>
