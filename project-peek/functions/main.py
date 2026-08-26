@@ -64,6 +64,28 @@ def fmt_date(iso):
 
 
 # ---------- GitHub ----------
+# --- GitHub access is read-only, enforced here ------------------------------
+# GITHUB_TOKEN is a classic PAT with the `repo` scope, which GitHub also allows
+# to WRITE. There is no narrower classic scope that can read a private repo, so
+# the read-only guarantee cannot come from the token -- it lives here instead.
+#
+# Every GitHub call goes through _gh_request(), which builds an explicit,
+# bodyless GET against the API host. A GET cannot create, modify, or delete
+# anything. Anything else raises before a socket is opened. Do not add a `data=`
+# argument or a `method=` other than GET to this file.
+GITHUB_API = "https://api.github.com/"
+
+
+def _gh_request(url, headers):
+    """Build a GitHub request that is structurally incapable of modifying a repo."""
+    if not url.startswith(GITHUB_API):
+        raise ValueError(f"refusing non-GitHub-API URL: {url!r}")
+    req = urllib.request.Request(url, headers=headers, method="GET")
+    if req.data is not None or req.get_method() != "GET":
+        raise ValueError("refusing a GitHub request that is not a bodyless GET")
+    return req
+
+
 def gh_get(url):
     headers = {"User-Agent": "project-peek", "Accept": "application/vnd.github+json"}
     tok = _ghtok()
@@ -71,8 +93,7 @@ def gh_get(url):
         # Raises the rate limit from 60 to 5000 requests/hour, and reads any private
         # repo the token's account can actually see.
         headers["Authorization"] = f"Bearer {tok}"
-    req = urllib.request.Request(url, headers=headers)
-    with urllib.request.urlopen(req, timeout=30) as r:
+    with urllib.request.urlopen(_gh_request(url, headers), timeout=30) as r:
         return json.load(r)
 
 
