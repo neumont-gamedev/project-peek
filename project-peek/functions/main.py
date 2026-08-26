@@ -221,6 +221,7 @@ def _sync_uid(db, uid):
     """Sync every team's activity. Returns per-team results so the UI can show
     what actually happened rather than a bare success count."""
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    now_iso = datetime.now(timezone.utc).isoformat(timespec="seconds")
     courses = teams = 0
     issues = []          # only the entries that need attention
     results = []         # every team, for a full report
@@ -265,6 +266,8 @@ def _sync_uid(db, uid):
                 stale = True
             else:
                 act = build_act(cbd, contributors, trello_snap, contrib_notes, old_act.get("obs", ""))
+                if cbd:
+                    act["synced"] = now_iso   # commit data genuinely refreshed just now
 
             cref.collection("teams").document(tdoc.id).set({"act": act}, merge=True)
             teams += 1

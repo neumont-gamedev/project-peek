@@ -577,7 +577,7 @@ function teamHTML(t){
         <dt>Product Owner</dt><dd>${esc(s.po)}</dd><dt>Scrum Master</dt><dd>${esc(s.sm)}</dd>
         <dt>Developers</dt><dd>${esc(s.devs)}</dd><dt>Sprint Goal</dt><dd class="soft">${esc(s.goal)}</dd>
         ${s.hours?`<dt>Est. hours</dt><dd class="soft">${esc(s.hours)}</dd>`:""}</dl></div>`:""}
-    <div class="card"><h2>GitHub Activity · as of ${esc(COURSE.report_date||"")}</h2>
+    <div class="card"><h2>GitHub Activity${a.synced?` · as of ${esc(fmtWhen(new Date(a.synced)))}`:""}</h2>
       ${a.ok?`<div class="metrics"><div class="metric"><div class="n">${esc(a.total)}</div><div class="l">commits</div></div>
         <div class="metric"><div class="n">${esc(a.days)}</div><div class="l">active days</div></div>
         <div class="metric"><div class="n">${esc(a.last_fmt||a.last)}</div><div class="l">last commit</div></div></div>
