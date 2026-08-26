@@ -44,6 +44,18 @@ def _tkey():   return os.environ.get("TRELLO_KEY", "").strip()
 def _ttok():   return os.environ.get("TRELLO_TOKEN", "").strip()
 
 
+# A Secret Manager secret cannot hold an empty payload, so GITHUB_TOKEN may be set
+# to the sentinel below to mean "not configured". Real tokens all carry a known
+# prefix, so anything without one is treated as absent rather than sent to GitHub
+# (a bogus Authorization header would turn every request into a 401).
+GH_TOKEN_PREFIXES = ("ghp_", "github_pat_", "gho_", "ghs_", "ghu_")
+
+
+def _ghtok():
+    t = os.environ.get("GITHUB_TOKEN", "").strip()
+    return t if t.startswith(GH_TOKEN_PREFIXES) else ""
+
+
 def fmt_date(iso):
     try:
         y, m, d = iso.split("-"); return f"{MON[int(m)]} {int(d)}"
@@ -53,8 +65,13 @@ def fmt_date(iso):
 
 # ---------- GitHub ----------
 def gh_get(url):
-    req = urllib.request.Request(url, headers={"User-Agent": "project-peek",
-                                               "Accept": "application/vnd.github+json"})
+    headers = {"User-Agent": "project-peek", "Accept": "application/vnd.github+json"}
+    tok = _ghtok()
+    if tok:
+        # Raises the rate limit from 60 to 5000 requests/hour, and reads any private
+        # repo the token's account can actually see.
+        headers["Authorization"] = f"Bearer {tok}"
+    req = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(req, timeout=30) as r:
         return json.load(r)
 
@@ -288,7 +305,7 @@ def diag(req: https_fn.Request) -> https_fn.Response:
     return https_fn.Response(json.dumps(out, indent=2), mimetype="application/json")
 
 
-@https_fn.on_call(secrets=["TRELLO_KEY", "TRELLO_TOKEN"], timeout_sec=300,
+@https_fn.on_call(secrets=["TRELLO_KEY", "TRELLO_TOKEN", "GITHUB_TOKEN"], timeout_sec=300,
                   memory=options.MemoryOption.MB_512)
 def sync_now(req: https_fn.CallableRequest):
     if not req.auth:
