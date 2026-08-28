@@ -74,7 +74,20 @@ A Windows Task Scheduler job named **"PRO100 Team Tracker"** runs `run_daily.ps1
 every day at **7:30am** (it catches up if the machine was off at that time).
 
 `run_daily.ps1` loads `secrets.local.ps1` (if present), runs collect -> build_site ->
-build_doc, and writes a dated log to `logs\run_YYYY-MM-DD.log`.
+build_doc, publishes the finished `.docx`/`.html` to OneDrive, syncs activity to the web
+app, and writes a dated log to `logs\run_YYYY-MM-DD.log`.
+
+### Where the repo lives, and where the deliverables go
+
+The working copy lives on a **local drive** (`C:\src\project-peek`), not in OneDrive.
+OneDrive syncing `.git\` can corrupt the object store or grab `index.lock` mid-write, and
+the 7:30am unattended job writes while nobody is watching; GitHub is the backup instead.
+
+So that the Word tracker still shows up where you expect it, a successful build copies the
+generated `.docx`/`.html` into OneDrive — a **one-way copy of output only**, never the
+working tree. The destination defaults to `<your OneDrive>\Neumont\PRO100\Teams`; set
+`TRACKER_PUBLISH_DIR` in `secrets.local.ps1` to send them somewhere else. The copy is
+skipped when the build fails, so a broken run leaves the last good files in place.
 
 ### One-time step: create the secrets file
 So the daily run can read Trello (and optionally private repos), copy the template and
@@ -105,8 +118,9 @@ To change the time, re-run the `Register-ScheduledTask` command with a different
 
 ### What the daily job does and does not do
 - **Does:** refresh `history.json` (the running log), regenerate the local
-  `PRO100_Team_Tracker.html` and `.docx`, and (when the Firebase vars are set) **push the
-  data to the Project Peek web app** (https://project-peek.firebaseapp.com).
+  `PRO100_Team_Tracker.html` and `.docx`, **copy those deliverables to OneDrive**, and
+  (when the Firebase vars are set) **push the data to the Project Peek web app**
+  (https://project-peek.firebaseapp.com).
 - **Does not:** re-publish the standalone Claude artifact — that needs Claude. The Firebase
   web app updates automatically; the Claude artifact only updates when you ask Claude.
 
