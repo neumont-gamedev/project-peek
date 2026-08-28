@@ -189,10 +189,260 @@
             ]
           },
           "date": "2026-08-24"
+        },
+        {
+          "total_cards": 39,
+          "lists": [
+            {
+              "name": "Product Backlog",
+              "count": 20
+            },
+            {
+              "name": "Sprint Planning",
+              "count": 0
+            },
+            {
+              "name": "Current Sprint",
+              "count": 4
+            },
+            {
+              "name": "In Progress",
+              "count": 6
+            },
+            {
+              "name": "Testing",
+              "count": 0
+            },
+            {
+              "name": "Done",
+              "count": 9
+            }
+          ],
+          "assignees": {
+            "by": [
+              {
+                "n": "Bode",
+                "c": 12
+              },
+              {
+                "n": "Squiddo!",
+                "c": 9
+              },
+              {
+                "n": "Daniel Starr",
+                "c": 6
+              }
+            ],
+            "unassigned": 19
+          },
+          "activity": {
+            "window_days": 14,
+            "moves": 46,
+            "into_done": 7,
+            "created": 5,
+            "by_member": [
+              {
+                "n": "Bode",
+                "c": 25
+              },
+              {
+                "n": "Daniel Starr",
+                "c": 18
+              },
+              {
+                "n": "Squiddo!",
+                "c": 3
+              }
+            ],
+            "recent": [
+              {
+                "date": "2026-08-25",
+                "card": "Flood Pipes",
+                "frm": "Current Sprint",
+                "to": "Done",
+                "by": "Bode"
+              },
+              {
+                "date": "2026-08-24",
+                "card": "Laser Eye and Upgrades Concept Art",
+                "frm": "Current Sprint",
+                "to": "In Progress",
+                "by": "Daniel Starr"
+              },
+              {
+                "date": "2026-08-24",
+                "card": "Sawblade and Upgrades Concept Art",
+                "frm": "Current Sprint",
+                "to": "In Progress",
+                "by": "Daniel Starr"
+              },
+              {
+                "date": "2026-08-19",
+                "card": "Simple Level Design",
+                "frm": "Current Sprint",
+                "to": "In Progress",
+                "by": "Daniel Starr"
+              },
+              {
+                "date": "2026-08-19",
+                "card": "Player Concept Art",
+                "frm": "Current Sprint",
+                "to": "In Progress",
+                "by": "Daniel Starr"
+              },
+              {
+                "date": "2026-08-19",
+                "card": "Tile set",
+                "frm": "Current Sprint",
+                "to": "In Progress",
+                "by": "Daniel Starr"
+              },
+              {
+                "date": "2026-08-19",
+                "card": "Ghost Clone concept art",
+                "frm": "Sprint Planning",
+                "to": "Current Sprint",
+                "by": "Daniel Starr"
+              },
+              {
+                "date": "2026-08-19",
+                "card": "Zombies",
+                "frm": "Sprint Planning",
+                "to": "Current Sprint",
+                "by": "Daniel Starr"
+              }
+            ]
+          },
+          "date": "2026-08-25"
+        },
+        {
+          "total_cards": 39,
+          "lists": [
+            {
+              "name": "Product Backlog",
+              "count": 20
+            },
+            {
+              "name": "Sprint Planning",
+              "count": 0
+            },
+            {
+              "name": "Current Sprint",
+              "count": 4
+            },
+            {
+              "name": "In Progress",
+              "count": 6
+            },
+            {
+              "name": "Testing",
+              "count": 0
+            },
+            {
+              "name": "Done",
+              "count": 9
+            }
+          ],
+          "assignees": {
+            "by": [
+              {
+                "n": "Bode",
+                "c": 12
+              },
+              {
+                "n": "Squiddo!",
+                "c": 9
+              },
+              {
+                "n": "Daniel Starr",
+                "c": 6
+              }
+            ],
+            "unassigned": 19
+          },
+          "activity": {
+            "window_days": 14,
+            "moves": 44,
+            "into_done": 7,
+            "created": 5,
+            "by_member": [
+              {
+                "n": "Bode",
+                "c": 23
+              },
+              {
+                "n": "Daniel Starr",
+                "c": 18
+              },
+              {
+                "n": "Squiddo!",
+                "c": 3
+              }
+            ],
+            "recent": [
+              {
+                "date": "2026-08-25",
+                "card": "Flood Pipes",
+                "frm": "Current Sprint",
+                "to": "Done",
+                "by": "Bode"
+              },
+              {
+                "date": "2026-08-24",
+                "card": "Laser Eye and Upgrades Concept Art",
+                "frm": "Current Sprint",
+                "to": "In Progress",
+                "by": "Daniel Starr"
+              },
+              {
+                "date": "2026-08-24",
+                "card": "Sawblade and Upgrades Concept Art",
+                "frm": "Current Sprint",
+                "to": "In Progress",
+                "by": "Daniel Starr"
+              },
+              {
+                "date": "2026-08-19",
+                "card": "Simple Level Design",
+                "frm": "Current Sprint",
+                "to": "In Progress",
+                "by": "Daniel Starr"
+              },
+              {
+                "date": "2026-08-19",
+                "card": "Player Concept Art",
+                "frm": "Current Sprint",
+                "to": "In Progress",
+                "by": "Daniel Starr"
+              },
+              {
+                "date": "2026-08-19",
+                "card": "Tile set",
+                "frm": "Current Sprint",
+                "to": "In Progress",
+                "by": "Daniel Starr"
+              },
+              {
+                "date": "2026-08-19",
+                "card": "Ghost Clone concept art",
+                "frm": "Sprint Planning",
+                "to": "Current Sprint",
+                "by": "Daniel Starr"
+              },
+              {
+                "date": "2026-08-19",
+                "card": "Zombies",
+                "frm": "Sprint Planning",
+                "to": "Current Sprint",
+                "by": "Daniel Starr"
+              }
+            ]
+          },
+          "date": "2026-08-26"
         }
       ],
       "trello": {
-        "date": "2026-08-24",
+        "date": "2026-08-26",
         "total_cards": 39,
         "lists": [
           {
@@ -205,7 +455,7 @@
           },
           {
             "name": "Current Sprint",
-            "count": 5
+            "count": 4
           },
           {
             "name": "In Progress",
@@ -217,7 +467,7 @@
           },
           {
             "name": "Done",
-            "count": 8
+            "count": 9
           }
         ],
         "assignees": {
@@ -239,24 +489,31 @@
         },
         "activity": {
           "window_days": 14,
-          "moves": 100,
-          "into_done": 6,
-          "created": 11,
+          "moves": 44,
+          "into_done": 7,
+          "created": 5,
           "by_member": [
             {
               "n": "Bode",
-              "c": 75
+              "c": 23
             },
             {
               "n": "Daniel Starr",
-              "c": 19
+              "c": 18
             },
             {
               "n": "Squiddo!",
-              "c": 6
+              "c": 3
             }
           ],
           "recent": [
+            {
+              "date": "2026-08-25",
+              "card": "Flood Pipes",
+              "frm": "Current Sprint",
+              "to": "Done",
+              "by": "Bode"
+            },
             {
               "date": "2026-08-24",
               "card": "Laser Eye and Upgrades Concept Art",
@@ -302,13 +559,6 @@
             {
               "date": "2026-08-19",
               "card": "Zombies",
-              "frm": "Sprint Planning",
-              "to": "Current Sprint",
-              "by": "Daniel Starr"
-            },
-            {
-              "date": "2026-08-19",
-              "card": "Sawblade and Upgrades Concept Art",
               "frm": "Sprint Planning",
               "to": "Current Sprint",
               "by": "Daniel Starr"
@@ -492,10 +742,238 @@
             ]
           },
           "date": "2026-08-24"
+        },
+        {
+          "total_cards": 15,
+          "lists": [
+            {
+              "name": "Product Backlog",
+              "count": 3
+            },
+            {
+              "name": "Sprint Backlog",
+              "count": 5
+            },
+            {
+              "name": "To Do",
+              "count": 3
+            },
+            {
+              "name": "In Progress",
+              "count": 0
+            },
+            {
+              "name": "Done",
+              "count": 1
+            },
+            {
+              "name": "Roles",
+              "count": 3
+            }
+          ],
+          "assignees": {
+            "by": [
+              {
+                "n": "Thomas Coburn",
+                "c": 2
+              },
+              {
+                "n": "Alexis Garcia Castro",
+                "c": 2
+              },
+              {
+                "n": "kathy",
+                "c": 2
+              }
+            ],
+            "unassigned": 9
+          },
+          "activity": {
+            "window_days": 14,
+            "moves": 7,
+            "into_done": 1,
+            "created": 5,
+            "by_member": [
+              {
+                "n": "Thomas Coburn",
+                "c": 6
+              },
+              {
+                "n": "kathy",
+                "c": 1
+              }
+            ],
+            "recent": [
+              {
+                "date": "2026-08-17",
+                "card": "Populate the list with different sports/fitness goals",
+                "frm": "To Do",
+                "to": "Done",
+                "by": "kathy"
+              },
+              {
+                "date": "2026-08-12",
+                "card": "Add customization to the presets (should be implemented above, this st",
+                "frm": "In Progress",
+                "to": "To Do",
+                "by": "Thomas Coburn"
+              },
+              {
+                "date": "2026-08-12",
+                "card": "Populate each option with exercises, such as 3 sets of 10 bench presse",
+                "frm": "In Progress",
+                "to": "To Do",
+                "by": "Thomas Coburn"
+              },
+              {
+                "date": "2026-08-12",
+                "card": "Populate the list with different sports/fitness goals",
+                "frm": "In Progress",
+                "to": "To Do",
+                "by": "Thomas Coburn"
+              },
+              {
+                "date": "2026-08-12",
+                "card": "Add customization to the presets (should be implemented above, this st",
+                "frm": "To Do",
+                "to": "In Progress",
+                "by": "Thomas Coburn"
+              },
+              {
+                "date": "2026-08-12",
+                "card": "Populate each option with exercises, such as 3 sets of 10 bench presse",
+                "frm": "To Do",
+                "to": "In Progress",
+                "by": "Thomas Coburn"
+              },
+              {
+                "date": "2026-08-12",
+                "card": "Populate the list with different sports/fitness goals",
+                "frm": "To Do",
+                "to": "In Progress",
+                "by": "Thomas Coburn"
+              }
+            ]
+          },
+          "date": "2026-08-25"
+        },
+        {
+          "total_cards": 15,
+          "lists": [
+            {
+              "name": "Product Backlog",
+              "count": 3
+            },
+            {
+              "name": "Sprint Backlog",
+              "count": 5
+            },
+            {
+              "name": "To Do",
+              "count": 3
+            },
+            {
+              "name": "In Progress",
+              "count": 0
+            },
+            {
+              "name": "Done",
+              "count": 1
+            },
+            {
+              "name": "Roles",
+              "count": 3
+            }
+          ],
+          "assignees": {
+            "by": [
+              {
+                "n": "Thomas Coburn",
+                "c": 2
+              },
+              {
+                "n": "Alexis Garcia Castro",
+                "c": 2
+              },
+              {
+                "n": "kathy",
+                "c": 2
+              }
+            ],
+            "unassigned": 9
+          },
+          "activity": {
+            "window_days": 14,
+            "moves": 7,
+            "into_done": 1,
+            "created": 5,
+            "by_member": [
+              {
+                "n": "Thomas Coburn",
+                "c": 6
+              },
+              {
+                "n": "kathy",
+                "c": 1
+              }
+            ],
+            "recent": [
+              {
+                "date": "2026-08-17",
+                "card": "Populate the list with different sports/fitness goals",
+                "frm": "To Do",
+                "to": "Done",
+                "by": "kathy"
+              },
+              {
+                "date": "2026-08-12",
+                "card": "Add customization to the presets (should be implemented above, this st",
+                "frm": "In Progress",
+                "to": "To Do",
+                "by": "Thomas Coburn"
+              },
+              {
+                "date": "2026-08-12",
+                "card": "Populate each option with exercises, such as 3 sets of 10 bench presse",
+                "frm": "In Progress",
+                "to": "To Do",
+                "by": "Thomas Coburn"
+              },
+              {
+                "date": "2026-08-12",
+                "card": "Populate the list with different sports/fitness goals",
+                "frm": "In Progress",
+                "to": "To Do",
+                "by": "Thomas Coburn"
+              },
+              {
+                "date": "2026-08-12",
+                "card": "Add customization to the presets (should be implemented above, this st",
+                "frm": "To Do",
+                "to": "In Progress",
+                "by": "Thomas Coburn"
+              },
+              {
+                "date": "2026-08-12",
+                "card": "Populate each option with exercises, such as 3 sets of 10 bench presse",
+                "frm": "To Do",
+                "to": "In Progress",
+                "by": "Thomas Coburn"
+              },
+              {
+                "date": "2026-08-12",
+                "card": "Populate the list with different sports/fitness goals",
+                "frm": "To Do",
+                "to": "In Progress",
+                "by": "Thomas Coburn"
+              }
+            ]
+          },
+          "date": "2026-08-26"
         }
       ],
       "trello": {
-        "date": "2026-08-24",
+        "date": "2026-08-26",
         "total_cards": 15,
         "lists": [
           {
@@ -542,13 +1020,13 @@
         },
         "activity": {
           "window_days": 14,
-          "moves": 11,
+          "moves": 7,
           "into_done": 1,
-          "created": 11,
+          "created": 5,
           "by_member": [
             {
               "n": "Thomas Coburn",
-              "c": 10
+              "c": 6
             },
             {
               "n": "kathy",
@@ -604,33 +1082,35 @@
               "frm": "To Do",
               "to": "In Progress",
               "by": "Thomas Coburn"
-            },
-            {
-              "date": "2026-08-11",
-              "card": "Make a system that tracks user info even after being restarted",
-              "frm": "Product Backlog",
-              "to": "To Do",
-              "by": "Thomas Coburn"
             }
           ]
         }
       }
     },
     "nerds": {
-      "accessible": false,
+      "accessible": true,
       "commits_by_day": {
-        "2026-08-04": 1,
-        "2026-08-05": 3,
-        "2026-08-10": 10,
-        "2026-08-11": 12,
-        "2026-08-12": 10,
+        "2026-08-25": 9,
+        "2026-08-24": 3,
+        "2026-08-20": 2,
+        "2026-08-19": 1,
+        "2026-08-18": 8,
+        "2026-08-17": 3,
         "2026-08-13": 4,
-        "2026-08-17": 7
+        "2026-08-12": 10,
+        "2026-08-11": 12,
+        "2026-08-10": 10,
+        "2026-08-05": 3,
+        "2026-08-04": 1
       },
       "contributors": [
         {
           "n": "FoistName",
-          "c": 14
+          "c": 22
+        },
+        {
+          "n": "EmmaleeRich",
+          "c": 20
         },
         {
           "n": "Tyler-Klemann",
@@ -639,13 +1119,9 @@
         {
           "n": "Riordan0407",
           "c": 11
-        },
-        {
-          "n": "EmmaleeRich",
-          "c": 9
         }
       ],
-      "source": "manual",
+      "source": "api",
       "trello_snapshots": [
         {
           "total_cards": 23,
@@ -805,10 +1281,260 @@
             ]
           },
           "date": "2026-08-24"
+        },
+        {
+          "total_cards": 23,
+          "lists": [
+            {
+              "name": "Backlog",
+              "count": 3
+            },
+            {
+              "name": "Sprint Backlog",
+              "count": 3
+            },
+            {
+              "name": "To-Do",
+              "count": 3
+            },
+            {
+              "name": "In-Progress",
+              "count": 0
+            },
+            {
+              "name": "Test",
+              "count": 1
+            },
+            {
+              "name": "Done",
+              "count": 13
+            }
+          ],
+          "assignees": {
+            "by": [
+              {
+                "n": "Emmalee Rich",
+                "c": 3
+              },
+              {
+                "n": "Michael Lueders Jr.",
+                "c": 2
+              },
+              {
+                "n": "stoopid loser",
+                "c": 1
+              }
+            ],
+            "unassigned": 17
+          },
+          "activity": {
+            "window_days": 14,
+            "moves": 14,
+            "into_done": 7,
+            "created": 4,
+            "by_member": [
+              {
+                "n": "Emmalee Rich",
+                "c": 10
+              },
+              {
+                "n": "Tyler Klemann",
+                "c": 2
+              },
+              {
+                "n": "Michael Lueders Jr.",
+                "c": 2
+              }
+            ],
+            "recent": [
+              {
+                "date": "2026-08-19",
+                "card": "Working console prototype",
+                "frm": "Sprint Backlog",
+                "to": "To-Do",
+                "by": "Emmalee Rich"
+              },
+              {
+                "date": "2026-08-19",
+                "card": "As a user, I want to earn points for completing my tasks so that I am ",
+                "frm": "Backlog",
+                "to": "Sprint Backlog",
+                "by": "Emmalee Rich"
+              },
+              {
+                "date": "2026-08-19",
+                "card": "As a user, I want to add tasks so that I can get notified for the task",
+                "frm": "Sprint Backlog",
+                "to": "Done",
+                "by": "Emmalee Rich"
+              },
+              {
+                "date": "2026-08-19",
+                "card": "As a user, I'd like to be able to cancel events and habits from my sch",
+                "frm": "Sprint Backlog",
+                "to": "Done",
+                "by": "Emmalee Rich"
+              },
+              {
+                "date": "2026-08-19",
+                "card": "As a user, I want my tasks to exist in the app so that the app can do ",
+                "frm": "Sprint Backlog",
+                "to": "Done",
+                "by": "Emmalee Rich"
+              },
+              {
+                "date": "2026-08-19",
+                "card": "As a user, I want to see my upcoming tasks so I can plan around when t",
+                "frm": "Sprint Backlog",
+                "to": "Done",
+                "by": "Emmalee Rich"
+              },
+              {
+                "date": "2026-08-19",
+                "card": "Working console prototype",
+                "frm": "To-Do",
+                "to": "Sprint Backlog",
+                "by": "Emmalee Rich"
+              },
+              {
+                "date": "2026-08-17",
+                "card": "Track when tasks were completed",
+                "frm": "To-Do",
+                "to": "Test",
+                "by": "Emmalee Rich"
+              }
+            ]
+          },
+          "date": "2026-08-25"
+        },
+        {
+          "total_cards": 23,
+          "lists": [
+            {
+              "name": "Backlog",
+              "count": 3
+            },
+            {
+              "name": "Sprint Backlog",
+              "count": 3
+            },
+            {
+              "name": "To-Do",
+              "count": 3
+            },
+            {
+              "name": "In-Progress",
+              "count": 0
+            },
+            {
+              "name": "Test",
+              "count": 1
+            },
+            {
+              "name": "Done",
+              "count": 13
+            }
+          ],
+          "assignees": {
+            "by": [
+              {
+                "n": "Emmalee Rich",
+                "c": 3
+              },
+              {
+                "n": "Michael Lueders Jr.",
+                "c": 2
+              },
+              {
+                "n": "stoopid loser",
+                "c": 1
+              }
+            ],
+            "unassigned": 17
+          },
+          "activity": {
+            "window_days": 14,
+            "moves": 14,
+            "into_done": 7,
+            "created": 4,
+            "by_member": [
+              {
+                "n": "Emmalee Rich",
+                "c": 10
+              },
+              {
+                "n": "Tyler Klemann",
+                "c": 2
+              },
+              {
+                "n": "Michael Lueders Jr.",
+                "c": 2
+              }
+            ],
+            "recent": [
+              {
+                "date": "2026-08-19",
+                "card": "Working console prototype",
+                "frm": "Sprint Backlog",
+                "to": "To-Do",
+                "by": "Emmalee Rich"
+              },
+              {
+                "date": "2026-08-19",
+                "card": "As a user, I want to earn points for completing my tasks so that I am ",
+                "frm": "Backlog",
+                "to": "Sprint Backlog",
+                "by": "Emmalee Rich"
+              },
+              {
+                "date": "2026-08-19",
+                "card": "As a user, I want to add tasks so that I can get notified for the task",
+                "frm": "Sprint Backlog",
+                "to": "Done",
+                "by": "Emmalee Rich"
+              },
+              {
+                "date": "2026-08-19",
+                "card": "As a user, I'd like to be able to cancel events and habits from my sch",
+                "frm": "Sprint Backlog",
+                "to": "Done",
+                "by": "Emmalee Rich"
+              },
+              {
+                "date": "2026-08-19",
+                "card": "As a user, I want my tasks to exist in the app so that the app can do ",
+                "frm": "Sprint Backlog",
+                "to": "Done",
+                "by": "Emmalee Rich"
+              },
+              {
+                "date": "2026-08-19",
+                "card": "As a user, I want to see my upcoming tasks so I can plan around when t",
+                "frm": "Sprint Backlog",
+                "to": "Done",
+                "by": "Emmalee Rich"
+              },
+              {
+                "date": "2026-08-19",
+                "card": "Working console prototype",
+                "frm": "To-Do",
+                "to": "Sprint Backlog",
+                "by": "Emmalee Rich"
+              },
+              {
+                "date": "2026-08-17",
+                "card": "Track when tasks were completed",
+                "frm": "To-Do",
+                "to": "Test",
+                "by": "Emmalee Rich"
+              }
+            ]
+          },
+          "date": "2026-08-26"
         }
       ],
       "trello": {
-        "date": "2026-08-24",
+        "date": "2026-08-26",
         "total_cards": 23,
         "lists": [
           {
@@ -855,24 +1581,20 @@
         },
         "activity": {
           "window_days": 14,
-          "moves": 21,
+          "moves": 14,
           "into_done": 7,
-          "created": 6,
+          "created": 4,
           "by_member": [
             {
               "n": "Emmalee Rich",
-              "c": 11
-            },
-            {
-              "n": "Michael Lueders Jr.",
-              "c": 4
-            },
-            {
-              "n": "stoopid loser",
-              "c": 4
+              "c": 10
             },
             {
               "n": "Tyler Klemann",
+              "c": 2
+            },
+            {
+              "n": "Michael Lueders Jr.",
               "c": 2
             }
           ],
@@ -939,6 +1661,7 @@
     },
     "paladins": {
       "commits_by_day": {
+        "2026-08-25": 42,
         "2026-08-21": 11,
         "2026-08-20": 11,
         "2026-08-18": 6,
@@ -949,16 +1672,16 @@
       },
       "contributors": [
         {
-          "n": "ShadowVoid22",
-          "c": 32
+          "n": "Nicholas-Griffin",
+          "c": 53
         },
         {
-          "n": "Nicholas-Griffin",
-          "c": 14
+          "n": "ShadowVoid22",
+          "c": 34
         },
         {
           "n": "SnowFloof156",
-          "c": 9
+          "c": 10
         }
       ],
       "source": "api",
@@ -1129,10 +1852,258 @@
             ]
           },
           "date": "2026-08-24"
+        },
+        {
+          "total_cards": 51,
+          "lists": [
+            {
+              "name": "Backlog",
+              "count": 0
+            },
+            {
+              "name": "Sprint Backlog",
+              "count": 0
+            },
+            {
+              "name": "Stretch Goals",
+              "count": 10
+            },
+            {
+              "name": "To Do",
+              "count": 2
+            },
+            {
+              "name": "Working On",
+              "count": 4
+            },
+            {
+              "name": "Week 0 Complete",
+              "count": 5
+            },
+            {
+              "name": "Week 1 Complete",
+              "count": 14
+            },
+            {
+              "name": "Week 2 Complete",
+              "count": 16
+            },
+            {
+              "name": "Week 3 Complete",
+              "count": 0
+            }
+          ],
+          "assignees": {
+            "by": [],
+            "unassigned": 51
+          },
+          "activity": {
+            "window_days": 14,
+            "moves": 26,
+            "into_done": 20,
+            "created": 15,
+            "by_member": [
+              {
+                "n": "Shadow Void",
+                "c": 21
+              },
+              {
+                "n": "Asdel Nelsen (SnowFloof156)",
+                "c": 4
+              },
+              {
+                "n": "Nicholas Griffin",
+                "c": 1
+              }
+            ],
+            "recent": [
+              {
+                "date": "2026-08-25",
+                "card": "More Characters",
+                "frm": "Stretch Goals",
+                "to": "Working On",
+                "by": "Asdel Nelsen (SnowFloof156)"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "Character Compendium",
+                "frm": "Working On",
+                "to": "Week 2 Complete",
+                "by": "Asdel Nelsen (SnowFloof156)"
+              },
+              {
+                "date": "2026-08-20",
+                "card": "Locking Shop",
+                "frm": "Stretch Goals",
+                "to": "Week 2 Complete",
+                "by": "Shadow Void"
+              },
+              {
+                "date": "2026-08-20",
+                "card": "Mobile Capability",
+                "frm": "Stretch Goals",
+                "to": "Week 2 Complete",
+                "by": "Shadow Void"
+              },
+              {
+                "date": "2026-08-20",
+                "card": "Character Traits",
+                "frm": "Stretch Goals",
+                "to": "Week 2 Complete",
+                "by": "Shadow Void"
+              },
+              {
+                "date": "2026-08-20",
+                "card": "Deploy Game",
+                "frm": "To Do",
+                "to": "Week 2 Complete",
+                "by": "Shadow Void"
+              },
+              {
+                "date": "2026-08-18",
+                "card": "Character Stat System",
+                "frm": "Working On",
+                "to": "Week 1 Complete",
+                "by": "Asdel Nelsen (SnowFloof156)"
+              },
+              {
+                "date": "2026-08-17",
+                "card": "Set up Database",
+                "frm": "Working On",
+                "to": "Week 1 Complete",
+                "by": "Nicholas Griffin"
+              }
+            ]
+          },
+          "date": "2026-08-25"
+        },
+        {
+          "total_cards": 51,
+          "lists": [
+            {
+              "name": "Backlog",
+              "count": 0
+            },
+            {
+              "name": "Sprint Backlog",
+              "count": 0
+            },
+            {
+              "name": "Stretch Goals",
+              "count": 10
+            },
+            {
+              "name": "To Do",
+              "count": 2
+            },
+            {
+              "name": "Working On",
+              "count": 4
+            },
+            {
+              "name": "Week 0 Complete",
+              "count": 5
+            },
+            {
+              "name": "Week 1 Complete",
+              "count": 14
+            },
+            {
+              "name": "Week 2 Complete",
+              "count": 16
+            },
+            {
+              "name": "Week 3 Complete",
+              "count": 0
+            }
+          ],
+          "assignees": {
+            "by": [],
+            "unassigned": 51
+          },
+          "activity": {
+            "window_days": 14,
+            "moves": 26,
+            "into_done": 20,
+            "created": 15,
+            "by_member": [
+              {
+                "n": "Shadow Void",
+                "c": 21
+              },
+              {
+                "n": "Asdel Nelsen (SnowFloof156)",
+                "c": 4
+              },
+              {
+                "n": "Nicholas Griffin",
+                "c": 1
+              }
+            ],
+            "recent": [
+              {
+                "date": "2026-08-25",
+                "card": "More Characters",
+                "frm": "Stretch Goals",
+                "to": "Working On",
+                "by": "Asdel Nelsen (SnowFloof156)"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "Character Compendium",
+                "frm": "Working On",
+                "to": "Week 2 Complete",
+                "by": "Asdel Nelsen (SnowFloof156)"
+              },
+              {
+                "date": "2026-08-20",
+                "card": "Locking Shop",
+                "frm": "Stretch Goals",
+                "to": "Week 2 Complete",
+                "by": "Shadow Void"
+              },
+              {
+                "date": "2026-08-20",
+                "card": "Mobile Capability",
+                "frm": "Stretch Goals",
+                "to": "Week 2 Complete",
+                "by": "Shadow Void"
+              },
+              {
+                "date": "2026-08-20",
+                "card": "Character Traits",
+                "frm": "Stretch Goals",
+                "to": "Week 2 Complete",
+                "by": "Shadow Void"
+              },
+              {
+                "date": "2026-08-20",
+                "card": "Deploy Game",
+                "frm": "To Do",
+                "to": "Week 2 Complete",
+                "by": "Shadow Void"
+              },
+              {
+                "date": "2026-08-18",
+                "card": "Character Stat System",
+                "frm": "Working On",
+                "to": "Week 1 Complete",
+                "by": "Asdel Nelsen (SnowFloof156)"
+              },
+              {
+                "date": "2026-08-17",
+                "card": "Set up Database",
+                "frm": "Working On",
+                "to": "Week 1 Complete",
+                "by": "Nicholas Griffin"
+              }
+            ]
+          },
+          "date": "2026-08-26"
         }
       ],
       "trello": {
-        "date": "2026-08-24",
+        "date": "2026-08-26",
         "total_cards": 51,
         "lists": [
           {
@@ -1145,7 +2116,7 @@
           },
           {
             "name": "Stretch Goals",
-            "count": 11
+            "count": 10
           },
           {
             "name": "To Do",
@@ -1165,7 +2136,7 @@
           },
           {
             "name": "Week 2 Complete",
-            "count": 15
+            "count": 16
           },
           {
             "name": "Week 3 Complete",
@@ -1178,17 +2149,17 @@
         },
         "activity": {
           "window_days": 14,
-          "moves": 36,
-          "into_done": 21,
-          "created": 17,
+          "moves": 26,
+          "into_done": 20,
+          "created": 15,
           "by_member": [
             {
               "n": "Shadow Void",
-              "c": 33
+              "c": 21
             },
             {
               "n": "Asdel Nelsen (SnowFloof156)",
-              "c": 2
+              "c": 4
             },
             {
               "n": "Nicholas Griffin",
@@ -1196,6 +2167,20 @@
             }
           ],
           "recent": [
+            {
+              "date": "2026-08-25",
+              "card": "More Characters",
+              "frm": "Stretch Goals",
+              "to": "Working On",
+              "by": "Asdel Nelsen (SnowFloof156)"
+            },
+            {
+              "date": "2026-08-25",
+              "card": "Character Compendium",
+              "frm": "Working On",
+              "to": "Week 2 Complete",
+              "by": "Asdel Nelsen (SnowFloof156)"
+            },
             {
               "date": "2026-08-20",
               "card": "Locking Shop",
@@ -1237,20 +2222,6 @@
               "frm": "Working On",
               "to": "Week 1 Complete",
               "by": "Nicholas Griffin"
-            },
-            {
-              "date": "2026-08-17",
-              "card": "Character Abilities",
-              "frm": "Working On",
-              "to": "Week 1 Complete",
-              "by": "Shadow Void"
-            },
-            {
-              "date": "2026-08-17",
-              "card": "Character Creation",
-              "frm": "Working On",
-              "to": "Week 1 Complete",
-              "by": "Asdel Nelsen (SnowFloof156)"
             }
           ]
         }
@@ -1443,23 +2414,273 @@
             ]
           },
           "date": "2026-08-24"
+        },
+        {
+          "total_cards": 31,
+          "lists": [
+            {
+              "name": "BackLog",
+              "count": 6
+            },
+            {
+              "name": "Sprint BackLog",
+              "count": 9
+            },
+            {
+              "name": "To-Do",
+              "count": 7
+            },
+            {
+              "name": "In Progress",
+              "count": 2
+            },
+            {
+              "name": "Test",
+              "count": 1
+            },
+            {
+              "name": "Done",
+              "count": 5
+            },
+            {
+              "name": "Cancelled",
+              "count": 1
+            }
+          ],
+          "assignees": {
+            "by": [
+              {
+                "n": "Porter",
+                "c": 1
+              }
+            ],
+            "unassigned": 30
+          },
+          "activity": {
+            "window_days": 14,
+            "moves": 19,
+            "into_done": 1,
+            "created": 10,
+            "by_member": [
+              {
+                "n": "Zack Stanley",
+                "c": 9
+              },
+              {
+                "n": "Porter",
+                "c": 8
+              },
+              {
+                "n": "Orion Keller",
+                "c": 1
+              },
+              {
+                "n": "Shylah Mosqueda",
+                "c": 1
+              }
+            ],
+            "recent": [
+              {
+                "date": "2026-08-25",
+                "card": "As a student, I want to earn in-game money, so that I can use it to cu",
+                "frm": "BackLog",
+                "to": "Sprint BackLog",
+                "by": "Zack Stanley"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "As a student, I want to earn coins by completing quizzes and answering",
+                "frm": "BackLog",
+                "to": "Sprint BackLog",
+                "by": "Zack Stanley"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "As a student, I want answer choices to appear in different positions, ",
+                "frm": "BackLog",
+                "to": "Sprint BackLog",
+                "by": "Zack Stanley"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "As a student, I want feedback about my answers, so that I can understa",
+                "frm": "BackLog",
+                "to": "Sprint BackLog",
+                "by": "Zack Stanley"
+              },
+              {
+                "date": "2026-08-24",
+                "card": "Add logic to generate math questions",
+                "frm": "Test",
+                "to": "In Progress",
+                "by": "Zack Stanley"
+              },
+              {
+                "date": "2026-08-24",
+                "card": "Add logic to generate math questions",
+                "frm": "In Progress",
+                "to": "Test",
+                "by": "Zack Stanley"
+              },
+              {
+                "date": "2026-08-24",
+                "card": "Add logic to generate math questions",
+                "frm": "To-Do",
+                "to": "In Progress",
+                "by": "Zack Stanley"
+              },
+              {
+                "date": "2026-08-18",
+                "card": "Create Main Menu UI",
+                "frm": "To-Do",
+                "to": "In Progress",
+                "by": "Porter"
+              }
+            ]
+          },
+          "date": "2026-08-25"
+        },
+        {
+          "total_cards": 31,
+          "lists": [
+            {
+              "name": "BackLog",
+              "count": 6
+            },
+            {
+              "name": "Sprint BackLog",
+              "count": 9
+            },
+            {
+              "name": "To-Do",
+              "count": 7
+            },
+            {
+              "name": "In Progress",
+              "count": 2
+            },
+            {
+              "name": "Test",
+              "count": 1
+            },
+            {
+              "name": "Done",
+              "count": 5
+            },
+            {
+              "name": "Cancelled",
+              "count": 1
+            }
+          ],
+          "assignees": {
+            "by": [
+              {
+                "n": "Porter",
+                "c": 1
+              }
+            ],
+            "unassigned": 30
+          },
+          "activity": {
+            "window_days": 14,
+            "moves": 19,
+            "into_done": 1,
+            "created": 10,
+            "by_member": [
+              {
+                "n": "Zack Stanley",
+                "c": 9
+              },
+              {
+                "n": "Porter",
+                "c": 8
+              },
+              {
+                "n": "Orion Keller",
+                "c": 1
+              },
+              {
+                "n": "Shylah Mosqueda",
+                "c": 1
+              }
+            ],
+            "recent": [
+              {
+                "date": "2026-08-25",
+                "card": "As a student, I want to earn in-game money, so that I can use it to cu",
+                "frm": "BackLog",
+                "to": "Sprint BackLog",
+                "by": "Zack Stanley"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "As a student, I want to earn coins by completing quizzes and answering",
+                "frm": "BackLog",
+                "to": "Sprint BackLog",
+                "by": "Zack Stanley"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "As a student, I want answer choices to appear in different positions, ",
+                "frm": "BackLog",
+                "to": "Sprint BackLog",
+                "by": "Zack Stanley"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "As a student, I want feedback about my answers, so that I can understa",
+                "frm": "BackLog",
+                "to": "Sprint BackLog",
+                "by": "Zack Stanley"
+              },
+              {
+                "date": "2026-08-24",
+                "card": "Add logic to generate math questions",
+                "frm": "Test",
+                "to": "In Progress",
+                "by": "Zack Stanley"
+              },
+              {
+                "date": "2026-08-24",
+                "card": "Add logic to generate math questions",
+                "frm": "In Progress",
+                "to": "Test",
+                "by": "Zack Stanley"
+              },
+              {
+                "date": "2026-08-24",
+                "card": "Add logic to generate math questions",
+                "frm": "To-Do",
+                "to": "In Progress",
+                "by": "Zack Stanley"
+              },
+              {
+                "date": "2026-08-18",
+                "card": "Create Main Menu UI",
+                "frm": "To-Do",
+                "to": "In Progress",
+                "by": "Porter"
+              }
+            ]
+          },
+          "date": "2026-08-26"
         }
       ],
       "trello": {
-        "date": "2026-08-24",
-        "total_cards": 27,
+        "date": "2026-08-26",
+        "total_cards": 31,
         "lists": [
           {
             "name": "BackLog",
-            "count": 10
+            "count": 6
           },
           {
             "name": "Sprint BackLog",
-            "count": 5
+            "count": 9
           },
           {
             "name": "To-Do",
-            "count": 3
+            "count": 7
           },
           {
             "name": "In Progress",
@@ -1485,13 +2706,13 @@
               "c": 1
             }
           ],
-          "unassigned": 26
+          "unassigned": 30
         },
         "activity": {
           "window_days": 14,
           "moves": 19,
-          "into_done": 4,
-          "created": 21,
+          "into_done": 1,
+          "created": 10,
           "by_member": [
             {
               "n": "Zack Stanley",
@@ -1511,6 +2732,34 @@
             }
           ],
           "recent": [
+            {
+              "date": "2026-08-25",
+              "card": "As a student, I want to earn in-game money, so that I can use it to cu",
+              "frm": "BackLog",
+              "to": "Sprint BackLog",
+              "by": "Zack Stanley"
+            },
+            {
+              "date": "2026-08-25",
+              "card": "As a student, I want to earn coins by completing quizzes and answering",
+              "frm": "BackLog",
+              "to": "Sprint BackLog",
+              "by": "Zack Stanley"
+            },
+            {
+              "date": "2026-08-25",
+              "card": "As a student, I want answer choices to appear in different positions, ",
+              "frm": "BackLog",
+              "to": "Sprint BackLog",
+              "by": "Zack Stanley"
+            },
+            {
+              "date": "2026-08-25",
+              "card": "As a student, I want feedback about my answers, so that I can understa",
+              "frm": "BackLog",
+              "to": "Sprint BackLog",
+              "by": "Zack Stanley"
+            },
             {
               "date": "2026-08-24",
               "card": "Add logic to generate math questions",
@@ -1538,44 +2787,15 @@
               "frm": "To-Do",
               "to": "In Progress",
               "by": "Porter"
-            },
-            {
-              "date": "2026-08-18",
-              "card": "Add basic math operations",
-              "frm": "Done",
-              "to": "Test",
-              "by": "Porter"
-            },
-            {
-              "date": "2026-08-18",
-              "card": "Allow users to select grade level",
-              "frm": "In Progress",
-              "to": "To-Do",
-              "by": "Porter"
-            },
-            {
-              "date": "2026-08-18",
-              "card": "Create Quiz UI",
-              "frm": "In Progress",
-              "to": "To-Do",
-              "by": "Porter"
-            },
-            {
-              "date": "2026-08-18",
-              "card": "Create Main Menu UI",
-              "frm": "In Progress",
-              "to": "To-Do",
-              "by": "Porter"
             }
           ]
         }
       }
     },
     "teama": {
-      "accessible": false,
+      "accessible": true,
       "commits_by_day": {
-        "2026-08-12": 2,
-        "2026-08-13": 1
+        "2026-08-13": 3
       },
       "contributors": [
         {
@@ -1587,7 +2807,7 @@
           "c": 1
         }
       ],
-      "source": "manual",
+      "source": "api",
       "trello_snapshots": [
         {
           "total_cards": 8,
@@ -1680,10 +2900,134 @@
             ]
           },
           "date": "2026-08-24"
+        },
+        {
+          "total_cards": 8,
+          "lists": [
+            {
+              "name": "Product Backlog",
+              "count": 0
+            },
+            {
+              "name": "Sprint Planning",
+              "count": 0
+            },
+            {
+              "name": "Current Sprint",
+              "count": 6
+            },
+            {
+              "name": "In Progress",
+              "count": 2
+            },
+            {
+              "name": "Testing",
+              "count": 0
+            },
+            {
+              "name": "Done",
+              "count": 0
+            }
+          ],
+          "assignees": {
+            "by": [],
+            "unassigned": 8
+          },
+          "activity": {
+            "window_days": 14,
+            "moves": 2,
+            "into_done": 0,
+            "created": 8,
+            "by_member": [
+              {
+                "n": "Cody James Mays",
+                "c": 2
+              }
+            ],
+            "recent": [
+              {
+                "date": "2026-08-12",
+                "card": "Finish whiteboard",
+                "frm": "Current Sprint",
+                "to": "In Progress",
+                "by": "Cody James Mays"
+              },
+              {
+                "date": "2026-08-12",
+                "card": "Git over it",
+                "frm": "Current Sprint",
+                "to": "In Progress",
+                "by": "Cody James Mays"
+              }
+            ]
+          },
+          "date": "2026-08-25"
+        },
+        {
+          "total_cards": 8,
+          "lists": [
+            {
+              "name": "Product Backlog",
+              "count": 0
+            },
+            {
+              "name": "Sprint Planning",
+              "count": 0
+            },
+            {
+              "name": "Current Sprint",
+              "count": 6
+            },
+            {
+              "name": "In Progress",
+              "count": 2
+            },
+            {
+              "name": "Testing",
+              "count": 0
+            },
+            {
+              "name": "Done",
+              "count": 0
+            }
+          ],
+          "assignees": {
+            "by": [],
+            "unassigned": 8
+          },
+          "activity": {
+            "window_days": 14,
+            "moves": 2,
+            "into_done": 0,
+            "created": 8,
+            "by_member": [
+              {
+                "n": "Cody James Mays",
+                "c": 2
+              }
+            ],
+            "recent": [
+              {
+                "date": "2026-08-12",
+                "card": "Finish whiteboard",
+                "frm": "Current Sprint",
+                "to": "In Progress",
+                "by": "Cody James Mays"
+              },
+              {
+                "date": "2026-08-12",
+                "card": "Git over it",
+                "frm": "Current Sprint",
+                "to": "In Progress",
+                "by": "Cody James Mays"
+              }
+            ]
+          },
+          "date": "2026-08-26"
         }
       ],
       "trello": {
-        "date": "2026-08-24",
+        "date": "2026-08-26",
         "total_cards": 8,
         "lists": [
           {
@@ -1747,6 +3091,7 @@
     },
     "teamb": {
       "commits_by_day": {
+        "2026-08-25": 6,
         "2026-08-18": 2,
         "2026-08-17": 2,
         "2026-08-14": 1,
@@ -1760,11 +3105,11 @@
       "contributors": [
         {
           "n": "SOTKingsman",
-          "c": 23
+          "c": 28
         },
         {
           "n": "LandonMiu917",
-          "c": 10
+          "c": 11
         },
         {
           "n": "MLazoM",
@@ -1944,11 +3289,269 @@
             ]
           },
           "date": "2026-08-24"
+        },
+        {
+          "total_cards": 18,
+          "lists": [
+            {
+              "name": "Backlog",
+              "count": 2
+            },
+            {
+              "name": "Sprint Backlog",
+              "count": 4
+            },
+            {
+              "name": "To-Do",
+              "count": 0
+            },
+            {
+              "name": "In Progress",
+              "count": 4
+            },
+            {
+              "name": "Test",
+              "count": 1
+            },
+            {
+              "name": "Done",
+              "count": 4
+            },
+            {
+              "name": "Completed User Stories",
+              "count": 3
+            }
+          ],
+          "assignees": {
+            "by": [
+              {
+                "n": "Ammon Wanner",
+                "c": 8
+              },
+              {
+                "n": "Landon Miura",
+                "c": 4
+              },
+              {
+                "n": "Stormy",
+                "c": 3
+              },
+              {
+                "n": "G$$$ Rodriguez",
+                "c": 3
+              }
+            ],
+            "unassigned": 2
+          },
+          "activity": {
+            "window_days": 14,
+            "moves": 31,
+            "into_done": 8,
+            "created": 5,
+            "by_member": [
+              {
+                "n": "Ammon Wanner",
+                "c": 29
+              },
+              {
+                "n": "G$$$ Rodriguez",
+                "c": 2
+              }
+            ],
+            "recent": [
+              {
+                "date": "2026-08-25",
+                "card": "Mark Tasks as Complete",
+                "frm": "To-Do",
+                "to": "In Progress",
+                "by": "G$$$ Rodriguez"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "Basic Task Scheduling",
+                "frm": "To-Do",
+                "to": "In Progress",
+                "by": "Ammon Wanner"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "Saving & Loading",
+                "frm": "To-Do",
+                "to": "In Progress",
+                "by": "Ammon Wanner"
+              },
+              {
+                "date": "2026-08-24",
+                "card": "Task Editing",
+                "frm": "In Progress",
+                "to": "Test",
+                "by": "Ammon Wanner"
+              },
+              {
+                "date": "2026-08-24",
+                "card": "Task Editing",
+                "frm": "To-Do",
+                "to": "In Progress",
+                "by": "Ammon Wanner"
+              },
+              {
+                "date": "2026-08-24",
+                "card": "Manual Task Deletion",
+                "frm": "To-Do",
+                "to": "In Progress",
+                "by": "Ammon Wanner"
+              },
+              {
+                "date": "2026-08-24",
+                "card": "As a user, I want to be able to delete tasks.",
+                "frm": "Completed User Stories",
+                "to": "Sprint Backlog",
+                "by": "Ammon Wanner"
+              },
+              {
+                "date": "2026-08-24",
+                "card": "As a user, I want to be able to delete tasks.",
+                "frm": "Sprint Backlog",
+                "to": "Completed User Stories",
+                "by": "G$$$ Rodriguez"
+              }
+            ]
+          },
+          "date": "2026-08-25"
+        },
+        {
+          "total_cards": 18,
+          "lists": [
+            {
+              "name": "Backlog",
+              "count": 2
+            },
+            {
+              "name": "Sprint Backlog",
+              "count": 4
+            },
+            {
+              "name": "To-Do",
+              "count": 0
+            },
+            {
+              "name": "In Progress",
+              "count": 4
+            },
+            {
+              "name": "Test",
+              "count": 1
+            },
+            {
+              "name": "Done",
+              "count": 4
+            },
+            {
+              "name": "Completed User Stories",
+              "count": 3
+            }
+          ],
+          "assignees": {
+            "by": [
+              {
+                "n": "Ammon Wanner",
+                "c": 8
+              },
+              {
+                "n": "Landon Miura",
+                "c": 4
+              },
+              {
+                "n": "Stormy",
+                "c": 3
+              },
+              {
+                "n": "G$$$ Rodriguez",
+                "c": 3
+              }
+            ],
+            "unassigned": 2
+          },
+          "activity": {
+            "window_days": 14,
+            "moves": 31,
+            "into_done": 8,
+            "created": 5,
+            "by_member": [
+              {
+                "n": "Ammon Wanner",
+                "c": 29
+              },
+              {
+                "n": "G$$$ Rodriguez",
+                "c": 2
+              }
+            ],
+            "recent": [
+              {
+                "date": "2026-08-25",
+                "card": "Mark Tasks as Complete",
+                "frm": "To-Do",
+                "to": "In Progress",
+                "by": "G$$$ Rodriguez"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "Basic Task Scheduling",
+                "frm": "To-Do",
+                "to": "In Progress",
+                "by": "Ammon Wanner"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "Saving & Loading",
+                "frm": "To-Do",
+                "to": "In Progress",
+                "by": "Ammon Wanner"
+              },
+              {
+                "date": "2026-08-24",
+                "card": "Task Editing",
+                "frm": "In Progress",
+                "to": "Test",
+                "by": "Ammon Wanner"
+              },
+              {
+                "date": "2026-08-24",
+                "card": "Task Editing",
+                "frm": "To-Do",
+                "to": "In Progress",
+                "by": "Ammon Wanner"
+              },
+              {
+                "date": "2026-08-24",
+                "card": "Manual Task Deletion",
+                "frm": "To-Do",
+                "to": "In Progress",
+                "by": "Ammon Wanner"
+              },
+              {
+                "date": "2026-08-24",
+                "card": "As a user, I want to be able to delete tasks.",
+                "frm": "Completed User Stories",
+                "to": "Sprint Backlog",
+                "by": "Ammon Wanner"
+              },
+              {
+                "date": "2026-08-24",
+                "card": "As a user, I want to be able to delete tasks.",
+                "frm": "Sprint Backlog",
+                "to": "Completed User Stories",
+                "by": "G$$$ Rodriguez"
+              }
+            ]
+          },
+          "date": "2026-08-26"
         }
       ],
       "trello": {
-        "date": "2026-08-24",
-        "total_cards": 16,
+        "date": "2026-08-26",
+        "total_cards": 18,
         "lists": [
           {
             "name": "Backlog",
@@ -1956,19 +3559,19 @@
           },
           {
             "name": "Sprint Backlog",
-            "count": 3
+            "count": 4
           },
           {
             "name": "To-Do",
-            "count": 2
+            "count": 0
           },
           {
             "name": "In Progress",
-            "count": 2
+            "count": 4
           },
           {
             "name": "Test",
-            "count": 0
+            "count": 1
           },
           {
             "name": "Done",
@@ -1983,7 +3586,7 @@
           "by": [
             {
               "n": "Ammon Wanner",
-              "c": 7
+              "c": 8
             },
             {
               "n": "Landon Miura",
@@ -1995,31 +3598,55 @@
             },
             {
               "n": "G$$$ Rodriguez",
-              "c": 1
+              "c": 3
             }
           ],
-          "unassigned": 3
+          "unassigned": 2
         },
         "activity": {
           "window_days": 14,
-          "moves": 28,
+          "moves": 31,
           "into_done": 8,
-          "created": 3,
+          "created": 5,
           "by_member": [
             {
               "n": "Ammon Wanner",
-              "c": 26
+              "c": 29
             },
             {
               "n": "G$$$ Rodriguez",
-              "c": 1
-            },
-            {
-              "n": "Stormy",
-              "c": 1
+              "c": 2
             }
           ],
           "recent": [
+            {
+              "date": "2026-08-25",
+              "card": "Mark Tasks as Complete",
+              "frm": "To-Do",
+              "to": "In Progress",
+              "by": "G$$$ Rodriguez"
+            },
+            {
+              "date": "2026-08-25",
+              "card": "Basic Task Scheduling",
+              "frm": "To-Do",
+              "to": "In Progress",
+              "by": "Ammon Wanner"
+            },
+            {
+              "date": "2026-08-25",
+              "card": "Saving & Loading",
+              "frm": "To-Do",
+              "to": "In Progress",
+              "by": "Ammon Wanner"
+            },
+            {
+              "date": "2026-08-24",
+              "card": "Task Editing",
+              "frm": "In Progress",
+              "to": "Test",
+              "by": "Ammon Wanner"
+            },
             {
               "date": "2026-08-24",
               "card": "Task Editing",
@@ -2047,34 +3674,6 @@
               "frm": "Sprint Backlog",
               "to": "Completed User Stories",
               "by": "G$$$ Rodriguez"
-            },
-            {
-              "date": "2026-08-19",
-              "card": "As a user, I want to be able to look at a list of all the tasks I have",
-              "frm": "Sprint Backlog",
-              "to": "Completed User Stories",
-              "by": "Ammon Wanner"
-            },
-            {
-              "date": "2026-08-19",
-              "card": "As a user, I want to be able to create a task with a name, description",
-              "frm": "Sprint Backlog",
-              "to": "Completed User Stories",
-              "by": "Ammon Wanner"
-            },
-            {
-              "date": "2026-08-19",
-              "card": "As a user, I want a simple graphical interface so that I can easily na",
-              "frm": "Sprint Backlog",
-              "to": "Completed User Stories",
-              "by": "Ammon Wanner"
-            },
-            {
-              "date": "2026-08-18",
-              "card": "As a user, I want my tasks to be saved so that they are still availabl",
-              "frm": "Backlog",
-              "to": "Sprint Backlog",
-              "by": "Ammon Wanner"
             }
           ]
         }
@@ -2082,8 +3681,11 @@
     },
     "teamc": {
       "commits_by_day": {
-        "2026-08-24": 1,
-        "2026-08-20": 1,
+        "2026-08-26": 2,
+        "2026-08-25": 1,
+        "2026-08-24": 4,
+        "2026-08-20": 3,
+        "2026-08-18": 2,
         "2026-08-17": 2,
         "2026-08-13": 7,
         "2026-08-12": 4,
@@ -2095,11 +3697,11 @@
       "contributors": [
         {
           "n": "joseluhern",
-          "c": 15
+          "c": 17
         },
         {
           "n": "sperry042",
-          "c": 8
+          "c": 16
         },
         {
           "n": "lilacwasplanted",
@@ -2263,10 +3865,260 @@
             ]
           },
           "date": "2026-08-24"
+        },
+        {
+          "total_cards": 15,
+          "lists": [
+            {
+              "name": "Product Backlog",
+              "count": 4
+            },
+            {
+              "name": "Sprint Backlog",
+              "count": 2
+            },
+            {
+              "name": "To-Do",
+              "count": 0
+            },
+            {
+              "name": "In Progress",
+              "count": 1
+            },
+            {
+              "name": "Testing",
+              "count": 0
+            },
+            {
+              "name": "Done",
+              "count": 8
+            }
+          ],
+          "assignees": {
+            "by": [
+              {
+                "n": "Samantha Perry",
+                "c": 6
+              },
+              {
+                "n": "Jose Hernandez",
+                "c": 3
+              },
+              {
+                "n": "Lyla Holloway",
+                "c": 1
+              }
+            ],
+            "unassigned": 5
+          },
+          "activity": {
+            "window_days": 14,
+            "moves": 25,
+            "into_done": 10,
+            "created": 0,
+            "by_member": [
+              {
+                "n": "Jose Hernandez",
+                "c": 11
+              },
+              {
+                "n": "Samantha Perry",
+                "c": 11
+              },
+              {
+                "n": "omegarlm",
+                "c": 3
+              }
+            ],
+            "recent": [
+              {
+                "date": "2026-08-25",
+                "card": "5. Creating Slots \ud83c\udfb0",
+                "frm": "Sprint Backlog",
+                "to": "Done",
+                "by": "Jose Hernandez"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "5. Creating Slots \ud83c\udfb0",
+                "frm": "To-Do",
+                "to": "Sprint Backlog",
+                "by": "Jose Hernandez"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "3. Track Money & Mood",
+                "frm": "To-Do",
+                "to": "Sprint Backlog",
+                "by": "Jose Hernandez"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "1. Work for Money",
+                "frm": "To-Do",
+                "to": "Sprint Backlog",
+                "by": "Jose Hernandez"
+              },
+              {
+                "date": "2026-08-24",
+                "card": "3. Track Money & Mood",
+                "frm": "Sprint Backlog",
+                "to": "To-Do",
+                "by": "omegarlm"
+              },
+              {
+                "date": "2026-08-24",
+                "card": "5. Creating Slots \ud83c\udfb0",
+                "frm": "Sprint Backlog",
+                "to": "To-Do",
+                "by": "omegarlm"
+              },
+              {
+                "date": "2026-08-24",
+                "card": "1. Work for Money",
+                "frm": "Sprint Backlog",
+                "to": "To-Do",
+                "by": "omegarlm"
+              },
+              {
+                "date": "2026-08-20",
+                "card": "8. Track My Mood",
+                "frm": "Product Backlog",
+                "to": "Sprint Backlog",
+                "by": "Jose Hernandez"
+              }
+            ]
+          },
+          "date": "2026-08-25"
+        },
+        {
+          "total_cards": 15,
+          "lists": [
+            {
+              "name": "Product Backlog",
+              "count": 4
+            },
+            {
+              "name": "Sprint Backlog",
+              "count": 2
+            },
+            {
+              "name": "To-Do",
+              "count": 0
+            },
+            {
+              "name": "In Progress",
+              "count": 1
+            },
+            {
+              "name": "Testing",
+              "count": 0
+            },
+            {
+              "name": "Done",
+              "count": 8
+            }
+          ],
+          "assignees": {
+            "by": [
+              {
+                "n": "Samantha Perry",
+                "c": 6
+              },
+              {
+                "n": "Jose Hernandez",
+                "c": 3
+              },
+              {
+                "n": "Lyla Holloway",
+                "c": 1
+              }
+            ],
+            "unassigned": 5
+          },
+          "activity": {
+            "window_days": 14,
+            "moves": 25,
+            "into_done": 10,
+            "created": 0,
+            "by_member": [
+              {
+                "n": "Jose Hernandez",
+                "c": 11
+              },
+              {
+                "n": "Samantha Perry",
+                "c": 11
+              },
+              {
+                "n": "omegarlm",
+                "c": 3
+              }
+            ],
+            "recent": [
+              {
+                "date": "2026-08-25",
+                "card": "5. Creating Slots \ud83c\udfb0",
+                "frm": "Sprint Backlog",
+                "to": "Done",
+                "by": "Jose Hernandez"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "5. Creating Slots \ud83c\udfb0",
+                "frm": "To-Do",
+                "to": "Sprint Backlog",
+                "by": "Jose Hernandez"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "3. Track Money & Mood",
+                "frm": "To-Do",
+                "to": "Sprint Backlog",
+                "by": "Jose Hernandez"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "1. Work for Money",
+                "frm": "To-Do",
+                "to": "Sprint Backlog",
+                "by": "Jose Hernandez"
+              },
+              {
+                "date": "2026-08-24",
+                "card": "3. Track Money & Mood",
+                "frm": "Sprint Backlog",
+                "to": "To-Do",
+                "by": "omegarlm"
+              },
+              {
+                "date": "2026-08-24",
+                "card": "5. Creating Slots \ud83c\udfb0",
+                "frm": "Sprint Backlog",
+                "to": "To-Do",
+                "by": "omegarlm"
+              },
+              {
+                "date": "2026-08-24",
+                "card": "1. Work for Money",
+                "frm": "Sprint Backlog",
+                "to": "To-Do",
+                "by": "omegarlm"
+              },
+              {
+                "date": "2026-08-20",
+                "card": "8. Track My Mood",
+                "frm": "Product Backlog",
+                "to": "Sprint Backlog",
+                "by": "Jose Hernandez"
+              }
+            ]
+          },
+          "date": "2026-08-26"
         }
       ],
       "trello": {
-        "date": "2026-08-24",
+        "date": "2026-08-26",
         "total_cards": 15,
         "lists": [
           {
@@ -2275,11 +4127,11 @@
           },
           {
             "name": "Sprint Backlog",
-            "count": 0
+            "count": 2
           },
           {
             "name": "To-Do",
-            "count": 3
+            "count": 0
           },
           {
             "name": "In Progress",
@@ -2291,7 +4143,7 @@
           },
           {
             "name": "Done",
-            "count": 7
+            "count": 8
           }
         ],
         "assignees": {
@@ -2313,24 +4165,52 @@
         },
         "activity": {
           "window_days": 14,
-          "moves": 28,
-          "into_done": 9,
-          "created": 7,
+          "moves": 25,
+          "into_done": 10,
+          "created": 0,
           "by_member": [
             {
               "n": "Jose Hernandez",
-              "c": 12
+              "c": 11
             },
             {
               "n": "Samantha Perry",
-              "c": 12
+              "c": 11
             },
             {
               "n": "omegarlm",
-              "c": 4
+              "c": 3
             }
           ],
           "recent": [
+            {
+              "date": "2026-08-25",
+              "card": "5. Creating Slots \ud83c\udfb0",
+              "frm": "Sprint Backlog",
+              "to": "Done",
+              "by": "Jose Hernandez"
+            },
+            {
+              "date": "2026-08-25",
+              "card": "5. Creating Slots \ud83c\udfb0",
+              "frm": "To-Do",
+              "to": "Sprint Backlog",
+              "by": "Jose Hernandez"
+            },
+            {
+              "date": "2026-08-25",
+              "card": "3. Track Money & Mood",
+              "frm": "To-Do",
+              "to": "Sprint Backlog",
+              "by": "Jose Hernandez"
+            },
+            {
+              "date": "2026-08-25",
+              "card": "1. Work for Money",
+              "frm": "To-Do",
+              "to": "Sprint Backlog",
+              "by": "Jose Hernandez"
+            },
             {
               "date": "2026-08-24",
               "card": "3. Track Money & Mood",
@@ -2358,34 +4238,6 @@
               "frm": "Product Backlog",
               "to": "Sprint Backlog",
               "by": "Jose Hernandez"
-            },
-            {
-              "date": "2026-08-20",
-              "card": "3. Track Money",
-              "frm": "Product Backlog",
-              "to": "Sprint Backlog",
-              "by": "Jose Hernandez"
-            },
-            {
-              "date": "2026-08-19",
-              "card": "13. Enter User Name",
-              "frm": "Sprint Backlog",
-              "to": "Product Backlog",
-              "by": "Jose Hernandez"
-            },
-            {
-              "date": "2026-08-19",
-              "card": "1. Work for Money",
-              "frm": "Product Backlog",
-              "to": "Sprint Backlog",
-              "by": "Samantha Perry"
-            },
-            {
-              "date": "2026-08-19",
-              "card": "5. Creating Slots \ud83c\udfb0",
-              "frm": "Product Backlog",
-              "to": "Sprint Backlog",
-              "by": "Jose Hernandez"
             }
           ]
         }
@@ -2393,6 +4245,8 @@
     },
     "bigpig": {
       "commits_by_day": {
+        "2026-08-25": 15,
+        "2026-08-24": 4,
         "2026-08-20": 5,
         "2026-08-19": 5,
         "2026-08-18": 10,
@@ -2409,19 +4263,19 @@
       "contributors": [
         {
           "n": "Perihelion707",
-          "c": 32
+          "c": 40
         },
         {
           "n": "CalebDeanMcCool",
-          "c": 23
+          "c": 29
         },
         {
           "n": "brettbeloin",
-          "c": 19
+          "c": 20
         },
         {
           "n": "jeremyjwill0893-sys",
-          "c": 8
+          "c": 12
         }
       ],
       "source": "api",
@@ -2605,10 +4459,284 @@
             ]
           },
           "date": "2026-08-24"
+        },
+        {
+          "total_cards": 16,
+          "lists": [
+            {
+              "name": "Backlog",
+              "count": 5
+            },
+            {
+              "name": "Sprint Backlog",
+              "count": 1
+            },
+            {
+              "name": "To Do",
+              "count": 1
+            },
+            {
+              "name": "In Progress",
+              "count": 4
+            },
+            {
+              "name": "Test",
+              "count": 0
+            },
+            {
+              "name": "Done",
+              "count": 5
+            },
+            {
+              "name": "Current Sprint",
+              "count": 0
+            },
+            {
+              "name": "Content Ideas",
+              "count": 0
+            },
+            {
+              "name": "Resources",
+              "count": 0
+            }
+          ],
+          "assignees": {
+            "by": [
+              {
+                "n": "Dylan Pratt",
+                "c": 5
+              },
+              {
+                "n": "Jeremy Williams",
+                "c": 3
+              },
+              {
+                "n": "Caleb McCool",
+                "c": 3
+              },
+              {
+                "n": "brett beloin",
+                "c": 2
+              }
+            ],
+            "unassigned": 6
+          },
+          "activity": {
+            "window_days": 14,
+            "moves": 15,
+            "into_done": 5,
+            "created": 1,
+            "by_member": [
+              {
+                "n": "Dylan Pratt",
+                "c": 13
+              },
+              {
+                "n": "brett beloin",
+                "c": 2
+              }
+            ],
+            "recent": [
+              {
+                "date": "2026-08-21",
+                "card": "Ant manager",
+                "frm": "To Do",
+                "to": "Done",
+                "by": "Dylan Pratt"
+              },
+              {
+                "date": "2026-08-21",
+                "card": "Item/Consumable Manager",
+                "frm": "Sprint Backlog",
+                "to": "In Progress",
+                "by": "Dylan Pratt"
+              },
+              {
+                "date": "2026-08-21",
+                "card": "Combat Manager",
+                "frm": "Sprint Backlog",
+                "to": "In Progress",
+                "by": "Dylan Pratt"
+              },
+              {
+                "date": "2026-08-21",
+                "card": "Dungeon Manager",
+                "frm": "Sprint Backlog",
+                "to": "In Progress",
+                "by": "Dylan Pratt"
+              },
+              {
+                "date": "2026-08-19",
+                "card": "As a player, I want the UI to be color coded to make things easier to ",
+                "frm": "Backlog",
+                "to": "Done",
+                "by": "Dylan Pratt"
+              },
+              {
+                "date": "2026-08-19",
+                "card": "Ant class",
+                "frm": "In Progress",
+                "to": "Done",
+                "by": "Dylan Pratt"
+              },
+              {
+                "date": "2026-08-19",
+                "card": "Resource Manager",
+                "frm": "To Do",
+                "to": "Done",
+                "by": "Dylan Pratt"
+              },
+              {
+                "date": "2026-08-19",
+                "card": "Event manager",
+                "frm": "To Do",
+                "to": "Done",
+                "by": "Dylan Pratt"
+              }
+            ]
+          },
+          "date": "2026-08-25"
+        },
+        {
+          "total_cards": 16,
+          "lists": [
+            {
+              "name": "Backlog",
+              "count": 5
+            },
+            {
+              "name": "Sprint Backlog",
+              "count": 1
+            },
+            {
+              "name": "To Do",
+              "count": 1
+            },
+            {
+              "name": "In Progress",
+              "count": 4
+            },
+            {
+              "name": "Test",
+              "count": 0
+            },
+            {
+              "name": "Done",
+              "count": 5
+            },
+            {
+              "name": "Current Sprint",
+              "count": 0
+            },
+            {
+              "name": "Content Ideas",
+              "count": 0
+            },
+            {
+              "name": "Resources",
+              "count": 0
+            }
+          ],
+          "assignees": {
+            "by": [
+              {
+                "n": "Dylan Pratt",
+                "c": 5
+              },
+              {
+                "n": "Jeremy Williams",
+                "c": 3
+              },
+              {
+                "n": "Caleb McCool",
+                "c": 3
+              },
+              {
+                "n": "brett beloin",
+                "c": 2
+              }
+            ],
+            "unassigned": 6
+          },
+          "activity": {
+            "window_days": 14,
+            "moves": 15,
+            "into_done": 5,
+            "created": 1,
+            "by_member": [
+              {
+                "n": "Dylan Pratt",
+                "c": 13
+              },
+              {
+                "n": "brett beloin",
+                "c": 2
+              }
+            ],
+            "recent": [
+              {
+                "date": "2026-08-21",
+                "card": "Ant manager",
+                "frm": "To Do",
+                "to": "Done",
+                "by": "Dylan Pratt"
+              },
+              {
+                "date": "2026-08-21",
+                "card": "Item/Consumable Manager",
+                "frm": "Sprint Backlog",
+                "to": "In Progress",
+                "by": "Dylan Pratt"
+              },
+              {
+                "date": "2026-08-21",
+                "card": "Combat Manager",
+                "frm": "Sprint Backlog",
+                "to": "In Progress",
+                "by": "Dylan Pratt"
+              },
+              {
+                "date": "2026-08-21",
+                "card": "Dungeon Manager",
+                "frm": "Sprint Backlog",
+                "to": "In Progress",
+                "by": "Dylan Pratt"
+              },
+              {
+                "date": "2026-08-19",
+                "card": "As a player, I want the UI to be color coded to make things easier to ",
+                "frm": "Backlog",
+                "to": "Done",
+                "by": "Dylan Pratt"
+              },
+              {
+                "date": "2026-08-19",
+                "card": "Ant class",
+                "frm": "In Progress",
+                "to": "Done",
+                "by": "Dylan Pratt"
+              },
+              {
+                "date": "2026-08-19",
+                "card": "Resource Manager",
+                "frm": "To Do",
+                "to": "Done",
+                "by": "Dylan Pratt"
+              },
+              {
+                "date": "2026-08-19",
+                "card": "Event manager",
+                "frm": "To Do",
+                "to": "Done",
+                "by": "Dylan Pratt"
+              }
+            ]
+          },
+          "date": "2026-08-26"
         }
       ],
       "trello": {
-        "date": "2026-08-24",
+        "date": "2026-08-26",
         "total_cards": 16,
         "lists": [
           {
@@ -2671,13 +4799,13 @@
         },
         "activity": {
           "window_days": 14,
-          "moves": 28,
+          "moves": 15,
           "into_done": 5,
-          "created": 6,
+          "created": 1,
           "by_member": [
             {
               "n": "Dylan Pratt",
-              "c": 26
+              "c": 13
             },
             {
               "n": "brett beloin",
@@ -2747,7 +4875,8 @@
     },
     "coders": {
       "commits_by_day": {
-        "2026-08-24": 7,
+        "2026-08-25": 13,
+        "2026-08-24": 20,
         "2026-08-23": 3,
         "2026-08-22": 3,
         "2026-08-21": 5,
@@ -2767,19 +4896,19 @@
       "contributors": [
         {
           "n": "ieatyoureggrolls",
-          "c": 44
+          "c": 50
         },
         {
           "n": "Misticburrito",
-          "c": 31
+          "c": 40
         },
         {
           "n": "FinalAquaticZenith",
-          "c": 30
+          "c": 37
         },
         {
           "n": "stunbot11",
-          "c": 25
+          "c": 29
         }
       ],
       "source": "api",
@@ -2963,15 +5092,297 @@
             ]
           },
           "date": "2026-08-24"
+        },
+        {
+          "total_cards": 61,
+          "lists": [
+            {
+              "name": "Stretch Goals",
+              "count": 5
+            },
+            {
+              "name": "Product Backlog",
+              "count": 6
+            },
+            {
+              "name": "Sprint Backlog",
+              "count": 4
+            },
+            {
+              "name": "To Do",
+              "count": 5
+            },
+            {
+              "name": "In Progress",
+              "count": 2
+            },
+            {
+              "name": "Testing",
+              "count": 7
+            },
+            {
+              "name": "Done",
+              "count": 29
+            },
+            {
+              "name": "Sprint Frontlog",
+              "count": 3
+            }
+          ],
+          "assignees": {
+            "by": [
+              {
+                "n": "Austin Woods (Faz)",
+                "c": 13
+              },
+              {
+                "n": "stunbot 11",
+                "c": 8
+              },
+              {
+                "n": "izakfernandez",
+                "c": 5
+              },
+              {
+                "n": "Lucas Booth",
+                "c": 1
+              }
+            ],
+            "unassigned": 34
+          },
+          "activity": {
+            "window_days": 14,
+            "moves": 68,
+            "into_done": 25,
+            "created": 22,
+            "by_member": [
+              {
+                "n": "stunbot 11",
+                "c": 25
+              },
+              {
+                "n": "izakfernandez",
+                "c": 22
+              },
+              {
+                "n": "Austin Woods (Faz)",
+                "c": 14
+              },
+              {
+                "n": "Lucas Booth",
+                "c": 7
+              }
+            ],
+            "recent": [
+              {
+                "date": "2026-08-25",
+                "card": "weapon enchantments can level up (for infinite waves)",
+                "frm": "Sprint Backlog",
+                "to": "Done",
+                "by": "Austin Woods (Faz)"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "edit the descriptions of enchantments based on the level",
+                "frm": "To Do",
+                "to": "Done",
+                "by": "Austin Woods (Faz)"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "allow enchantments to level up",
+                "frm": "To Do",
+                "to": "Done",
+                "by": "Austin Woods (Faz)"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "Make an enemy have a chance to have an element based on what level you",
+                "frm": "Stretch Goals",
+                "to": "Testing",
+                "by": "stunbot 11"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "As a player, I want my different weapon parts to be better in certain ",
+                "frm": "Sprint Backlog",
+                "to": "Done",
+                "by": "Austin Woods (Faz)"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "As a player, I want to be able to fuse the weapon parts I choose to ma",
+                "frm": "Sprint Backlog",
+                "to": "Done",
+                "by": "Austin Woods (Faz)"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "weapon enchantments can level up (for infinite waves)",
+                "frm": "Product Backlog",
+                "to": "Sprint Backlog",
+                "by": "Austin Woods (Faz)"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "make crafting a weapon cost money based on what you use to craft",
+                "frm": "To Do",
+                "to": "Done",
+                "by": "Austin Woods (Faz)"
+              }
+            ]
+          },
+          "date": "2026-08-25"
+        },
+        {
+          "total_cards": 61,
+          "lists": [
+            {
+              "name": "Stretch Goals",
+              "count": 5
+            },
+            {
+              "name": "Product Backlog",
+              "count": 6
+            },
+            {
+              "name": "Sprint Backlog",
+              "count": 4
+            },
+            {
+              "name": "To Do",
+              "count": 3
+            },
+            {
+              "name": "In Progress",
+              "count": 3
+            },
+            {
+              "name": "Testing",
+              "count": 8
+            },
+            {
+              "name": "Done",
+              "count": 29
+            },
+            {
+              "name": "Sprint Frontlog",
+              "count": 3
+            }
+          ],
+          "assignees": {
+            "by": [
+              {
+                "n": "Austin Woods (Faz)",
+                "c": 13
+              },
+              {
+                "n": "stunbot 11",
+                "c": 8
+              },
+              {
+                "n": "izakfernandez",
+                "c": 5
+              },
+              {
+                "n": "Lucas Booth",
+                "c": 1
+              }
+            ],
+            "unassigned": 34
+          },
+          "activity": {
+            "window_days": 14,
+            "moves": 66,
+            "into_done": 24,
+            "created": 22,
+            "by_member": [
+              {
+                "n": "stunbot 11",
+                "c": 25
+              },
+              {
+                "n": "izakfernandez",
+                "c": 22
+              },
+              {
+                "n": "Austin Woods (Faz)",
+                "c": 14
+              },
+              {
+                "n": "Lucas Booth",
+                "c": 5
+              }
+            ],
+            "recent": [
+              {
+                "date": "2026-08-25",
+                "card": "Have the option to enchant weapons",
+                "frm": "To Do",
+                "to": "In Progress",
+                "by": "stunbot 11"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "Have the option to upgrade weapons",
+                "frm": "To Do",
+                "to": "Testing",
+                "by": "stunbot 11"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "weapon enchantments can level up (for infinite waves)",
+                "frm": "Sprint Backlog",
+                "to": "Done",
+                "by": "Austin Woods (Faz)"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "edit the descriptions of enchantments based on the level",
+                "frm": "To Do",
+                "to": "Done",
+                "by": "Austin Woods (Faz)"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "allow enchantments to level up",
+                "frm": "To Do",
+                "to": "Done",
+                "by": "Austin Woods (Faz)"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "Make an enemy have a chance to have an element based on what level you",
+                "frm": "Stretch Goals",
+                "to": "Testing",
+                "by": "stunbot 11"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "As a player, I want my different weapon parts to be better in certain ",
+                "frm": "Sprint Backlog",
+                "to": "Done",
+                "by": "Austin Woods (Faz)"
+              },
+              {
+                "date": "2026-08-25",
+                "card": "As a player, I want to be able to fuse the weapon parts I choose to ma",
+                "frm": "Sprint Backlog",
+                "to": "Done",
+                "by": "Austin Woods (Faz)"
+              }
+            ]
+          },
+          "date": "2026-08-26"
         }
       ],
       "trello": {
-        "date": "2026-08-24",
-        "total_cards": 58,
+        "date": "2026-08-26",
+        "total_cards": 61,
         "lists": [
           {
             "name": "Stretch Goals",
-            "count": 6
+            "count": 5
           },
           {
             "name": "Product Backlog",
@@ -2979,23 +5390,23 @@
           },
           {
             "name": "Sprint Backlog",
-            "count": 6
+            "count": 4
           },
           {
             "name": "To Do",
-            "count": 9
+            "count": 3
           },
           {
             "name": "In Progress",
-            "count": 2
+            "count": 3
           },
           {
             "name": "Testing",
-            "count": 7
+            "count": 8
           },
           {
             "name": "Done",
-            "count": 19
+            "count": 29
           },
           {
             "name": "Sprint Frontlog",
@@ -3006,7 +5417,7 @@
           "by": [
             {
               "n": "Austin Woods (Faz)",
-              "c": 12
+              "c": 13
             },
             {
               "n": "stunbot 11",
@@ -3021,92 +5432,92 @@
               "c": 1
             }
           ],
-          "unassigned": 32
+          "unassigned": 34
         },
         "activity": {
           "window_days": 14,
-          "moves": 75,
-          "into_done": 18,
-          "created": 43,
+          "moves": 66,
+          "into_done": 24,
+          "created": 22,
           "by_member": [
             {
               "n": "stunbot 11",
-              "c": 27
+              "c": 25
             },
             {
               "n": "izakfernandez",
-              "c": 20
+              "c": 22
             },
             {
               "n": "Austin Woods (Faz)",
-              "c": 17
+              "c": 14
             },
             {
               "n": "Lucas Booth",
-              "c": 11
+              "c": 5
             }
           ],
           "recent": [
             {
-              "date": "2026-08-24",
-              "card": "Have heroes/villains be able to deal damage based on weapon stats",
-              "frm": "Testing",
-              "to": "Done",
+              "date": "2026-08-25",
+              "card": "Have the option to enchant weapons",
+              "frm": "To Do",
+              "to": "In Progress",
               "by": "stunbot 11"
             },
             {
-              "date": "2026-08-24",
-              "card": "Have the enemy be stronger based on the current level",
-              "frm": "Testing",
-              "to": "Done",
-              "by": "stunbot 11"
-            },
-            {
-              "date": "2026-08-24",
-              "card": "Have enemies drop gold upon being killed",
-              "frm": "In Progress",
+              "date": "2026-08-25",
+              "card": "Have the option to upgrade weapons",
+              "frm": "To Do",
               "to": "Testing",
               "by": "stunbot 11"
             },
             {
-              "date": "2026-08-24",
-              "card": "created restricted weapon create methods for the tutorial",
-              "frm": "In Progress",
+              "date": "2026-08-25",
+              "card": "weapon enchantments can level up (for infinite waves)",
+              "frm": "Sprint Backlog",
               "to": "Done",
               "by": "Austin Woods (Faz)"
             },
             {
-              "date": "2026-08-23",
-              "card": "Print Battle Summary",
-              "frm": "In Progress",
-              "to": "Testing",
-              "by": "Lucas Booth"
-            },
-            {
-              "date": "2026-08-23",
-              "card": "Print Battle Summary",
+              "date": "2026-08-25",
+              "card": "edit the descriptions of enchantments based on the level",
               "frm": "To Do",
-              "to": "In Progress",
-              "by": "Lucas Booth"
+              "to": "Done",
+              "by": "Austin Woods (Faz)"
             },
             {
-              "date": "2026-08-23",
-              "card": "Print player/enemy party",
-              "frm": "In Progress",
-              "to": "Testing",
-              "by": "Lucas Booth"
+              "date": "2026-08-25",
+              "card": "allow enchantments to level up",
+              "frm": "To Do",
+              "to": "Done",
+              "by": "Austin Woods (Faz)"
             },
             {
-              "date": "2026-08-20",
-              "card": "level one should have the tutorial demonstrate how the crafting mechan",
-              "frm": "In Progress",
+              "date": "2026-08-25",
+              "card": "Make an enemy have a chance to have an element based on what level you",
+              "frm": "Stretch Goals",
               "to": "Testing",
-              "by": "izakfernandez"
+              "by": "stunbot 11"
+            },
+            {
+              "date": "2026-08-25",
+              "card": "As a player, I want my different weapon parts to be better in certain ",
+              "frm": "Sprint Backlog",
+              "to": "Done",
+              "by": "Austin Woods (Faz)"
+            },
+            {
+              "date": "2026-08-25",
+              "card": "As a player, I want to be able to fuse the weapon parts I choose to ma",
+              "frm": "Sprint Backlog",
+              "to": "Done",
+              "by": "Austin Woods (Faz)"
             }
           ]
         }
       }
     }
   },
-  "collected_at": "2026-08-24T22:03:33+00:00"
+  "collected_at": "2026-08-26T00:22:58+00:00"
 }

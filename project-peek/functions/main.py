@@ -14,15 +14,25 @@ from datetime import datetime, timezone, timedelta
 
 from firebase_functions import https_fn, options
 from firebase_admin import initialize_app
-from google.cloud import firestore as gcf
+from firebase_admin import firestore as admin_firestore
+from google.cloud import firestore as gcf   # kept for SERVER_TIMESTAMP
 
 initialize_app()
 
 
 def get_db():
-    # REST transport avoids a Cloud Run gRPC bug that percent-encodes the default
-    # database id ("(default)" -> "%28default%29"), which the backend rejects.
-    return gcf.Client(database="(default)", transport="rest")
+    """Firestore client for the project's default database.
+
+    Do NOT pass database="(default)" explicitly: google-cloud-firestore
+    percent-encodes it into the resource path ("%28default%29") and the backend
+    rejects every query with InvalidArgument. Letting firebase_admin resolve the
+    default database sidesteps it -- this is what the local collector
+    (tracker/sync_firestore.py) has always done, which is why it never hit this.
+
+    ("transport='rest'" is not an option here: firestore.Client.__init__ takes
+    no such parameter and raises TypeError.)
+    """
+    return admin_firestore.client()
 
 ALLOWED_DOMAIN = "neumont.edu"
 ACTIVITY_DAYS = 14
@@ -34,6 +44,18 @@ def _tkey():   return os.environ.get("TRELLO_KEY", "").strip()
 def _ttok():   return os.environ.get("TRELLO_TOKEN", "").strip()
 
 
+# A Secret Manager secret cannot hold an empty payload, so GITHUB_TOKEN may be set
+# to the sentinel below to mean "not configured". Real tokens all carry a known
+# prefix, so anything without one is treated as absent rather than sent to GitHub
+# (a bogus Authorization header would turn every request into a 401).
+GH_TOKEN_PREFIXES = ("ghp_", "github_pat_", "gho_", "ghs_", "ghu_")
+
+
+def _ghtok():
+    t = os.environ.get("GITHUB_TOKEN", "").strip()
+    return t if t.startswith(GH_TOKEN_PREFIXES) else ""
+
+
 def fmt_date(iso):
     try:
         y, m, d = iso.split("-"); return f"{MON[int(m)]} {int(d)}"
@@ -42,10 +64,36 @@ def fmt_date(iso):
 
 
 # ---------- GitHub ----------
+# --- GitHub access is read-only, enforced here ------------------------------
+# GITHUB_TOKEN is a classic PAT with the `repo` scope, which GitHub also allows
+# to WRITE. There is no narrower classic scope that can read a private repo, so
+# the read-only guarantee cannot come from the token -- it lives here instead.
+#
+# Every GitHub call goes through _gh_request(), which builds an explicit,
+# bodyless GET against the API host. A GET cannot create, modify, or delete
+# anything. Anything else raises before a socket is opened. Do not add a `data=`
+# argument or a `method=` other than GET to this file.
+GITHUB_API = "https://api.github.com/"
+
+
+def _gh_request(url, headers):
+    """Build a GitHub request that is structurally incapable of modifying a repo."""
+    if not url.startswith(GITHUB_API):
+        raise ValueError(f"refusing non-GitHub-API URL: {url!r}")
+    req = urllib.request.Request(url, headers=headers, method="GET")
+    if req.data is not None or req.get_method() != "GET":
+        raise ValueError("refusing a GitHub request that is not a bodyless GET")
+    return req
+
+
 def gh_get(url):
-    req = urllib.request.Request(url, headers={"User-Agent": "project-peek",
-                                               "Accept": "application/vnd.github+json"})
-    with urllib.request.urlopen(req, timeout=30) as r:
+    headers = {"User-Agent": "project-peek", "Accept": "application/vnd.github+json"}
+    tok = _ghtok()
+    if tok:
+        # Raises the rate limit from 60 to 5000 requests/hour, and reads any private
+        # repo the token's account can actually see.
+        headers["Authorization"] = f"Bearer {tok}"
+    with urllib.request.urlopen(_gh_request(url, headers), timeout=30) as r:
         return json.load(r)
 
 
@@ -94,15 +142,26 @@ def _tget(path, extra):
 
 
 def fetch_trello(url):
-    if not (_tkey() and _ttok()) or not url or "/invite/" in url:
-        return None
+    """Return (snapshot|None, reason). `reason` explains skips so the UI can show them."""
+    if not (_tkey() and _ttok()):
+        return None, "no Trello credentials configured"
+    if not url:
+        return None, "no board link"
+    if "/invite/" in url:
+        return None, "invite link (API can't read - needs the plain /b/<id> URL)"
     bid = trello_board_id(url)
     if not bid:
-        return None
+        return None, "unrecognized board link"
     try:
         lists = _tget(f"boards/{bid}/lists", {"cards": "open", "card_fields": "idMembers", "fields": "name"})
-    except Exception:
-        return None
+    except urllib.error.HTTPError as e:
+        if e.code in (401, 403):
+            return None, f"{e.code} - board is private and the account isn't a member"
+        if e.code == 404:
+            return None, "404 - board not found"
+        return None, f"HTTP {e.code} {e.reason}"
+    except Exception as e:
+        return None, f"error: {e}"
     out = [{"name": l.get("name", "?"), "count": len(l.get("cards", []))} for l in lists]
     result = {"total_cards": sum(x["count"] for x in out), "lists": out}
 
@@ -148,7 +207,7 @@ def fetch_trello(url):
         result["activity"] = {"window_days": ACTIVITY_DAYS, "moves": moves, "into_done": into_done,
                               "created": created, "by_member": [{"n": n, "c": c} for n, c in by.most_common()],
                               "recent": recent}
-    return result
+    return result, "ok"
 
 
 # ---------- activity object ----------
@@ -166,35 +225,86 @@ def build_act(commits_by_day, contributors, trello=None, contrib_notes=None, obs
             "commits_by_day": cbd, "contribs": contribs, "obs": obs, "trello": trello}
 
 
+def _github_reason(exc):
+    """Human-readable explanation for a failed GitHub fetch."""
+    if isinstance(exc, urllib.error.HTTPError):
+        if exc.code == 404:
+            return "404 - repo not found, renamed, or private (no token configured)"
+        if exc.code == 403:
+            return "403 - API rate limit reached (60/hour unauthenticated) or access denied"
+        if exc.code == 401:
+            return "401 - not authorized"
+        return f"HTTP {exc.code} {exc.reason}"
+    return f"error: {exc}"
+
+
 def _sync_uid(db, uid):
+    """Sync every team's activity. Returns per-team results so the UI can show
+    what actually happened rather than a bare success count."""
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    now_iso = datetime.now(timezone.utc).isoformat(timespec="seconds")
     courses = teams = 0
+    issues = []          # only the entries that need attention
+    results = []         # every team, for a full report
+
     for c in db.collection(f"users/{uid}/courses").stream():
         courses += 1
+        code = (c.to_dict() or {}).get("code", c.id)
         cref = db.document(f"users/{uid}/courses/{c.id}")
         for tdoc in cref.collection("teams").stream():
             d = tdoc.to_dict() or {}
+            name = d.get("team", tdoc.id)
             github = d.get("github", "") or ""; trello = d.get("trello", "") or ""
             old_act = d.get("act", {}) or {}; contrib_notes = d.get("contrib_notes", {}) or {}
+
+            gh_status = "ok"
             cbd, contributors = {}, []
-            if github:
+            if not github:
+                gh_status = "no repo link"
+            else:
                 try:
                     cbd, contributors = fetch_commits(slug_from_github(github))
-                except Exception:
-                    pass
+                    if not cbd:
+                        gh_status = "no commits found"
+                except Exception as e:
+                    gh_status = _github_reason(e)
+
+            tr_status = "ok"
             trello_snap = old_act.get("trello")
-            if trello:
-                snap = fetch_trello(trello)
+            if not trello:
+                tr_status = "no board link"
+            else:
+                snap, reason = fetch_trello(trello)
                 if snap:
                     snap["date"] = today; trello_snap = {"date": today, **snap}
+                else:
+                    tr_status = reason
+
+            # Preserve prior commit data rather than zeroing a team we couldn't reach.
+            stale = False
             if not cbd and old_act.get("commits_by_day"):
                 act = dict(old_act); act["trello"] = trello_snap or old_act.get("trello")
+                stale = True
             else:
                 act = build_act(cbd, contributors, trello_snap, contrib_notes, old_act.get("obs", ""))
+                if cbd:
+                    act["synced"] = now_iso   # commit data genuinely refreshed just now
+
             cref.collection("teams").document(tdoc.id).set({"act": act}, merge=True)
             teams += 1
+
+            entry = {"course": code, "team": name, "id": tdoc.id,
+                     "github": gh_status, "trello": tr_status,
+                     "commits": act.get("total", 0) if act.get("ok") else 0,
+                     "stale": stale}
+            results.append(entry)
+            if gh_status != "ok" or tr_status not in ("ok", "no board link"):
+                issues.append(entry)
+
     db.document(f"users/{uid}").set({"lastSync": gcf.SERVER_TIMESTAMP}, merge=True)
-    return {"courses": courses, "teams": teams}
+    return {"courses": courses, "teams": teams,
+            "ok": teams - len(issues), "issues": issues, "results": results,
+            "syncedAt": datetime.now(timezone.utc).isoformat(timespec="seconds")}
 
 
 @https_fn.on_request()
@@ -219,7 +329,7 @@ def diag(req: https_fn.Request) -> https_fn.Response:
     return https_fn.Response(json.dumps(out, indent=2), mimetype="application/json")
 
 
-@https_fn.on_call(secrets=["TRELLO_KEY", "TRELLO_TOKEN"], timeout_sec=300,
+@https_fn.on_call(secrets=["TRELLO_KEY", "TRELLO_TOKEN", "GITHUB_TOKEN"], timeout_sec=300,
                   memory=options.MemoryOption.MB_512)
 def sync_now(req: https_fn.CallableRequest):
     if not req.auth:

@@ -16,6 +16,8 @@ import os, sys
 import firebase_admin
 from firebase_admin import credentials, firestore
 
+from datetime import datetime, timezone
+
 from collect import fetch_commits, fetch_trello, slug_from_github, TODAY
 from common import build_act, load_history
 
@@ -62,9 +64,12 @@ def sync_team(course_ref, tdoc, local_hist):
 
     if not cbd and old_act.get("commits_by_day"):
         # Still nothing, but we already have data in Firestore — preserve it, refresh Trello.
+        # Its `synced` stamp is preserved too: the commit data was NOT refreshed.
         act = dict(old_act); act["trello"] = trello_snap or old_act.get("trello")
     else:
         act = build_act(cbd, contributors, trello_snap, contrib_notes, obs=old_act.get("obs", ""))
+        if cbd:
+            act["synced"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
     course_ref.collection("teams").document(tdoc.id).set({"act": act}, merge=True)
     cnt = act["total"] if act.get("ok") else 0
@@ -83,6 +88,10 @@ def main():
             sync_team(course_ref, tdoc, local_hist)
     if not any_course:
         print("No courses found in Firestore for this UID.")
+    else:
+        # Same stamp the cloud function writes, so the app's "Last sync" line is
+        # correct no matter which path refreshed the data.
+        db.document(f"users/{UID}").set({"lastSync": firestore.SERVER_TIMESTAMP}, merge=True)
     print("Done.")
 
 

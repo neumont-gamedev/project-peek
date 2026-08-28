@@ -162,6 +162,20 @@
   .chip .ic{ font-family:var(--font-mono); font-size:11px; color:var(--ink-faint); letter-spacing:.06em; }
   .chip.disabled{ opacity:.55; pointer-events:none; }
 
+  /* sync reporting */
+  .syncbar { display:flex; align-items:flex-start; gap:12px; margin:18px 0 0; padding:14px 16px;
+    border:1px solid var(--line); border-radius:12px; background:var(--surface); }
+  .syncbar.warn { border-color:var(--watch); background:var(--watch-bg); }
+  .syncbar .ico { font-size:15px; line-height:1.4; }
+  .syncbar .body { flex:1; min-width:0; }
+  .syncbar h3 { margin:0 0 4px; font-size:13.5px; font-weight:600; }
+  .syncbar ul { margin:6px 0 0; padding-left:18px; }
+  .syncbar li { font-size:12.5px; color:var(--ink-soft); margin:3px 0; }
+  .syncbar li b { color:var(--ink); font-weight:600; }
+  .syncbar .dismiss { background:none; border:0; color:var(--ink-faint); cursor:pointer;
+    font-size:16px; line-height:1; padding:2px 4px; }
+  .side-foot .syncinfo { font-size:11px; color:var(--ink-faint); line-height:1.5; }
+  .side-foot .syncinfo .warn { color:var(--watch); }
   .card { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:22px 24px;
     box-shadow:var(--shadow); margin-top:22px; }
   .kv { display:grid; grid-template-columns:132px 1fr; gap:8px 18px; font-size:14px; }
@@ -277,6 +291,7 @@
     <nav class="nav" id="nav"></nav>
     <div class="side-foot">
       <button class="btn" id="syncBtn" style="justify-content:center">⟳ Sync now</button>
+      <span class="syncinfo" id="syncInfo"></span>
       <button class="theme-btn" id="themeBtn">◐ Theme</button>
       <span class="who" id="who"></span>
       <button id="signOutBtn">Sign out</button>
@@ -289,7 +304,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, serverTimestamp }
+import { getFirestore, collection, getDocs, doc, getDoc, setDoc, deleteDoc, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getFunctions, httpsCallable }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
@@ -324,6 +339,7 @@ function Lt(t){  // per-entry labels: each project can be team or solo
 }
 
 let UID=null, COURSES=[], COURSE=null, TEAMS=[], NOTES={}, RANGE=[null,null], ALLDAYS=[];
+let LAST_SYNC=null, SYNC_REPORT=null;   // lastSync timestamp + the most recent sync's per-team report
 const TODAY = new Date().toISOString().slice(0,10);
 
 /* ---------- auth ---------- */
@@ -373,6 +389,53 @@ onAuthStateChanged(auth, async user => {
   }
 });
 
+/* ---------- sync reporting ---------- */
+function fmtWhen(d){
+  if(!d) return "";
+  const now = new Date(), sameDay = d.toDateString() === now.toDateString();
+  const time = d.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+  if (sameDay) return "today " + time;
+  const yest = new Date(now); yest.setDate(now.getDate()-1);
+  if (d.toDateString() === yest.toDateString()) return "yesterday " + time;
+  return d.toLocaleDateString([], {month:"short", day:"numeric"}) + " " + time;
+}
+function renderSyncInfo(){
+  const el = $("syncInfo"); if(!el) return;
+  if(!LAST_SYNC){ el.textContent = "Never synced"; return; }
+  const n = SYNC_REPORT && SYNC_REPORT.issues ? SYNC_REPORT.issues.length : 0;
+  el.innerHTML = `Last sync ${esc(fmtWhen(LAST_SYNC))}` +
+    (n ? `<br><span class="warn">⚠ ${n} need${n===1?"s":""} attention</span>` : "");
+}
+async function loadLastSync(){
+  try{
+    const snap = await getDoc(doc(db, `users/${UID}`));
+    const ts = snap.exists() ? snap.data().lastSync : null;
+    LAST_SYNC = ts && ts.toDate ? ts.toDate() : null;
+  }catch(e){ console.error("lastSync read failed:", e); LAST_SYNC = null; }
+  renderSyncInfo();
+}
+// Banner on the dashboard listing exactly what did not sync cleanly.
+function syncBannerHTML(){
+  if(!SYNC_REPORT) return "";
+  const iss = SYNC_REPORT.issues || [];
+  if(!iss.length){
+    return `<div class="syncbar"><span class="ico">✓</span><div class="body">
+      <h3>Last sync completed cleanly</h3>
+      <p class="muted">All ${SYNC_REPORT.teams} ${L().units} refreshed from GitHub and Trello.</p>
+    </div><button class="dismiss" data-mact="sync-dismiss" title="Dismiss">×</button></div>`;
+  }
+  return `<div class="syncbar warn"><span class="ico">⚠</span><div class="body">
+    <h3>${iss.length} of ${SYNC_REPORT.teams} did not sync cleanly</h3>
+    <p class="muted">Their numbers below are the last good values, not fresh ones.</p>
+    <ul>${iss.map(i=>{
+      const parts=[];
+      if(i.github!=="ok") parts.push("GitHub: "+esc(i.github));
+      if(i.trello!=="ok" && i.trello!=="no board link") parts.push("Trello: "+esc(i.trello));
+      return `<li><b>${esc(i.team)}</b> — ${parts.join(" · ")}${i.stale?" <i>(kept previous data)</i>":""}</li>`;
+    }).join("")}</ul>
+  </div><button class="dismiss" data-mact="sync-dismiss" title="Dismiss">×</button></div>`;
+}
+
 /* ---------- data ---------- */
 async function loadCourses(){
   COURSES = [];
@@ -382,6 +445,7 @@ async function loadCourses(){
   const sel = $("courseSel");
   sel.innerHTML = COURSES.map(c=>`<option value="${esc(c.id)}">${esc(c.code||c.id)}</option>`).join("");
   sel.onchange = () => loadCourse(sel.value);
+  await loadLastSync();
   if (!COURSES.length){ renderNoCourses(); return; }
   await loadCourse(COURSES[0].id);
 }
@@ -397,6 +461,7 @@ async function loadCourse(cid){
   computeRange();
   renderNav();
   render();
+  renderSyncInfo();
   show(location.hash.slice(1) || "dashboard");
 }
 
@@ -462,6 +527,7 @@ function dashboardHTML(){
     <span class="eyebrow">as of ${esc(COURSE.report_date||"")}</span>
     <h1>Team Dashboard</h1>
     <p class="lede">${TEAMS.length} ${L().units} in ${esc(COURSE.name||COURSE.code||"")}. Status reflects GitHub commit activity.</p>
+    ${syncBannerHTML()}
     <div class="tiles">
       <div class="tile risk"><div class="n">${c.risk}</div><div class="l">At risk</div></div>
       <div class="tile watch"><div class="n">${c.watch}</div><div class="l">Watch</div></div>
@@ -511,7 +577,7 @@ function teamHTML(t){
         <dt>Product Owner</dt><dd>${esc(s.po)}</dd><dt>Scrum Master</dt><dd>${esc(s.sm)}</dd>
         <dt>Developers</dt><dd>${esc(s.devs)}</dd><dt>Sprint Goal</dt><dd class="soft">${esc(s.goal)}</dd>
         ${s.hours?`<dt>Est. hours</dt><dd class="soft">${esc(s.hours)}</dd>`:""}</dl></div>`:""}
-    <div class="card"><h2>GitHub Activity · as of ${esc(COURSE.report_date||"")}</h2>
+    <div class="card"><h2>GitHub Activity${a.synced?` · as of ${esc(fmtWhen(new Date(a.synced)))}`:""}</h2>
       ${a.ok?`<div class="metrics"><div class="metric"><div class="n">${esc(a.total)}</div><div class="l">commits</div></div>
         <div class="metric"><div class="n">${esc(a.days)}</div><div class="l">active days</div></div>
         <div class="metric"><div class="n">${esc(a.last_fmt||a.last)}</div><div class="l">last commit</div></div></div>
@@ -617,6 +683,7 @@ async function onMainClick(e){
   if (act === "add")         openForm(null);
   else if (act === "edit")   openForm(TEAMS.find(t=>t.id===tid));
   else if (act === "cancel"){ const f=$("teamForm"); if(f){f.hidden=true; f.innerHTML="";} }
+  else if (act === "sync-dismiss"){ SYNC_REPORT=null; render(); renderSyncInfo(); show("dashboard"); }
   else if (act === "save")   await saveTeam(tid);
   else if (act === "remove"){ if (confirm("Remove this team? Its collected activity is deleted too. This can't be undone.")) await removeTeam(tid); }
   // course actions
@@ -737,16 +804,30 @@ $("themeBtn").onclick=()=>{ const cur=root.getAttribute("data-theme");
 
 $("syncBtn").onclick = async () => {
   const b=$("syncBtn"); if(b.disabled) return;
-  const label=b.textContent; b.disabled=true; b.textContent="⟳ Syncing…";
+  const label="⟳ Sync now"; b.disabled=true; b.textContent="⟳ Syncing…";
   try{
     const res = await httpsCallable(functions, "sync_now", { timeout: 300000 })();
     const d = res.data || {};
+    SYNC_REPORT = d;
+    LAST_SYNC = d.syncedAt ? new Date(d.syncedAt) : new Date();
+    const bad = (d.issues || []).length;
+    // Reload so the table shows the new numbers, then surface the report.
     if (COURSE) await loadCourse(COURSE.id);
-    b.textContent = `✓ Synced ${d.teams!=null?d.teams:""}`.trim();
-    setTimeout(()=>{ b.textContent=label; b.disabled=false; }, 2500);
+    renderSyncInfo();
+    show("dashboard");
+    b.textContent = bad ? `⚠ ${d.ok}/${d.teams} clean` : `✓ Synced ${d.teams}`;
+    setTimeout(()=>{ b.textContent=label; b.disabled=false; }, 3000);
   }catch(e){
     console.error("sync_now failed:", e);
-    alert("Sync failed: " + (e.message||e) + "\n\n(If this says the function isn't found, the Cloud Function may not be deployed yet.)");
+    SYNC_REPORT = null;
+    const code = e.code || "", msg = e.message || String(e);
+    let hint = "";
+    if (/unauthenticated/i.test(code))        hint = "\n\nYour session expired — sign out and back in.";
+    else if (/permission-denied/i.test(code)) hint = "\n\nSync requires a verified @neumont.edu account.";
+    else if (/deadline-exceeded/i.test(code)) hint = "\n\nThe sync passed its 5-minute limit. Some teams may have updated; run it again.";
+    else if (/not-found/i.test(code))         hint = "\n\nThe Cloud Function isn't deployed. Run: firebase deploy --only functions";
+    else if (/internal/i.test(code))          hint = "\n\nThe function errored. Check: firebase functions:log --only sync_now";
+    alert("Sync failed: " + (code ? code + " — " : "") + msg + hint);
     b.textContent=label; b.disabled=false;
   }
 };
