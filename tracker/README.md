@@ -79,7 +79,7 @@ app, and writes a dated log to `logs\run_YYYY-MM-DD.log`.
 
 ### Where the repo lives, and where the deliverables go
 
-The working copy lives on a **local drive** (`C:\src\project-peek`), not in OneDrive.
+The working copy lives on a **local drive** (currently `D:\Dev\Neumont\project-peek`), not in OneDrive.
 OneDrive syncing `.git\` can corrupt the object store or grab `index.lock` mid-write, and
 the 7:30am unattended job writes while nobody is watching; GitHub is the backup instead.
 
@@ -88,6 +88,22 @@ generated `.docx`/`.html` into OneDrive — a **one-way copy of output only**, n
 working tree. The destination defaults to `<your OneDrive>\Neumont\PRO100\Teams`; set
 `TRACKER_PUBLISH_DIR` in `secrets.local.ps1` to send them somewhere else. The copy is
 skipped when the build fails, so a broken run leaves the last good files in place.
+
+#### If you move the repo
+
+Three things store the path and do **not** follow a move. Fix all three, or the 7:30am job
+fails silently — it has no success/failure notification, so the first sign is that the
+deliverables stop changing date:
+
+1. **The scheduled task** — its action still runs the old `run_daily.ps1`. Re-register it
+   (see *Managing the task*) with the new path.
+2. **`secrets.local.ps1`** — `GOOGLE_APPLICATION_CREDENTIALS` is an absolute path. Use
+   `"$PSScriptRoot\serviceAccountKey.json"`, as `secrets.local.ps1.template` does, so it
+   moves with the folder.
+3. **`functions/venv`** (web app) — `activate.bat` has its creation path baked in, so
+   `firebase deploy --only functions` fails with an unhelpful
+   `Error: An unexpected error has occurred.` Delete `venv` and recreate it:
+   `python -m venv venv; .\venv\Scripts\python.exe -m pip install -r requirements.txt`.
 
 ### One-time step: create the secrets file
 So the daily run can read Trello (and optionally private repos), copy the template and
@@ -123,6 +139,11 @@ To change the time, re-run the `Register-ScheduledTask` command with a different
   (https://project-peek.firebaseapp.com).
 - **Does not:** re-publish the standalone Claude artifact — that needs Claude. The Firebase
   web app updates automatically; the Claude artifact only updates when you ask Claude.
+- **Does not:** touch the web app's sprint records or student-entered data. Sprints, per-team
+  review windows, roles, goals, statuses and review notes live only in Firestore and are
+  edited in the app; the collector writes measured activity (`act`) and never overwrites them.
+  The generated `.docx`/`.html` are built from `courses/*.json` alone, so they show the flat
+  `objectives`/`sprint` fields from that file — not the per-sprint record.
 
 ### Alternative: GitHub Actions
 If you later move the tooling into a git repo, a cron workflow could run `collect.py`,
