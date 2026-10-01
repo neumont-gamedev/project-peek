@@ -30,7 +30,17 @@ TODAY = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 NOW_ISO = datetime.now(timezone.utc).isoformat(timespec="seconds")
 ACTIVITY_DAYS = 14
 SINCE_ISO = (datetime.now(timezone.utc) - timedelta(days=ACTIVITY_DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
-DONE_RE = re.compile(r"done|complete|finished|shipped", re.I)
+DONE_RE = re.compile(r"\b(?:done|complete|completed|finished|shipped)\b", re.I)
+BACKLOG_RE = re.compile(r"\bbacklog\b", re.I)
+
+
+def trello_list_stage(name, index=None):
+    """Map a board-specific list name to Project Peek's stable workflow stages."""
+    if DONE_RE.search(name or ""):
+        return "complete"
+    if index == 0 or BACKLOG_RE.search(name or ""):
+        return "backlog"
+    return "active"
 
 
 # --- GitHub access is read-only, enforced here ------------------------------
@@ -134,8 +144,13 @@ def fetch_trello(url):
         return None, f"HTTP {e.code} {e.reason}"
     except Exception as e:
         return None, f"error: {e}"
-    out = [{"name": l.get("name", "?"), "count": len(l.get("cards", []))} for l in lists]
+    out = [{"name": l.get("name", "?"), "count": len(l.get("cards", [])),
+            "stage": trello_list_stage(l.get("name", ""), i)} for i, l in enumerate(lists)]
     result = {"total_cards": sum(x["count"] for x in out), "lists": out}
+    result["cards_by_stage"] = {
+        stage: sum(x["count"] for x in out if x["stage"] == stage)
+        for stage in ("backlog", "active", "complete")
+    }
 
     # Assignees: who has how many cards (and how many are unassigned)
     members = fetch_trello_members(bid)
@@ -150,7 +165,8 @@ def fetch_trello(url):
     result["assignees"] = {"by": [{"n": n, "c": c} for n, c in assignees.most_common()],
                            "unassigned": unassigned}
 
-    activity = fetch_trello_activity(bid)
+    stages = {l.get("id"): trello_list_stage(l.get("name", ""), i) for i, l in enumerate(lists)}
+    activity = fetch_trello_activity(bid, stages)
     if activity:
         result["activity"] = activity
     return result, "ok"
@@ -168,7 +184,7 @@ def fetch_trello_members(bid):
     return {m["id"]: (m.get("fullName") or m.get("username") or m["id"]) for m in data}
 
 
-def fetch_trello_activity(bid):
+def fetch_trello_activity(bid, stages=None):
     """Pull the board's action log (last ACTIVITY_DAYS) and summarize card movement."""
     q = urllib.parse.urlencode({"filter": "createCard,updateCard", "limit": "1000",
                                 "since": SINCE_ISO, "key": TRELLO_KEY, "token": TRELLO_TOKEN})
@@ -179,7 +195,7 @@ def fetch_trello_activity(bid):
             actions = json.load(r)
     except Exception:
         return None
-    moves = into_done = created = 0
+    moves = into_done = reopened = created = 0
     by = Counter()
     recent = []
     for a in actions:
@@ -190,17 +206,23 @@ def fetch_trello_activity(bid):
         if typ == "updateCard" and data.get("listBefore") and data.get("listAfter"):
             moves += 1
             by[who] += 1
-            after = data["listAfter"].get("name", "")
-            if DONE_RE.search(after):
+            before_list, after_list = data["listBefore"], data["listAfter"]
+            before_stage = (stages or {}).get(before_list.get("id")) or trello_list_stage(before_list.get("name", ""))
+            after_stage = (stages or {}).get(after_list.get("id")) or trello_list_stage(after_list.get("name", ""))
+            after = after_list.get("name", "")
+            if before_stage != "complete" and after_stage == "complete":
                 into_done += 1
+            elif before_stage == "complete" and after_stage != "complete":
+                reopened += 1
             if len(recent) < 8:
                 recent.append({"date": (a.get("date") or "")[:10],
                                "card": (data.get("card") or {}).get("name", "")[:70],
-                               "frm": data["listBefore"].get("name", ""),
-                               "to": after, "by": who})
+                               "frm": before_list.get("name", ""), "to": after, "by": who,
+                               "from_stage": before_stage, "to_stage": after_stage})
         elif typ == "createCard":
             created += 1
     return {"window_days": ACTIVITY_DAYS, "moves": moves, "into_done": into_done,
+            "reopened": reopened,
             "created": created, "by_member": [{"n": n, "c": c} for n, c in by.most_common()],
             "recent": recent}
 
