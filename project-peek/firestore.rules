@@ -1,29 +1,100 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Each instructor owns everything under /users/{their uid}.
-    // The local collector uses the Admin SDK, which bypasses these rules, so it
-    // can write course/team data. From the browser, course + team data is
-    // READ-ONLY; only the review notes are writable. That guarantees the app can
-    // never clobber collected data.
-
-    // Only verified @neumont.edu accounts are allowed, and only to their own data.
     function isNeumont() {
       return request.auth != null
         && request.auth.token.email_verified == true
         && request.auth.token.email.matches('.*@neumont[.]edu');
     }
-    function isOwner(uid) {
-      return isNeumont() && request.auth.uid == uid;
+
+    function email() {
+      return request.auth.token.email.lower();
     }
 
-    // An instructor has full read/write over their own subtree (courses, teams, notes).
-    // The app writes the fields you edit (via merge) and your notes; the local collector
-    // uses the Admin SDK (bypasses rules) to write only the measured `act` field. Because
-    // each side merges disjoint fields, they never clobber each other.
-    match /users/{uid}/{document=**} {
-      allow read, write: if isOwner(uid);
+    function isOwner(ownerUid) {
+      return isNeumont() && request.auth.uid == ownerUid;
+    }
+
+    function coursePath(ownerUid, courseId) {
+      return /databases/$(database)/documents/users/$(ownerUid)/courses/$(courseId);
+    }
+
+    function teamPath(ownerUid, courseId, teamId) {
+      return /databases/$(database)/documents/users/$(ownerUid)/courses/$(courseId)/teams/$(teamId);
+    }
+
+    function isCourseStudent(ownerUid, courseId) {
+      return isNeumont()
+        && email() in get(coursePath(ownerUid, courseId)).data.studentEmails;
+    }
+
+    function isTeamStudent(ownerUid, courseId, teamId) {
+      return isNeumont()
+        && email() in get(teamPath(ownerUid, courseId, teamId)).data.studentEmails;
+    }
+
+    match /users/{ownerUid} {
+      allow read, write: if isOwner(ownerUid);
+
+      match /courses/{courseId} {
+        allow read: if isOwner(ownerUid) || isCourseStudent(ownerUid, courseId);
+        allow write: if isOwner(ownerUid);
+
+        match /teams/{teamId} {
+          allow read: if isOwner(ownerUid)
+            || (isNeumont() && email() in resource.data.studentEmails);
+          allow create, delete: if isOwner(ownerUid);
+          allow update: if isOwner(ownerUid)
+            || (isTeamStudent(ownerUid, courseId, teamId)
+              && request.resource.data.diff(resource.data).affectedKeys()
+                .hasOnly(['studentProject', 'updatedAt']));
+        }
+
+        match /notes/{noteId} {
+          allow read, write: if isOwner(ownerUid);
+        }
+
+        match /sprints/{sprintId} {
+          allow read: if isOwner(ownerUid) || isCourseStudent(ownerUid, courseId);
+          allow write: if isOwner(ownerUid);
+
+          match /entries/{teamId} {
+            allow read: if isOwner(ownerUid) || isTeamStudent(ownerUid, courseId, teamId);
+            allow write: if isOwner(ownerUid);
+
+            match /goals/{goalId} {
+              allow read: if isOwner(ownerUid) || isTeamStudent(ownerUid, courseId, teamId);
+              allow write: if isOwner(ownerUid);
+              allow create: if isTeamStudent(ownerUid, courseId, teamId)
+                && request.resource.data.studentEmail == email()
+                && request.resource.data.completed == false;
+              allow update: if isTeamStudent(ownerUid, courseId, teamId)
+                && resource.data.studentEmail == email()
+                && request.resource.data.studentEmail == resource.data.studentEmail
+                && request.resource.data.completed == resource.data.completed
+                && request.resource.data.diff(resource.data).affectedKeys()
+                  .hasOnly(['text', 'updatedAt']);
+              allow delete: if isTeamStudent(ownerUid, courseId, teamId)
+                && resource.data.studentEmail == email()
+                && resource.data.completed == false;
+            }
+
+            match /time/{timeId} {
+              allow read: if isOwner(ownerUid) || isTeamStudent(ownerUid, courseId, teamId);
+              allow write: if isOwner(ownerUid);
+              allow create: if isTeamStudent(ownerUid, courseId, teamId)
+                && request.resource.data.studentEmail == email();
+              allow update: if isTeamStudent(ownerUid, courseId, teamId)
+                && resource.data.studentEmail == email()
+                && request.resource.data.studentEmail == resource.data.studentEmail
+                && request.resource.data.diff(resource.data).affectedKeys()
+                  .hasOnly(['date', 'hours', 'note', 'updatedAt']);
+              allow delete: if isTeamStudent(ownerUid, courseId, teamId)
+                && resource.data.studentEmail == email();
+            }
+          }
+        }
+      }
     }
   }
 }

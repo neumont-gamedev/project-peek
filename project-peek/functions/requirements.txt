@@ -3,3 +3,4 @@ firebase-admin==7.5.0
 # Pin below 2.29.0 — that release regressed with "Invalid database id (default)"
 # on Cloud Functions. 2.28.1 is the version that works locally and in the cloud.
 google-cloud-firestore==2.28.1
+tzdata>=2025.2

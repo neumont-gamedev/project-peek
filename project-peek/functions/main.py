@@ -9,10 +9,11 @@ Requires (Firebase secrets, set once):  TRELLO_KEY, TRELLO_TOKEN
 GitHub is read unauthenticated (public repos); private repos keep their last-known data.
 """
 import os, re, json, urllib.request, urllib.parse, urllib.error
-from collections import Counter
+from collections import Counter, defaultdict
 from datetime import datetime, timezone, timedelta
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from firebase_functions import https_fn, options
+from firebase_functions import https_fn, options, scheduler_fn
 from firebase_admin import initialize_app
 from firebase_admin import firestore as admin_firestore
 from google.cloud import firestore as gcf   # kept for SERVER_TIMESTAMP
@@ -36,12 +37,22 @@ def get_db():
 
 ALLOWED_DOMAIN = "neumont.edu"
 ACTIVITY_DAYS = 14
-DONE_RE = re.compile(r"done|complete|finished|shipped", re.I)
+DONE_RE = re.compile(r"\b(?:done|complete|completed|finished|shipped)\b", re.I)
+BACKLOG_RE = re.compile(r"\bbacklog\b", re.I)
 MON = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
 
 def _tkey():   return os.environ.get("TRELLO_KEY", "").strip()
 def _ttok():   return os.environ.get("TRELLO_TOKEN", "").strip()
+
+
+def trello_list_stage(name, index=None):
+    """Map a board-specific list name to Project Peek's stable workflow stages."""
+    if DONE_RE.search(name or ""):
+        return "complete"
+    if index == 0 or BACKLOG_RE.search(name or ""):
+        return "backlog"
+    return "active"
 
 
 # A Secret Manager secret cannot hold an empty payload, so GITHUB_TOKEN may be set
@@ -103,7 +114,11 @@ def slug_from_github(url):
 
 
 def fetch_commits(slug):
+    # by_day_author is what lets the app split contributions per sprint: the sprint window
+    # is a date range, and a date -> author -> count map slices to it. The whole history is
+    # re-read on every sync, so this backfills for existing repos on the next run.
     by_day, authors = Counter(), Counter()
+    by_day_author = defaultdict(Counter)
     page = 1
     while page <= 6:
         batch = gh_get(f"https://api.github.com/repos/{slug}/commits?per_page=100&page={page}")
@@ -113,14 +128,18 @@ def fetch_commits(slug):
             commit = c.get("commit", {}) or {}
             a = commit.get("author", {}) or {}
             login = (c.get("author") or {}).get("login")
-            authors[login or a.get("name", "unknown")] += 1
+            who = login or a.get("name", "unknown")
+            authors[who] += 1
             date = (a.get("date") or "")[:10]
             if date:
                 by_day[date] += 1
+                by_day_author[date][who] += 1
         if len(batch) < 100:
             break
         page += 1
-    return dict(by_day), [{"n": n, "c": c} for n, c in authors.most_common()]
+    return (dict(by_day),
+            [{"n": n, "c": c} for n, c in authors.most_common()],
+            {d: dict(v) for d, v in by_day_author.items()})
 
 
 # ---------- Trello ----------
@@ -162,8 +181,14 @@ def fetch_trello(url):
         return None, f"HTTP {e.code} {e.reason}"
     except Exception as e:
         return None, f"error: {e}"
-    out = [{"name": l.get("name", "?"), "count": len(l.get("cards", []))} for l in lists]
+    out = [{"name": l.get("name", "?"), "count": len(l.get("cards", [])),
+            "stage": trello_list_stage(l.get("name", ""), i)} for i, l in enumerate(lists)]
     result = {"total_cards": sum(x["count"] for x in out), "lists": out}
+    result["cards_by_stage"] = {
+        stage: sum(x["count"] for x in out if x["stage"] == stage)
+        for stage in ("backlog", "active", "complete")
+    }
+    stages = {l.get("id"): trello_list_stage(l.get("name", ""), i) for i, l in enumerate(lists)}
 
     # assignees
     try:
@@ -188,30 +213,37 @@ def fetch_trello(url):
     except Exception:
         actions = None
     if actions is not None:
-        moves = into_done = created = 0
+        moves = into_done = reopened = created = 0
         by, recent = Counter(), []
         for a in actions:
             typ, data = a.get("type"), (a.get("data", {}) or {})
             who = (a.get("memberCreator") or {}).get("fullName") or (a.get("memberCreator") or {}).get("username") or "?"
             if typ == "updateCard" and data.get("listBefore") and data.get("listAfter"):
                 moves += 1; by[who] += 1
-                after = data["listAfter"].get("name", "")
-                if DONE_RE.search(after):
+                before_list, after_list = data["listBefore"], data["listAfter"]
+                before_stage = stages.get(before_list.get("id")) or trello_list_stage(before_list.get("name", ""))
+                after_stage = stages.get(after_list.get("id")) or trello_list_stage(after_list.get("name", ""))
+                after = after_list.get("name", "")
+                if before_stage != "complete" and after_stage == "complete":
                     into_done += 1
+                elif before_stage == "complete" and after_stage != "complete":
+                    reopened += 1
                 if len(recent) < 8:
                     recent.append({"date": (a.get("date") or "")[:10],
                                    "card": (data.get("card") or {}).get("name", "")[:70],
-                                   "frm": data["listBefore"].get("name", ""), "to": after, "by": who})
+                                   "frm": before_list.get("name", ""), "to": after, "by": who,
+                                   "from_stage": before_stage, "to_stage": after_stage})
             elif typ == "createCard":
                 created += 1
         result["activity"] = {"window_days": ACTIVITY_DAYS, "moves": moves, "into_done": into_done,
+                              "reopened": reopened,
                               "created": created, "by_member": [{"n": n, "c": c} for n, c in by.most_common()],
                               "recent": recent}
     return result, "ok"
 
 
 # ---------- activity object ----------
-def build_act(commits_by_day, contributors, trello=None, contrib_notes=None, obs=""):
+def build_act(commits_by_day, contributors, trello=None, contrib_notes=None, obs="", by_day_author=None):
     cbd = commits_by_day or {}
     if not cbd:
         return {"ok": False, "obs": obs, "commits_by_day": {}, "contribs": [], "trello": trello}
@@ -222,7 +254,8 @@ def build_act(commits_by_day, contributors, trello=None, contrib_notes=None, obs
         contribs.append({"n": c["n"], "c": c["c"], "p": pct, "note": notes.get(c["n"], "")})
     return {"ok": True, "total": total, "days": len(days), "first": days[0], "last": days[-1],
             "last_fmt": fmt_date(days[-1]), "span": f"{fmt_date(days[0])} – {fmt_date(days[-1])}",
-            "commits_by_day": cbd, "contribs": contribs, "obs": obs, "trello": trello}
+            "commits_by_day": cbd, "by_day_author": by_day_author or {},
+            "contribs": contribs, "obs": obs, "trello": trello}
 
 
 def _github_reason(exc):
@@ -258,12 +291,12 @@ def _sync_uid(db, uid):
             old_act = d.get("act", {}) or {}; contrib_notes = d.get("contrib_notes", {}) or {}
 
             gh_status = "ok"
-            cbd, contributors = {}, []
+            cbd, contributors, bda = {}, [], {}
             if not github:
                 gh_status = "no repo link"
             else:
                 try:
-                    cbd, contributors = fetch_commits(slug_from_github(github))
+                    cbd, contributors, bda = fetch_commits(slug_from_github(github))
                     if not cbd:
                         gh_status = "no commits found"
                 except Exception as e:
@@ -286,7 +319,7 @@ def _sync_uid(db, uid):
                 act = dict(old_act); act["trello"] = trello_snap or old_act.get("trello")
                 stale = True
             else:
-                act = build_act(cbd, contributors, trello_snap, contrib_notes, old_act.get("obs", ""))
+                act = build_act(cbd, contributors, trello_snap, contrib_notes, old_act.get("obs", ""), bda)
                 if cbd:
                     act["synced"] = now_iso   # commit data genuinely refreshed just now
 
@@ -348,3 +381,80 @@ def sync_now(req: https_fn.CallableRequest):
         print(traceback.format_exc())
         raise https_fn.HttpsError(https_fn.FunctionsErrorCode.INTERNAL,
                                   f"{type(e).__name__}: {e}")
+
+
+def _schedule_is_due(schedule, now_utc):
+    """Return (is_due, local_date) for one instructor's saved weekly schedule."""
+    if not schedule.get("enabled"):
+        return False, None
+    try:
+        local_now = now_utc.astimezone(ZoneInfo(schedule.get("timezone") or "America/Denver"))
+    except ZoneInfoNotFoundError:
+        return False, None
+    local_date = local_now.strftime("%Y-%m-%d")
+    if schedule.get("lastRunDate") == local_date:
+        return False, local_date
+    weekdays = schedule.get("weekdays")
+    if isinstance(weekdays, list) and weekdays:
+        selected_days = {str(day) for day in weekdays}
+    else:
+        selected_days = {str(schedule.get("weekday", "daily"))}
+    if "daily" not in selected_days and str((local_now.weekday() + 1) % 7) not in selected_days:
+        return False, local_date
+    try:
+        hour, minute = [int(x) for x in str(schedule.get("time", "")).split(":", 1)]
+    except (TypeError, ValueError):
+        return False, local_date
+    if not (0 <= hour <= 23 and 0 <= minute <= 59):
+        return False, local_date
+    return (local_now.hour, local_now.minute) >= (hour, minute), local_date
+
+
+@scheduler_fn.on_schedule(
+    schedule="*/5 * * * *",
+    secrets=["TRELLO_KEY", "TRELLO_TOKEN", "GITHUB_TOKEN"],
+    timeout_sec=540,
+    memory=options.MemoryOption.MB_512,
+)
+def scheduled_sync(event: scheduler_fn.ScheduledEvent) -> None:
+    """Run each instructor once when their saved local schedule becomes due."""
+    db = get_db()
+    now_utc = datetime.now(timezone.utc)
+    for user_doc in db.collection("users").stream():
+        data = user_doc.to_dict() or {}
+        schedule = data.get("syncSchedule") or {}
+        due, local_date = _schedule_is_due(schedule, now_utc)
+        if not due:
+            continue
+
+        schedule_ref = user_doc.reference
+        # Claim today's run before starting. This prevents the next five-minute
+        # invocation from launching a duplicate if a large course sync is still running.
+        schedule_ref.set({"syncSchedule": {
+            **schedule,
+            "lastRunDate": local_date,
+            "lastStartedAt": gcf.SERVER_TIMESTAMP,
+            "lastStatus": "running",
+            "lastError": "",
+        }}, merge=True)
+        try:
+            result = _sync_uid(db, user_doc.id)
+            schedule_ref.set({"syncSchedule": {
+                **schedule,
+                "lastRunDate": local_date,
+                "lastCompletedAt": gcf.SERVER_TIMESTAMP,
+                "lastStatus": "ok",
+                "lastError": "",
+                "lastTeams": result.get("teams", 0),
+                "lastIssues": len(result.get("issues", [])),
+            }}, merge=True)
+            print(f"SCHEDULED_SYNC_OK uid={user_doc.id} teams={result.get('teams', 0)}")
+        except Exception as exc:
+            schedule_ref.set({"syncSchedule": {
+                **schedule,
+                "lastRunDate": local_date,
+                "lastCompletedAt": gcf.SERVER_TIMESTAMP,
+                "lastStatus": "error",
+                "lastError": f"{type(exc).__name__}: {exc}"[:500],
+            }}, merge=True)
+            print(f"SCHEDULED_SYNC_ERROR uid={user_doc.id} error={exc!r}")
