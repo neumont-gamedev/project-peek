@@ -36,6 +36,16 @@ service cloud.firestore {
         && email() in get(coursePath(ownerUid, courseId)).data.studentEmails;
     }
 
+    // Students can change a sprint through one grace day after its end date. The end
+    // date is a Mountain-time calendar day, so the cut-off is midnight starting
+    // end+2 days, taken as 07:00 UTC (an hour lenient during daylight time).
+    function sprintOpen(ownerUid, courseId, sprintId) {
+      let end = get(/databases/$(database)/documents/users/$(ownerUid)/courses/$(courseId)/sprints/$(sprintId)).data.get('end', '');
+      return end == ''
+        || request.time < timestamp.date(int(end.split('-')[0]), int(end.split('-')[1]), int(end.split('-')[2]))
+             + duration.value(2, 'd') + duration.value(7, 'h');
+    }
+
     // A student's sprint is locked for them once they've submitted their wrap-up.
     function submitted(ownerUid, courseId, sprintId, teamId) {
       return exists(/databases/$(database)/documents/users/$(ownerUid)/courses/$(courseId)/sprints/$(sprintId)/entries/$(teamId)/retro/$(email()));
@@ -117,11 +127,13 @@ service cloud.firestore {
               allow write: if isOwner(ownerUid);
               allow create: if isTeamStudent(ownerUid, courseId, teamId)
                 && !submitted(ownerUid, courseId, sprintId, teamId)
+                && sprintOpen(ownerUid, courseId, sprintId)
                 && request.resource.data.studentEmail == email()
                 && request.resource.data.completed == false;
               // Students edit their goal text and mark their own result until they submit.
               allow update: if isTeamStudent(ownerUid, courseId, teamId)
                 && !submitted(ownerUid, courseId, sprintId, teamId)
+                && sprintOpen(ownerUid, courseId, sprintId)
                 && resource.data.studentEmail == email()
                 && request.resource.data.studentEmail == resource.data.studentEmail
                 && request.resource.data.completed == resource.data.completed
@@ -130,6 +142,7 @@ service cloud.firestore {
                 && request.resource.data.get('result', '') in ['', 'done', 'partial', 'notdone'];
               allow delete: if isTeamStudent(ownerUid, courseId, teamId)
                 && !submitted(ownerUid, courseId, sprintId, teamId)
+                && sprintOpen(ownerUid, courseId, sprintId)
                 && resource.data.studentEmail == email()
                 && resource.data.completed == false;
             }
@@ -139,15 +152,18 @@ service cloud.firestore {
               allow write: if isOwner(ownerUid);
               allow create: if isTeamStudent(ownerUid, courseId, teamId)
                 && !submitted(ownerUid, courseId, sprintId, teamId)
+                && sprintOpen(ownerUid, courseId, sprintId)
                 && request.resource.data.studentEmail == email();
               allow update: if isTeamStudent(ownerUid, courseId, teamId)
                 && !submitted(ownerUid, courseId, sprintId, teamId)
+                && sprintOpen(ownerUid, courseId, sprintId)
                 && resource.data.studentEmail == email()
                 && request.resource.data.studentEmail == resource.data.studentEmail
                 && request.resource.data.diff(resource.data).affectedKeys()
                   .hasOnly(['date', 'hours', 'note', 'updatedAt']);
               allow delete: if isTeamStudent(ownerUid, courseId, teamId)
                 && !submitted(ownerUid, courseId, sprintId, teamId)
+                && sprintOpen(ownerUid, courseId, sprintId)
                 && resource.data.studentEmail == email();
             }
 
@@ -157,6 +173,7 @@ service cloud.firestore {
               allow read: if isOwner(ownerUid) || isTeamStudent(ownerUid, courseId, teamId);
               allow write: if isOwner(ownerUid);
               allow create: if isTeamStudent(ownerUid, courseId, teamId)
+                && sprintOpen(ownerUid, courseId, sprintId)
                 && retroId == email()
                 && request.resource.data.studentEmail == email()
                 && request.resource.data.mood is int

@@ -410,6 +410,52 @@ def _schedule_is_due(schedule, now_utc):
     return (local_now.hour, local_now.minute) >= (hour, minute), local_date
 
 
+def _roll_course_sprints(cref, today):
+    """Create the next sprint(s) once the newest has ended, keeping its length, so a
+    course always has a current sprint. Mirrors rollSprints() in the web app."""
+    sprints = sorted(((d.id, d.to_dict() or {}) for d in cref.collection("sprints").stream()),
+                     key=lambda x: x[1].get("n") or 0)
+    if not sprints:
+        return 0
+    _, last = sprints[-1]
+    start_s, end_s = last.get("start"), last.get("end")
+    if not start_s or not end_s:
+        return 0
+    start, end = datetime.fromisoformat(start_s).date(), datetime.fromisoformat(end_s).date()
+    length = (end - start).days + 1
+    ids = {sid for sid, _ in sprints}
+    n, made = last.get("n") or len(sprints), 0
+    while end.isoformat() < today and made < 52:
+        n += 1
+        start = end + timedelta(days=1)
+        end = start + timedelta(days=length - 1)
+        sid = f"s{n}"
+        while sid in ids:
+            sid += "b"
+        ids.add(sid)
+        cref.collection("sprints").document(sid).set({
+            "n": n, "name": f"Sprint {n}", "start": start.isoformat(), "end": end.isoformat(),
+            "targetHours": last.get("targetHours") or 20,
+            "auto": True, "createdAt": gcf.SERVER_TIMESTAMP})
+        made += 1
+    return made
+
+
+@scheduler_fn.on_schedule(schedule="5 0 * * *", timezone="America/Denver")
+def roll_sprints(event: scheduler_fn.ScheduledEvent) -> None:
+    """Shortly after midnight, start the next sprint in any course whose sprint ended."""
+    db = get_db()
+    today = datetime.now(ZoneInfo("America/Denver")).strftime("%Y-%m-%d")
+    for user_doc in db.collection("users").stream():
+        for c in user_doc.reference.collection("courses").stream():
+            try:
+                made = _roll_course_sprints(c.reference, today)
+                if made:
+                    print(f"ROLL_SPRINTS uid={user_doc.id} course={c.id} created={made}")
+            except Exception as exc:
+                print(f"ROLL_SPRINTS_ERROR uid={user_doc.id} course={c.id} error={exc!r}")
+
+
 @scheduler_fn.on_schedule(
     schedule="*/5 * * * *",
     secrets=["TRELLO_KEY", "TRELLO_TOKEN", "GITHUB_TOKEN"],

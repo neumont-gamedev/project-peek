@@ -502,6 +502,8 @@
     border-top:1px solid var(--line-soft); padding:10px 0; font-size:14px; }
   .goal-row.done .goal-text{ text-decoration:line-through; color:var(--ink-faint); }
   .goal-row input[type="checkbox"]{ width:17px; height:17px; accent-color:var(--healthy); }
+  .time-date{ font-size:14px; color:var(--ink-soft); min-width:90px; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .time-date .dow{ display:inline-block; min-width:2.4em; color:var(--ink); font-weight:600; }
   .goal-meta,.time-meta{ color:var(--ink-faint); font-family:var(--font-mono); font-size:11px; }
   .entry-form{ display:grid; grid-template-columns:150px 100px minmax(180px,1fr) auto; gap:10px; align-items:end; margin-top:12px; max-width:760px; }
   .entry-form.goal-form{ grid-template-columns:minmax(220px,1fr) auto; }
@@ -566,11 +568,23 @@
      Last in the sheet so it layers over each panel's solid background colour. */
   .card, .side, .brand-title, .sprint-panel, .icon-bar, .account-btn, .account-menu {
     background-image:var(--panel-grad); }
+  /* Sprint card tinted by the instructor's rating. After the panel-gradient rule so it layers on top. */
+  .grace-note{ margin-top:12px; padding:10px 12px; border-radius:8px; background:var(--watch-bg);
+    border:1px solid var(--watch); color:var(--ink); font-size:13.5px; }
+  .after-end{ margin:10px 0 4px; font-size:13px; color:var(--ink-soft); }
+  .after-end.has{ color:var(--ink); }
+  .after-end.has b{ color:var(--watch); font-family:var(--font-mono); }
+  .card.sprint-card.healthy{ background-image:linear-gradient(var(--healthy-bg),var(--healthy-bg)), var(--panel-grad); border-color:var(--healthy); }
+  .card.sprint-card.watch{ background-image:linear-gradient(var(--watch-bg),var(--watch-bg)), var(--panel-grad); border-color:var(--watch); }
+  .card.sprint-card.risk{ background-image:linear-gradient(var(--risk-bg),var(--risk-bg)), var(--panel-grad); border-color:var(--risk); }
+  .card.sprint-card.noaccess{ background-image:linear-gradient(var(--noaccess-bg),var(--noaccess-bg)), var(--panel-grad); border-color:var(--noaccess); }
 </style>
 <script>
-  /* Applied before first paint so a refresh doesn't flash the other theme. */
-  try { var t = localStorage.getItem("peek:theme");
-        if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t); } catch(e){}
+  /* Applied before first paint so a refresh doesn't flash the other theme.
+     Dark is the default; light only if the user switched to it. */
+  var t = "dark";
+  try { if (localStorage.getItem("peek:theme") === "light") t = "light"; } catch(e){}
+  document.documentElement.setAttribute("data-theme", t);
 </script>
 </head>
 <body>
@@ -665,7 +679,8 @@ let COURSES=[], COURSE=null, TEAMS=[], ASSIGNED_TEAMS=[], NOTES={}, RANGE=[null,
 let SPRINTS=[], SPRINT=null, ENTRIES={}, GOALS={}, TIME_ENTRIES={}, UNLOCKED=false, DASH_STATUS_FILTER="all";
 let LAST_SYNC=null, SYNC_REPORT=null, SYNC_SCHEDULE={};
 let SPRINT_STATS={}, RETROS={};   // student view: {teamId: {sprintId: {hours, goals, done, status, start, end}}}
-const TODAY = new Date().toISOString().slice(0,10);
+// Local calendar date (not UTC, which flips to tomorrow in the evening in Mountain time).
+const TODAY = (d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`)(new Date());
 function instructorView(){ return IS_ADMIN && !PREVIEW_STUDENT; }
 function studentView(){ return !IS_ADMIN || PREVIEW_STUDENT; }
 
@@ -861,29 +876,41 @@ async function loadCourse(cid){
 function cpath(){ return `users/${OWNER_UID}/courses/${COURSE.id}`; }
 function sprintKey(){ return "peek:sprint:" + UID + ":" + (COURSE ? COURSE.id : ""); }
 function lastSprintId(){ try { return localStorage.getItem(sprintKey()); } catch(e){ return null; } }
-function activeSprint(){ return SPRINTS.length ? SPRINTS[SPRINTS.length-1] : null; }
-function isPast(sp){ const a=activeSprint(); return !!(sp && a && sp.id !== a.id); }
-function frozen(){ return isPast(SPRINT) && !UNLOCKED; }
+/* Sprint phase comes from the calendar. Every project shares the sprint's dates; a
+   sprint stays open for students through one grace day after it ends (to log the
+   last hours and submit the retrospective), then closes. The rules enforce the same
+   cut-off. Sprints without dates fall back to "newest is current". */
+const GRACE_DAYS=1;
+function addDays(iso,n){ const d=new Date(iso+"T00:00:00Z"); d.setUTCDate(d.getUTCDate()+n); return d.toISOString().slice(0,10); }
+function lastSprint(){ return SPRINTS.length ? SPRINTS[SPRINTS.length-1] : null; }
+function sprintPhase(sp){
+  if(!sp) return "closed";
+  if(!sp.start || !sp.end) return sp===lastSprint() ? "current" : "closed";
+  if(TODAY < sp.start) return "upcoming";
+  if(TODAY <= sp.end) return "current";
+  if(TODAY <= addDays(sp.end, GRACE_DAYS)) return "grace";
+  return "closed";
+}
+function activeSprint(){
+  return SPRINTS.find(sp=>sprintPhase(sp)==="current")
+    || [...SPRINTS].reverse().find(sp=>sp.start && sp.start<=TODAY) || lastSprint();
+}
+function isPast(sp){ const ph=sprintPhase(sp); return ph==="grace" || ph==="closed"; }   // the sprint has ended
+function isClosed(sp){ return sprintPhase(sp)==="closed"; }                             // grace day over too
+function frozen(){ return isClosed(SPRINT) && !(instructorView() && UNLOCKED); }
 function entryOf(tid){ return ENTRIES[tid] || {}; }
-function winOf(tid){ const e=entryOf(tid);
-  return { start: e.start || (SPRINT&&SPRINT.start) || "", end: e.end || (SPRINT&&SPRINT.end) || "" }; }
+function winOf(tid){ return { start:(SPRINT&&SPRINT.start)||"", end:(SPRINT&&SPRINT.end)||"" }; }
 function statusOf(t){ const e=ENTRIES[t.id]; return (e && e.status) || t.status || "unrated"; }
 function sliceCbd(cbd,start,end){ const o={};
   Object.keys(cbd||{}).forEach(d=>{ if((!start||d>=start)&&(!end||d<=end)) o[d]=cbd[d]; }); return o; }
 const MONS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+// "Mon" for a YYYY-MM-DD date (read as UTC so the weekday never shifts by timezone).
+function dowOf(iso){ const d=new Date(String(iso)+"T00:00:00Z");
+  return isNaN(d) ? "" : ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getUTCDay()]; }
 function fmtD(iso){ if(!iso) return ""; const p=String(iso).split("-");
   return p.length===3 ? `${MONS[+p[1]-1]} ${+p[2]}` : String(iso); }
 function winLabel(tid){ const w=winOf(tid); return w.start&&w.end ? `${fmtD(w.start)} – ${fmtD(w.end)}` : ""; }
 function nextDay(iso){ const d=new Date(iso+"T00:00:00Z"); d.setUTCDate(d.getUTCDate()+1); return d.toISOString().slice(0,10); }
-// Nearest date to `target` falling on the same weekday as `ref` — keeps each team's
-// review day when a new sprint rolls over.
-function alignWeekday(target, ref){
-  if(!target || !ref) return target || "";
-  const t=new Date(target+"T00:00:00Z"), r=new Date(ref+"T00:00:00Z");
-  if(isNaN(t)||isNaN(r)) return target;
-  let diff=(r.getUTCDay()-t.getUTCDay()+7)%7; if(diff>3) diff-=7;
-  t.setUTCDate(t.getUTCDate()+diff); return t.toISOString().slice(0,10);
-}
 
 // A team's activity restricted to its window in the selected sprint. Same shape as
 // `act`, so every card that renders activity keeps working unchanged.
@@ -913,11 +940,26 @@ async function loadSprints(){
   const snap = await getDocs(collection(db, `${cpath()}/sprints`));
   snap.forEach(d => SPRINTS.push({ id:d.id, ...d.data() }));
   SPRINTS.sort((a,b)=>(a.n||0)-(b.n||0));
+  if(IS_ADMIN) await rollSprints().catch(e=>console.error("sprint rollover failed:", e));
   const want = lastSprintId();
   SPRINT = SPRINTS.find(sp=>sp.id===want) || activeSprint();
   UNLOCKED = false;
   renderSprintSel();
   await loadEntries();
+}
+// When the newest sprint has ended, add the next one(s) with the same length so
+// students always have a current sprint. Mirrors roll_sprints in functions/main.py.
+async function rollSprints(){
+  let cur=lastSprint();
+  if(!cur || !cur.start || !cur.end || cur.end>=TODAY) return;
+  const len=Math.round((new Date(cur.end+"T00:00:00Z")-new Date(cur.start+"T00:00:00Z"))/86400000)+1;
+  for(let guard=0; cur.end<TODAY && guard<52; guard++){
+    const n=(cur.n||SPRINTS.length)+1, start=nextDay(cur.end);
+    let sid="s"+n; while(SPRINTS.some(x=>x.id===sid)) sid+="b";
+    const data={ n, name:"Sprint "+n, start, end:addDays(start,len-1), targetHours:targetOf(cur), auto:true };
+    await setDoc(doc(db, `${cpath()}/sprints/${sid}`), { ...data, createdAt:serverTimestamp() });
+    cur={ id:sid, ...data }; SPRINTS.push(cur);
+  }
 }
 async function loadEntries(){
   ENTRIES={}; GOALS={}; TIME_ENTRIES={}; RETROS={};
@@ -941,8 +983,8 @@ async function loadEntries(){
     RETROS[t.id] = retro.docs.map(d=>({id:d.id,...d.data()}));
     GOALS[t.id] = goals.docs.map(d=>({id:d.id,...d.data()}))
       .sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0));
-    TIME_ENTRIES[t.id] = time.docs.map(d=>({id:d.id,...d.data()}))
-      .sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+    TIME_ENTRIES[t.id] = time.docs.map(d=>({id:d.id,...d.data()}))   // oldest first; same day by entry order
+      .sort((a,b)=>(a.date||"").localeCompare(b.date||"") || (a.createdAt?.seconds||0)-(b.createdAt?.seconds||0));
   }));
 }
 function renderSprintSel(){
@@ -950,7 +992,7 @@ function renderSprintSel(){
   if(!SPRINTS.length){ sel.innerHTML=`<option>No sprints yet</option>`; sel.disabled=true; return; }
   sel.disabled=false;
   sel.innerHTML = [...SPRINTS].reverse().map(sp=>{
-    const tag = isPast(sp) ? " (past)" : " (current)";
+    const tag = {current:" (current)", grace:" (grace day)", upcoming:" (upcoming)", closed:" (past)"}[sprintPhase(sp)];
     return `<option value="${esc(sp.id)}">${esc(sp.name||("Sprint "+sp.n))}${tag}</option>`;
   }).join("");
   if(SPRINT) sel.value = SPRINT.id;
@@ -1045,7 +1087,7 @@ function studentNavHTML(){
   const t=TEAMS.find(x=>x.id===currentTeamId());
   if(!t || !isSetUp(t)) return "";
   const sprints=[...SPRINTS].reverse().map(sp=>
-    `<button data-sprint-nav="${t.id}:${sp.id}"><span class="dot ${isPast(sp)?"unrated":"healthy"}"></span><span class="tname">${esc(sp.name||("Sprint "+sp.n))}${isPast(sp)?"":" · current"}</span></button>`).join("");
+    `<button data-sprint-nav="${t.id}:${sp.id}"><span class="dot ${sprintPhase(sp)==="current"?"healthy":"unrated"}"></span><span class="tname">${esc(sp.name||("Sprint "+sp.n))}${{current:" · current",grace:" · last day",upcoming:" · upcoming",closed:""}[sprintPhase(sp)]}</span></button>`).join("");
   return `<button data-view="${t.id}"><span class="nav-ic">▚</span><span class="tname">Dashboard</span></button>
     <button data-view="${t.id}__summary"><span class="nav-ic">✎</span><span class="tname">Project summary</span></button>
     ${SPRINTS.length?`<div class="nav-label">Sprints</div>${sprints}`:""}`;
@@ -1177,7 +1219,7 @@ function timeHTML(t){
   return `<div class="card structured-card"><div class="notes-head"><h2 style="border:0;margin:0;padding:0">Time Worked</h2>
     <span class="card-total">${total.toFixed(1).replace(/\.0$/,"")} hours total</span></div>
     <section class="summary-section">
-    ${rows.length?`<div class="time-list">${rows.map(x=>`<div class="time-row"><span class="time-meta">${esc(x.date)}</span>
+    ${rows.length?`<div class="time-list">${rows.map(x=>`<div class="time-row"><span class="time-date"><span class="dow">${esc(dowOf(x.date))}</span> ${esc(fmtD(x.date))}</span>
       <span><b>${esc(x.hours)} hr</b>${x.note?` · ${esc(x.note)}`:""}</span>
       ${(edit&&x.studentEmail===USER_EMAIL)||(instructorView()&&!frozen())?`<button class="icon-btn remove" data-time-remove="${t.id}:${x.id}" title="Remove time entry" aria-label="Remove time entry">×</button>`:""}</div>`).join("")}</div>`:"<p class=\"muted\">No time recorded yet.</p>"}
     </section>${form}</div>`;
@@ -1249,27 +1291,37 @@ async function setGoalResult(tid,gid,result){
   const goal=(GOALS[tid]||[]).find(x=>x.id===gid); if(goal) goal.result=result;
   render(); stay(tid);
 }
+// Instructor: commits made after the sprint's end date, so a review held a few days
+// later can separate deadline work from what came after.
+function afterEndHTML(t){
+  if(!SPRINT || !SPRINT.end || !isPast(SPRINT)) return "";
+  const cbd=(t.act&&t.act.ok&&t.act.commits_by_day)||{};
+  const n=Object.keys(cbd).filter(d=>d>SPRINT.end).reduce((a,d)=>a+cbd[d],0);
+  return `<div class="after-end${n?" has":""}">${n?`<b>${n}</b> commit${n===1?"":"s"} since this sprint ended (${esc(fmtD(SPRINT.end))})`
+    :`No commits since this sprint ended (${esc(fmtD(SPRINT.end))})`}</div>`;
+}
 function sprintCardHTML(t){
   if(!SPRINT) return "";
-  const e=entryOf(t.id), w=winOf(t.id), ro=frozen()?" disabled":"";
-  const statuses=["unrated","healthy","watch","risk","noaccess"];
-  if(studentView()) return `<div class="card"><div class="notes-head"><h2 style="border:none;margin:0;padding:0">${esc(SPRINT.name||("Sprint "+SPRINT.n))}${winLabel(t.id)?` · ${esc(winLabel(t.id))}`:""}</h2>
+  const e=entryOf(t.id), ro=frozen()?" disabled":"";
+  const statuses=["unrated","healthy","watch","risk","noaccess"], st=statusOf(t);
+  if(studentView()) return `<div class="card sprint-card ${st}"><div class="notes-head"><h2 style="border:none;margin:0;padding:0">${esc(SPRINT.name||("Sprint "+SPRINT.n))}${winLabel(t.id)?` · ${esc(winLabel(t.id))}`:""}</h2>
       <span class="role-tag">${sprintStage(t.id)}</span></div>
-      <dl class="kv" style="margin-top:14px"><dt>Instructor rating</dt><dd><span class="pill ${statusOf(t)}"><span class="d"></span>${STATUS_LABEL[statusOf(t)]}</span></dd>
+      ${sprintPhase(SPRINT)==="grace"&&!myRetro(t.id)?`<div class="grace-note">This sprint ended ${esc(dowOf(SPRINT.end))} ${esc(fmtD(SPRINT.end))}.
+        You have until the end of today to log your last hours and submit your retrospective.</div>`:""}
+      <dl class="kv" style="margin-top:14px"><dt>Review with instructor</dt><dd>${e.reviewDate?`${esc(dowOf(e.reviewDate))} ${esc(fmtD(e.reviewDate))}`:`<span class="muted">Not scheduled yet</span>`}</dd>
+      <dt>Instructor rating</dt><dd><span class="pill ${st}"><span class="d"></span>${STATUS_LABEL[st]}</span></dd>
       <dt>Sprint review</dt><dd class="soft">${esc(e.review||"Not reviewed yet.")}</dd></dl></div>${goalsHTML(t)}${timeHTML(t)}${wrapUpHTML(t)}`;
-  return `<div class="card">
+  return `<div class="card sprint-card ${st}">
     <div class="notes-head"><h2 style="border:none;margin:0;padding:0">${esc(SPRINT.name||("Sprint "+SPRINT.n))}${winLabel(t.id)?` · ${esc(winLabel(t.id))}`:""}</h2>
       <span class="saved" id="saved-${t.id}">saved ✓</span></div>
-    ${frozen()?`<div class="sfrozen"><span><b>Frozen.</b> ${esc(SPRINT.name||("Sprint "+SPRINT.n))} is a past sprint, so its record is read-only.</span>
+    ${afterEndHTML(t)}
+    ${frozen()?`<div class="sfrozen"><span><b>Frozen.</b> ${esc(SPRINT.name||("Sprint "+SPRINT.n))} has closed, so its record is read-only.</span>
       <button class="linkbtn" data-mact="sprint-unlock">Unlock to edit</button></div>`:""}
     <div class="sgrid">
-      <label>Review window start<input type="date" data-sp="${t.id}:start" value="${esc(w.start)}"${ro}></label>
-      <label>Review window end<input type="date" data-sp="${t.id}:end" value="${esc(w.end)}"${ro}></label>
-      <label>Product Owner<input data-sp="${t.id}:po" value="${esc(e.po||"")}" placeholder="name"${ro}></label>
-      <label>Scrum Master<input data-sp="${t.id}:sm" value="${esc(e.sm||"")}" placeholder="name"${ro}></label>
-      <label>Developers<input data-sp="${t.id}:devs" value="${esc(e.devs||"")}" placeholder="names, comma-separated"${ro}></label>
-      <label>Est. hours<input data-sp="${t.id}:hours" value="${esc(e.hours||"")}" placeholder="e.g. 40"${ro}></label>
-      <label>Sprint rating<select data-sp="${t.id}:status"${ro}>${statuses.map(x=>`<option value="${x}"${x===statusOf(t)?" selected":""}>${STATUS_LABEL[x]}</option>`).join("")}</select></label>
+      <label>Review date<input type="date" data-sp="${t.id}:reviewDate" value="${esc(e.reviewDate||"")}"${ro}></label>
+      ${Lt(t).solo?"":`<label>Product Owner<input data-sp="${t.id}:po" value="${esc(e.po||"")}" placeholder="name"${ro}></label>
+      <label>Scrum Master<input data-sp="${t.id}:sm" value="${esc(e.sm||"")}" placeholder="name"${ro}></label>`}
+      <label>Sprint rating<select data-sp="${t.id}:status"${ro}>${statuses.map(x=>`<option value="${x}"${x===st?" selected":""}>${STATUS_LABEL[x]}</option>`).join("")}</select></label>
     </div>
     <label class="nlbl" for="rev-${t.id}">Sprint review</label>
     <textarea id="rev-${t.id}" data-sp="${t.id}:review" placeholder="What did they demo? Progress vs. sprint goal, blockers, action items…"${ro}>${esc(e.review||"")}</textarea>
@@ -1279,7 +1331,7 @@ function sprintCardHTML(t){
 // project page. The instructor always sees the real page, set up or not.
 function setupHTML(t){
   const p=projectInfo(t);
-  return `<div class="view" id="view-${t.id}">${accountRowHTML()}
+  return `<div class="view" id="view-${t.id}">${topRowHTML(t)}
     <span class="eyebrow">Project setup</span>
     <h1>Set up ${esc(t.team)}</h1>
     <p class="lede">Tell your instructor what you're building and where the work lives. You can change all of this later.</p>
@@ -1390,8 +1442,8 @@ function accountHTML(){
     </button>
     <div class="account-menu" role="menu"><button role="menuitem" data-sign-out>Sign out</button></div></div>`;
 }
-// Top row with just the account menu, for student pages without a project yet.
-function accountRowHTML(){ return IS_ADMIN?"":`<div class="top-row"><span></span><span class="top-right">${accountHTML()}</span></div>`; }
+// Top row for student pages without a project yet: links shown inactive.
+function accountRowHTML(){ return IS_ADMIN?"":topRowHTML({id:"none"}); }
 // One row at the top of each student page: optional back link left; icon bar and
 // account menu right.
 function topRowHTML(t,left){
@@ -1408,15 +1460,19 @@ function projectHeadHTML(t){
     ${p.concept?`<p class="project-overview">${esc(p.concept)}</p>`:""}</div>`;
 }
 function refreshProjectHead(tid){
-  const t=TEAMS.find(x=>x.id===tid), el=$("proj-head-"+tid);
-  if(!t || !el || !studentView()) return;
-  el.innerHTML=projectHeadHTML(t);
+  const t=TEAMS.find(x=>x.id===tid);
+  if(!t || !studentView()) return;
   document.querySelectorAll(`[id="icon-bar-${tid}"]`).forEach(x=>x.innerHTML=iconBarHTML(t));
+  const el=$("proj-head-"+tid); if(!el) return;   // not set up yet: no dashboard header
+  el.innerHTML=projectHeadHTML(t);
   renderNav(); markNav(location.hash.slice(1)||tid);   // the sidebar shows the project title
 }
-// Hours ring on a sprint panel: fills toward HOURS_TARGET, red below it, green at or above.
-const HOURS_TARGET=20;
-function hoursRingSVG(hours){
+// Hours ring on a sprint panel: fills toward the sprint's target hours (set when the
+// sprint is created; DEFAULT_TARGET_HOURS if not), red below it, green at or above.
+const DEFAULT_TARGET_HOURS=20;
+function targetOf(sp){ const n=Number(sp&&sp.targetHours); return n>0 ? n : DEFAULT_TARGET_HOURS; }
+function hoursRingSVG(hours, target){
+  const HOURS_TARGET=target||DEFAULT_TARGET_HOURS;
   const r=36, c=2*Math.PI*r, known=hours!=null, f=known?Math.min(hours/HOURS_TARGET,1):0;
   const cls=!known?"":hours>=HOURS_TARGET?"ok":"low";
   const label=known?String(Math.round(hours*10)/10):"…";
@@ -1430,19 +1486,19 @@ function sprintGridHTML(t){
   if(!SPRINTS.length) return `<p class="muted">Your instructor hasn't started a sprint yet.</p>`;
   const stats=SPRINT_STATS[t.id]||{}, cbd=(t.act&&t.act.ok&&t.act.commits_by_day)||null;
   return `<div class="sprint-grid">${[...SPRINTS].reverse().map(sp=>{
-    const x=stats[sp.id], start=(x&&x.start)||sp.start||"", end=(x&&x.end)||sp.end||"";
-    const st=(x&&x.status)||"unrated", cur=!isPast(sp);
+    const x=stats[sp.id], start=sp.start||"", end=sp.end||"", ph=sprintPhase(sp);
+    const st=(x&&x.status)||"unrated", cur=ph==="current";
     const commits=cbd?Object.values(sliceCbd(cbd,start,end)).reduce((a,b)=>a+b,0):null;
     return `<button class="sprint-panel ${st}" data-sprint-open="${t.id}:${sp.id}">
-      <span class="sp-head"><b>${esc(sp.name||("Sprint "+sp.n))}</b><span class="sp-tag${cur?" cur":""}">${x&&x.submitted?"Submitted":cur?"Current":"Past"}</span></span>
+      <span class="sp-head"><b>${esc(sp.name||("Sprint "+sp.n))}</b><span class="sp-tag${cur||ph==="grace"?" cur":""}">${x&&x.submitted?"Submitted":{current:"Current",grace:"Last day to submit",upcoming:"Upcoming",closed:"Past"}[ph]}</span></span>
       <span class="sp-dates">${start&&end?`${esc(fmtD(start))} – ${esc(fmtD(end))}`:"&nbsp;"}</span>
-      <span class="sp-body">${hoursRingSVG(x?x.hours:null)}
+      <span class="sp-body">${hoursRingSVG(x?x.hours:null, targetOf(sp))}
         <span class="sp-stats">
           <span><b>${x?`${x.done}/${x.goals}`:"…"}</b>goals done</span>
           <span><b>${commits==null?"—":commits}</b>commits</span></span></span>
       <span class="sp-foot"><span class="pill ${st}"><span class="d"></span>${STATUS_LABEL[st]}</span>
         ${x&&moodOf(x.mood)?`<span class="sp-mood" title="Felt: ${esc(moodOf(x.mood).l)}">${moodOf(x.mood).e}</span>`:""}</span>
-      ${cur&&x&&!x.goals&&!x.submitted?`<span class="sp-nudge">Enter goals to get started →</span>`:""}
+      ${(cur||ph==="grace")&&x&&!x.goals&&!x.submitted?`<span class="sp-nudge">Enter goals to get started →</span>`:""}
     </button>`;}).join("")}</div>`;
 }
 // Hours, goals and rating for every sprint of one project. Reloaded whenever its
@@ -1455,7 +1511,7 @@ async function loadSprintStats(tid){
       getDocs(collection(db,`${base}/goals`)), getDocs(collection(db,`${base}/time`)), getDocs(collection(db,`${base}/retro`))]);
     const ed=e.exists()?e.data():{};
     const rs=retro.docs.map(d=>d.data()), mine=rs.find(r=>r.studentEmail===USER_EMAIL)||(IS_ADMIN?rs[0]:null);
-    out[sp.id]={ status:ed.status||"unrated", start:ed.start||"", end:ed.end||"",
+    out[sp.id]={ status:ed.status||"unrated",
       submitted:!!mine, mood:mine?mine.mood:null,
       goals:goals.size, done:goals.docs.filter(d=>d.data().result==="done"||d.data().completed).length,
       hours:time.docs.reduce((n,d)=>n+(Number(d.data().hours)||0),0) };
@@ -1557,12 +1613,12 @@ function schedulePanelHTML(){
   <div class="panel-actions"><button class="btn" data-mact="schedule-save">Save schedule</button></div></div>`;
 }
 function sprintsPanelHTML(){
-  const act=activeSprint();
+  const act=lastSprint();   // only the newest sprint can be edited or removed
   return `<div class="card"><h2>Sprints</h2>
     <div>${SPRINTS.length?[...SPRINTS].reverse().map(sp=>`<div class="srow">
-      <span class="badge ${isPast(sp)?"past":""}">${isPast(sp)?"past":"current"}</span>
+      <span class="badge ${isPast(sp)?"past":""}">${{current:"current",grace:"grace day",upcoming:"upcoming",closed:"past"}[sprintPhase(sp)]}</span>
       <span class="sn">${esc(sp.name||("Sprint "+sp.n))}</span>
-      <span class="sdates">${esc(fmtD(sp.start))} – ${esc(fmtD(sp.end))}</span>
+      <span class="sdates">${esc(fmtD(sp.start))} – ${esc(fmtD(sp.end))} · ${esc(String(targetOf(sp)))} hrs</span>
       <span>${sp.id===(act&&act.id)?`<button class="linkbtn" data-mact="sprint-edit" data-sid="${sp.id}">Edit dates</button>
         <button class="linkbtn danger" data-mact="sprint-remove" data-sid="${sp.id}">Remove</button>`:""}</span>
     </div>`).join(""):`<p class="muted">No sprints yet.</p>`}</div>
@@ -1571,17 +1627,20 @@ function sprintsPanelHTML(){
 }
 function sprintFormHTML(sp){
   const n = sp ? sp.n : (SPRINTS.length ? Math.max(...SPRINTS.map(x=>x.n||0))+1 : 1);
-  const prev = sp ? null : activeSprint();
+  const prev = sp ? null : lastSprint();
   const v = sp || { name:"Sprint "+n, start: prev&&prev.end ? nextDay(prev.end) : "", end:"" };
   return `<div class="form-panel"><h2>${sp?"Edit sprint":"New sprint"}</h2>
     <div class="sgrid">
       <label>Name<input id="sp_name" value="${esc(v.name||"")}" placeholder="Sprint ${n}"></label>
-      <label>&nbsp;<span class="muted" style="font-size:12px">Default window for the course</span></label>
+      <label>&nbsp;</label>
       <label>Start<input id="sp_start" type="date" value="${esc(v.start||"")}"></label>
       <label>End<input id="sp_end" type="date" value="${esc(v.end||"")}"></label>
+      <label>Target hours per student<input id="sp_target" type="number" min="1" step="0.5"
+        value="${esc(String(sp ? targetOf(sp) : targetOf(prev)))}"></label>
     </div>
-    ${sp?`<p class="muted" style="margin-top:12px">This is the course's default window. Review windows already set on a
-      ${L().unit}'s page keep their own dates — change those there.</p>`:""}
+    <p class="muted" style="margin-top:12px">Every ${L().unit} uses these dates. Students can log time and submit their
+      retrospective until the end of the day after the sprint ends. When a sprint ends, the next one is created
+      automatically with the same length.</p>
     <div style="margin-top:16px;display:flex;gap:10px">
       <button class="btn" data-mact="sprint-save"${sp?` data-sid="${sp.id}"`:""}>Save</button>
       <button class="btn secondary" data-mact="sprint-cancel">Cancel</button>
@@ -1674,7 +1733,7 @@ async function finishSetup(tid){
   try{
     await setDoc(doc(db,`${cpath()}/teams/${tid}`), {setupComplete:true, updatedAt:serverTimestamp()}, {merge:true});
     t.setupComplete=true;
-    render(); show(tid);
+    renderNav(); render(); show(tid);   // sidebar gains Dashboard / summary / sprints
   }catch(e){ console.error(e); if(err) err.textContent = e.code+" — "+e.message; }
 }
 function flash(id){ const b=$(id); if(b){ b.classList.add("show"); setTimeout(()=>b.classList.remove("show"),1200); } }
@@ -1953,8 +2012,7 @@ async function saveTeam(tid){
     await setDoc(doc(db, `users/${UID}/courses/${COURSE.id}/teams/${id}`), payload, { merge:true });
     if (!tid && SPRINT)   // a team added mid-course joins the sprint already running
       await setDoc(doc(db, `${cpath()}/sprints/${SPRINT.id}/entries/${id}`),
-        { po:"", sm:"", devs:"", hours:"", start:SPRINT.start, end:SPRINT.end,
-          status:"unrated", goal:"", review:"", updatedAt: serverTimestamp() }, { merge:true });
+        { po:"", sm:"", status:"unrated", goal:"", review:"", updatedAt: serverTimestamp() }, { merge:true });
     await loadCourse(COURSE.id); show("manage");
   } catch(e){ console.error(e); const fe=$("formErr"); if(fe) fe.textContent = e.code+" — "+e.message; }
 }
@@ -1988,21 +2046,22 @@ function openSprintForm(sp){ const f=$("sprintForm"); if(!f) return;
   f.hidden=false; f.innerHTML=sprintFormHTML(sp||null); f.scrollIntoView({behavior:"smooth", block:"nearest"}); }
 
 async function saveSprint(sid){
-  const name=fval("sp_name"), start=fval("sp_start"), end=fval("sp_end");
+  const name=fval("sp_name"), start=fval("sp_start"), end=fval("sp_end"), targetHours=Number(fval("sp_target"));
   const err=$("sprintErr");
   if(!start || !end){ if(err) err.textContent="Start and end dates are required."; return; }
+  if(!(targetHours>0)){ if(err) err.textContent="Target hours must be a number greater than zero."; return; }
   if(end < start){ if(err) err.textContent="End date must fall on or after the start date."; return; }
   try{
     if(sid){                                    // editing the current sprint's default window
       const cur = SPRINTS.find(x=>x.id===sid) || {};
-      await setDoc(doc(db, `${cpath()}/sprints/${sid}`), { name: name||cur.name||("Sprint "+(cur.n||"")), start, end }, { merge:true });
+      await setDoc(doc(db, `${cpath()}/sprints/${sid}`), { name: name||cur.name||("Sprint "+(cur.n||"")), start, end, targetHours }, { merge:true });
     } else {
-      const prev = activeSprint();
+      const prev = lastSprint();
       const n = SPRINTS.length ? Math.max(...SPRINTS.map(x=>x.n||0))+1 : 1;
       const nsid = "s"+n;
       await setDoc(doc(db, `${cpath()}/sprints/${nsid}`),
-        { n, name: name||("Sprint "+n), start, end, createdAt: serverTimestamp() });
-      // Carry roles forward and keep each team on its own review weekday.
+        { n, name: name||("Sprint "+n), start, end, targetHours, createdAt: serverTimestamp() });
+      // Carry roles forward.
       let prevEntries={};
       if(prev){
         const snap = await getDocs(collection(db, `${cpath()}/sprints/${prev.id}/entries`));
@@ -2011,9 +2070,7 @@ async function saveSprint(sid){
       for(const t of TEAMS){
         const pe = prevEntries[t.id] || {};
         await setDoc(doc(db, `${cpath()}/sprints/${nsid}/entries/${t.id}`), {
-          po:pe.po||"", sm:pe.sm||"", devs:pe.devs||"", hours:pe.hours||"",
-          start: pe.end ? nextDay(pe.end) : start,
-          end:   pe.end ? alignWeekday(end, pe.end) : end,
+          po:pe.po||"", sm:pe.sm||"",
           status: pe.status || t.status || "unrated",
           goal:"", review:"", updatedAt: serverTimestamp()
         });
