@@ -106,6 +106,12 @@
     color:var(--accent-ink); font-weight:600; }
   .signin h1 { font-size:26px; font-weight:680; letter-spacing:-.02em; margin:8px 0 6px; }
   .signin p { color:var(--ink-soft); font-size:14px; margin:0 0 24px; }
+  .signin-or{ display:flex; align-items:center; gap:10px; margin:22px 0 14px; color:var(--ink-faint); font-size:12.5px; }
+  .signin-or::before, .signin-or::after{ content:""; flex:1; border-top:1px solid var(--line); }
+  .link-form .add-group{ max-width:none; }
+  .link-form input{ text-align:left; }
+  .signin .link-msg{ margin:14px 0 0; padding:10px 12px; border-radius:8px; background:var(--surface-2);
+    color:var(--ink); font-size:13.5px; text-align:left; }
   .btn { all:unset; cursor:pointer; display:inline-flex; align-items:center; gap:10px; justify-content:center;
     background:var(--accent); color:var(--accent-contrast); font-weight:700; font-size:14.5px; padding:11px 20px; border-radius:10px; }
   .btn:hover { filter:brightness(.92); }
@@ -210,6 +216,8 @@
   .icon-circle svg{ width:22px; height:22px; display:block; }
   .icon-circle:hover{ transform:translateY(-1px); box-shadow:0 0 0 2px var(--accent); color:var(--ink); }
   .icon-circle:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .icon-circle.pen{ color:var(--ink); }
+  .icon-circle.pen.on{ box-shadow:0 0 0 2px var(--accent); color:var(--accent-ink); }
   .icon-circle.off{ cursor:default; opacity:.35; filter:grayscale(1); }
   .icon-circle.off:hover{ transform:none; box-shadow:none; }
   .icon-circle .i-sun{ display:none; }
@@ -578,14 +586,41 @@
     background-image:var(--panel-grad); }
   /* Sprint card tinted by the instructor's rating. After the panel-gradient rule so it layers on top. */
   .card.rh-trend{ margin-top:0; }
-  .mood-trend{ width:100%; height:auto; display:block; }
-  .mood-trend .mt-grid{ stroke:var(--line-soft); stroke-width:1; }
-  .mood-trend .mt-line{ fill:none; stroke:var(--accent); stroke-width:3; stroke-linejoin:round; stroke-linecap:round; }
-  .mood-trend .mt-dot{ fill:var(--accent); }
-  .mood-trend text{ text-anchor:middle; }
-  .mood-trend .mt-emoji{ font-size:26px; }
-  .mood-trend .mt-label{ font-size:13px; fill:var(--ink-soft); }
-  .mood-trend .mt-none{ font-size:14px; fill:var(--ink-faint); }
+  .tc-toggles{ display:inline-flex; gap:6px; }
+  .tc-toggle{ all:unset; cursor:pointer; padding:6px 12px; border-radius:8px; font-size:13px; color:var(--ink-soft);
+    border:1px solid var(--line); background:var(--field); }
+  .tc-toggle.on{ background:var(--accent); border-color:var(--accent); color:var(--accent-contrast); font-weight:650; }
+  .tc-toggle:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .tc-stack{ position:relative; margin-top:14px; display:flex; flex-direction:column; gap:10px; }
+  .tc{ display:grid; grid-template-columns:150px minmax(0,1fr); gap:12px; align-items:start; }
+  .tc + .tc{ border-top:1px solid var(--line-soft); padding-top:10px; }
+  .tc-axis{ display:flex; flex-direction:column; gap:3px; font-size:12px; color:var(--ink-soft); padding-top:6px; }
+  .tc-axis b{ font-size:13px; color:var(--ink); margin-bottom:2px; }
+  .tc-axis span{ display:flex; align-items:center; gap:6px; }
+  .tc-svg{ width:100%; height:auto; display:block; overflow:visible; }
+  .tc-col{ fill:transparent; }
+  .tc-col.hot{ fill:var(--surface-2); }
+  .tc-grid{ stroke:var(--line-soft); stroke-width:1; }
+  .tc-line{ fill:none; stroke-width:2; stroke-linejoin:round; stroke-linecap:round; pointer-events:none; }
+  .tc-line.mood{ stroke:var(--accent); } .tc-line.hours{ stroke:var(--ink-soft); } .tc-line.status{ stroke:var(--ink-faint); stroke-dasharray:3 4; }
+  .tc-dot{ stroke:var(--surface); stroke-width:2; pointer-events:none; }
+  .tc-dot.mood{ fill:var(--accent); }
+  .tc-dot.ok, .tc-dot.st.healthy{ fill:var(--healthy); } .tc-dot.low, .tc-dot.st.risk{ fill:var(--risk); }
+  .tc-dot.st.watch{ fill:var(--watch); } .tc-dot.st.noaccess{ fill:var(--noaccess); }
+  .tc-target{ stroke:var(--ink-faint); stroke-width:1.5; stroke-dasharray:5 4; pointer-events:none; }
+  .tc-svg text{ text-anchor:middle; pointer-events:none; }
+  .tc-emoji{ font-size:22px; }
+  .tc-val{ font-size:13px; font-weight:650; fill:var(--ink); }
+  .tc-x{ font-size:13px; fill:var(--ink-soft); }
+  .tc-key, .tc-key-target{ display:inline-block; width:10px; height:10px; border-radius:50%; flex:0 0 auto; }
+  .tc-key.ok, .tc-key.healthy{ background:var(--healthy); } .tc-key.low, .tc-key.risk{ background:var(--risk); }
+  .tc-key.watch{ background:var(--watch); } .tc-key.noaccess{ background:var(--noaccess); }
+  .tc-key-target{ width:14px; height:0; border-radius:0; border-top:2px dashed var(--ink-faint); }
+  .tc-tip{ position:absolute; top:0; width:180px; z-index:5; pointer-events:none; display:flex; flex-direction:column; gap:4px;
+    padding:10px 12px; border-radius:10px; background:var(--surface); border:1px solid var(--line); box-shadow:var(--shadow);
+    font-size:12.5px; color:var(--ink); }
+  .tc-tip[hidden]{ display:none !important; }
+  @media (max-width:720px){ .tc{ grid-template-columns:1fr; } .tc-axis{ flex-direction:row; flex-wrap:wrap; gap:4px 10px; } }
   .retro-card.pending{ opacity:.8; }
   .rh-top{ display:flex; align-items:center; gap:12px; margin:14px 0 6px; font-size:14px; flex-wrap:wrap; }
   .rh-goals{ margin-left:auto; font-size:13px; color:var(--ink-soft); }
@@ -671,6 +706,12 @@
     <h1>Team Tracker</h1>
     <p>Sign in to see your courses, team activity, and review notes.</p>
     <button class="btn" id="signInBtn">Sign in with Google</button>
+    <div class="signin-or"><span>or use your school email</span></div>
+    <form id="linkForm" class="link-form" novalidate>
+      <div class="add-group"><input id="linkEmail" type="email" autocomplete="email" placeholder="you@student.neumont.edu"
+        aria-label="School email"><button class="add-btn" id="linkBtn" type="submit">Send link</button></div>
+    </form>
+    <p class="link-msg" id="linkMsg" hidden></p>
     <p class="muted" id="signinErr" style="margin-top:16px;color:var(--risk)"></p>
   </div>
 </div>
@@ -704,7 +745,8 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, connectAuthEmulator }
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, connectAuthEmulator,
+         sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, collectionGroup, query, where, getDocs, doc, getDoc, setDoc, deleteDoc, serverTimestamp, connectFirestoreEmulator }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -786,6 +828,60 @@ async function doSignIn(){
   }
 }
 $("signInBtn").onclick = doSignIn;
+
+/* Email sign-in link: Neumont mail is Microsoft 365, so most students have no Google
+   account. They enter their school address, Firebase emails a one-time link, and
+   opening it signs them in (address verified, so the rules accept it). The address
+   is kept in this browser so the link can finish without retyping; opened elsewhere,
+   the student confirms it first. */
+const LINK_EMAIL_KEY = "peek:signin-email";
+function okSchoolEmail(email){ return email.endsWith("@" + ALLOWED_DOMAIN) || email.endsWith("@" + STUDENT_DOMAIN); }
+function linkMsg(text){ const m=$("linkMsg"); m.textContent=text; m.hidden=!text; }
+let FINISHING_LINK = false;   // true while a sign-in link is waiting for its email to be confirmed
+$("linkForm").onsubmit = async e => {
+  e.preventDefault();
+  $("signinErr").textContent = ""; linkMsg("");
+  const email = $("linkEmail").value.trim().toLowerCase();
+  if (!/^[^@\s]+@[^@\s]+$/.test(email) || !okSchoolEmail(email)) {
+    $("signinErr").textContent = "Use your @" + STUDENT_DOMAIN + " or @" + ALLOWED_DOMAIN + " address."; return;
+  }
+  const btn = $("linkBtn"); btn.disabled = true;
+  try {
+    if (FINISHING_LINK) { await finishLinkSignIn(email); return; }
+    await sendSignInLinkToEmail(auth, email, { url: location.origin + location.pathname, handleCodeInApp: true });
+    try { localStorage.setItem(LINK_EMAIL_KEY, email); } catch(err){}
+    linkMsg(`We sent a sign-in link to ${email}. Open it on this device to finish — check Junk if it isn't in your inbox within a minute. The link works once and expires after an hour.`);
+  } catch (err) {
+    console.error("send link failed:", err.code, err.message);
+    $("signinErr").textContent = err.code === "auth/operation-not-allowed"
+      ? "Email sign-in isn't enabled for this site yet." : (err.code + " — " + err.message);
+  } finally { btn.disabled = false; }
+};
+async function finishLinkSignIn(email){
+  try {
+    await signInWithEmailLink(auth, email, location.href);
+    try { localStorage.removeItem(LINK_EMAIL_KEY); } catch(err){}
+    FINISHING_LINK = false;
+    history.replaceState(null, "", location.pathname);   // drop the one-time code from the address bar
+  } catch (err) {
+    console.error("link sign-in failed:", err.code, err.message);
+    FINISHING_LINK = false; $("linkBtn").textContent = "Send link";
+    history.replaceState(null, "", location.pathname);
+    $("signinErr").textContent = (err.code === "auth/invalid-action-code" || err.code === "auth/expired-action-code")
+      ? "That sign-in link has expired or was already used. Enter your email to get a new one."
+      : err.code === "auth/invalid-email" ? "That email doesn't match the one the link was sent to."
+      : (err.code + " — " + err.message);
+  }
+}
+if (isSignInWithEmailLink(auth, location.href)) {
+  let saved = ""; try { saved = localStorage.getItem(LINK_EMAIL_KEY) || ""; } catch(err){}
+  if (saved) finishLinkSignIn(saved);
+  else {   // opened on another device/browser: confirm the address before using the link
+    FINISHING_LINK = true;
+    $("linkBtn").textContent = "Finish sign-in";
+    linkMsg("Confirm the email address this sign-in link was sent to.");
+  }
+}
 $("signOutBtn").onclick = () => signOut(auth);
 getRedirectResult(auth).catch(e => { console.error("redirect result:", e); $("signinErr").textContent = e.code + " — " + e.message; });
 
@@ -1172,7 +1268,6 @@ function studentNavHTML(){
   const sprints=[...SPRINTS].reverse().map(sp=>
     `<button data-sprint-nav="${t.id}:${sp.id}"><span class="dot ${sprintPhase(sp)==="current"?"healthy":"unrated"}"></span><span class="tname">${esc(sp.name||("Sprint "+sp.n))}${{current:" · current",grace:" · last day",upcoming:" · upcoming",closed:""}[sprintPhase(sp)]}</span>${hasNewFeedback(t.id,sp.id)?`<span class="nav-new" title="New feedback"></span>`:""}</button>`).join("");
   return `<button data-view="${t.id}"><span class="nav-ic">▚</span><span class="tname">Dashboard</span></button>
-    <button data-view="${t.id}__summary"><span class="nav-ic">✎</span><span class="tname">Project summary</span></button>
     <button data-view="${t.id}__retros"><span class="nav-ic">◷</span><span class="tname">Retrospectives</span></button>
     ${SPRINTS.length?`<div class="nav-label">Sprints</div>${sprints}`:""}`;
 }
@@ -1633,15 +1728,19 @@ function studentTeamHTML(t){
    links come from the project; without one the button is shown dimmed. */
 const ICON_GITHUB=`<svg viewBox="0 -3.1 2490.3 2493" aria-hidden="true"><ellipse cx="1245.2" cy="1243.4" fill="#fff" rx="1217.6" ry="1246.5"/><path fill="#5c6bc0" d="m1245.2 1.6c-687.6 0-1245.2 557.4-1245.2 1245.1 0 550.2 356.8 1016.9 851.5 1181.5 62.2 11.5 85.1-27 85.1-59.9 0-29.7-1.2-127.8-1.7-231.8-346.4 75.3-419.5-146.9-419.5-146.9-56.6-143.9-138.3-182.2-138.3-182.2-113-77.3 8.5-75.7 8.5-75.7 125 8.8 190.9 128.3 190.9 128.3 111.1 190.4 291.3 135.3 362.3 103.5 11.2-80.5 43.4-135.4 79.1-166.5-276.6-31.5-567.3-138.3-567.3-615.4 0-135.9 48.6-247 128.3-334.2-12.9-31.3-55.5-157.9 12.1-329.4 0 0 104.6-33.5 342.5 127.6 99.3-27.6 205.8-41.4 311.7-41.9 105.8.5 212.4 14.3 311.9 41.9 237.7-161.1 342.1-127.6 342.1-127.6 67.8 171.5 25.1 298.2 12.2 329.5 79.8 87.2 128.1 198.3 128.1 334.2 0 478.2-291.3 583.6-568.6 614.4 44.7 38.6 84.5 114.4 84.5 230.6 0 166.6-1.4 300.7-1.4 341.7 0 33.1 22.4 72 85.5 59.7 494.5-164.8 850.8-631.4 850.8-1181.4 0-687.7-557.5-1245.1-1245.1-1245.1"/></svg>`;
 const ICON_TRELLO=`<svg viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="72" fill="#1868db"/><rect x="95" y="95" width="125" height="293" rx="20" fill="#fff"/><rect x="292" y="95" width="125" height="176" rx="20" fill="#fff"/></svg>`;
+const ICON_PEN=`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
 const ICON_MOON=`<svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>`;
 const ICON_SUN=`<svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></g></svg>`;
 function iconBarHTML(t){
   const link=(url,icon,label,missing)=> url
     ? `<a class="icon-circle" href="${esc(url)}" target="_blank" rel="noopener" title="${label}" aria-label="${label}">${icon}</a>`
     : `<span class="icon-circle off" title="${missing}" aria-label="${missing}">${icon}</span>`;
+  const real=TEAMS.find(x=>x.id===t.id), summary=real && isSetUp(real) && studentView();
   return `<div class="icon-bar">
-    ${link(t.github,ICON_GITHUB,"Open GitHub repository","No GitHub repo yet. Add it in Project summary.")}
-    ${link(t.trello,ICON_TRELLO,"Open Trello board","No Trello board yet. Add it in Project summary.")}
+    ${summary?`<button class="icon-circle pen${(location.hash.slice(1)===t.id+"__summary")?" on":""}" data-goto="${t.id}__summary" data-summary
+      title="Edit project summary" aria-label="Edit project summary">${ICON_PEN}</button>`:""}
+    ${link(t.github,ICON_GITHUB,"Open GitHub repository","No GitHub repo yet. Add it with the ✎ edit button.")}
+    ${link(t.trello,ICON_TRELLO,"Open Trello board","No Trello board yet. Add it with the ✎ edit button.")}
     <button class="icon-circle" data-theme-toggle title="Switch light/dark mode" aria-label="Switch light/dark mode">${ICON_MOON}${ICON_SUN}</button></div>`;
 }
 // Signed-in student's name and email, with a dropdown (sign out).
@@ -1701,10 +1800,12 @@ function hoursRingSVG(hours, target){
 async function loadRetroHistory(tid){
   const rows=await Promise.all(SPRINTS.map(async sp=>{
     const base=`${cpath()}/sprints/${sp.id}/entries/${tid}`;
-    const [e, goals, retro]=await Promise.all([getDoc(doc(db,base)),
-      getDocs(collection(db,`${base}/goals`)), getDocs(collection(db,`${base}/retro`))]);
+    const [e, goals, retro, time]=await Promise.all([getDoc(doc(db,base)),
+      getDocs(collection(db,`${base}/goals`)), getDocs(collection(db,`${base}/retro`)), getDocs(collection(db,`${base}/time`))]);
     const rs=retro.docs.map(d=>d.data());
     return { sprint:sp, entry:e.exists()?e.data():{},
+      hours: time.docs.map(d=>d.data()).filter(x=>IS_ADMIN || x.studentEmail===USER_EMAIL)
+        .reduce((n,x)=>n+(Number(x.hours)||0),0),
       retro: rs.find(r=>r.studentEmail===USER_EMAIL) || (IS_ADMIN ? rs[0] : null) || null,
       goals: goals.docs.map(d=>d.data()).filter(g=>IS_ADMIN || g.studentEmail===USER_EMAIL)
         .sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0)) };
@@ -1713,22 +1814,99 @@ async function loadRetroHistory(tid){
   RETRO_HISTORY[tid]=rows;
   const el=$("retros-"+tid); if(el) el.innerHTML=retroHistoryHTML(tid);
 }
-// Mood across sprints as a small line chart: one column per sprint (oldest → newest),
-// a point and emoji where a retrospective exists, the line broken where one is missing.
-function moodTrendSVG(rows){
-  const colW=120, h=210, top=40, bottom=38, plotH=h-top-bottom, w=Math.max(rows.length*colW, colW*3);
-  const x=i=>colW/2+i*colW, y=m=>top+plotH-(m-1)/4*plotH;
-  const grid=[1,2,3,4,5].map(m=>`<line class="mt-grid" x1="0" x2="${w}" y1="${y(m)}" y2="${y(m)}"/>`).join("");
-  let path="", pen=false;
-  rows.forEach((r,i)=>{ const m=r.retro&&Number(r.retro.mood);
-    if(m){ path+=`${pen?"L":"M"}${x(i)} ${y(m)} `; pen=true; } else pen=false; });
-  const pts=rows.map((r,i)=>{ const m=r.retro&&moodOf(r.retro.mood);
-    const label=`<text class="mt-label" x="${x(i)}" y="${h-10}">${esc(r.sprint.name||("Sprint "+r.sprint.n))}</text>`;
-    return label + (m ? `<circle class="mt-dot" cx="${x(i)}" cy="${y(m.v)}" r="5"/><text class="mt-emoji" x="${x(i)}" y="${y(m.v)-12}">${m.e}</text>`
-                      : `<text class="mt-none" x="${x(i)}" y="${top+plotH/2}">—</text>`);
-  }).join("");
-  return `<svg class="mood-trend" viewBox="0 0 ${w} ${h}" style="max-width:${w}px" role="img" aria-label="Mood by sprint">
-    ${grid}${path?`<path class="mt-line" d="${path}"/>`:""}${pts}</svg>`;
+/* Trends across sprints as small multiples: Mood, Hours and Status each get their own
+   chart and y-scale (never a shared dual axis), stacked on the same sprint columns.
+   Toggles choose which are shown (remembered per browser). Hovering a column
+   highlights it in every chart and shows all three values. */
+const TREND_KEYS=["mood","hours","status"];
+const STATUS_LEVEL={noaccess:1, risk:2, watch:3, healthy:4};
+function trendsOn(){
+  try{ const v=JSON.parse(localStorage.getItem("peek:trends")||"null");
+    if(Array.isArray(v) && v.some(k=>TREND_KEYS.includes(k))) return v.filter(k=>TREND_KEYS.includes(k)); }catch(e){}
+  return [...TREND_KEYS];
+}
+function toggleTrend(key){
+  const on=trendsOn(), next=on.includes(key) ? on.filter(k=>k!==key) : [...on,key];
+  if(!next.length) return;   // keep at least one chart
+  try{ localStorage.setItem("peek:trends", JSON.stringify(TREND_KEYS.filter(k=>next.includes(k)))); }catch(e){}
+  document.querySelectorAll(".rh-trend").forEach(el=>{ const tid=el.dataset.tid; if(RETRO_HISTORY[tid]) el.outerHTML=trendsCardHTML(tid); });
+}
+const TREND_COL=120;
+function trendX(i){ return TREND_COL/2+i*TREND_COL; }
+// One small chart. pts: [{v:number|null}] per column; y maps a value to a pixel row.
+function trendChartSVG(key, rows, h, y, body, axis, showLabels){
+  const w=Math.max(rows.length*TREND_COL, TREND_COL*3), labelH=showLabels?26:0;
+  const cols=rows.map((r,i)=>`<rect class="tc-col" data-col="${i}" x="${i*TREND_COL}" y="0" width="${TREND_COL}" height="${h+labelH}"/>`).join("");
+  const labels=showLabels ? rows.map((r,i)=>`<text class="tc-x" x="${trendX(i)}" y="${h+18}">${esc(r.sprint.name||("Sprint "+r.sprint.n))}</text>`).join("") : "";
+  return `<div class="tc"><div class="tc-axis">${axis}</div>
+    <svg class="tc-svg tc-${key}" viewBox="0 0 ${w} ${h+labelH}" style="max-width:${w}px">${cols}${body}${labels}</svg></div>`;
+}
+function linePath(pts, y){
+  let d="", pen=false;
+  pts.forEach((v,i)=>{ if(v==null){ pen=false; return; } d+=`${pen?"L":"M"}${trendX(i)} ${y(v).toFixed(1)} `; pen=true; });
+  return d;
+}
+function moodChart(rows, last){
+  const h=140, top=34, bot=14, y=m=>top+(h-top-bot)-(m-1)/4*(h-top-bot);
+  const vals=rows.map(r=>r.retro&&Number(r.retro.mood)||null);
+  const grid=[1,2,3,4,5].map(m=>`<line class="tc-grid" x1="0" x2="100%" y1="${y(m)}" y2="${y(m)}"/>`).join("");
+  const d=linePath(vals,y);
+  const pts=vals.map((v,i)=>{ if(!v) return ""; const m=moodOf(v);
+    return `<circle class="tc-dot mood" cx="${trendX(i)}" cy="${y(v)}" r="5"/><text class="tc-emoji" x="${trendX(i)}" y="${y(v)-11}">${m.e}</text>`; }).join("");
+  return trendChartSVG("mood", rows, h, y, `${grid}${d?`<path class="tc-line mood" d="${d}"/>`:""}${pts}`,
+    `<b>Mood</b><span>😄 Great</span><span>😞 Rough</span>`, last);
+}
+function hoursChart(rows, last){
+  const h=150, top=22, bot=14;
+  const max=Math.max(...rows.map(r=>Math.max(r.hours||0, targetOf(r.sprint))), 1)*1.1;
+  const y=v=>top+(h-top-bot)-(v/max)*(h-top-bot);
+  const live=rows.map(r=>sprintPhase(r.sprint)==="upcoming"?null:r.hours);
+  const grid=[0,0.5,1].map(f=>`<line class="tc-grid" x1="0" x2="100%" y1="${y(max/1.1*f)}" y2="${y(max/1.1*f)}"/>`).join("");
+  const target=rows.map((r,i)=>`<line class="tc-target" x1="${i*TREND_COL+14}" x2="${(i+1)*TREND_COL-14}" y1="${y(targetOf(r.sprint))}" y2="${y(targetOf(r.sprint))}"/>`).join("");
+  const d=linePath(live,y);
+  const lastIdx=live.reduce((a,v,i)=>v==null?a:i,-1);
+  const pts=live.map((v,i)=>{ if(v==null) return ""; const ok=v>=targetOf(rows[i].sprint);
+    return `<circle class="tc-dot ${ok?"ok":"low"}" cx="${trendX(i)}" cy="${y(v)}" r="5"/>`
+      + (i===lastIdx?`<text class="tc-val" x="${trendX(i)}" y="${y(v)-11}">${Math.round(v*10)/10} h</text>`:""); }).join("");
+  return trendChartSVG("hours", rows, h, y, `${grid}${target}${d?`<path class="tc-line hours" d="${d}"/>`:""}${pts}`,
+    `<b>Hours</b><span><i class="tc-key-target"></i>target</span><span><i class="tc-key ok"></i>met</span><span><i class="tc-key low"></i>under</span>`, last);
+}
+function statusChart(rows, last){
+  const h=120, top=16, bot=16, y=l=>top+(h-top-bot)-(l-1)/3*(h-top-bot);
+  const lv=rows.map(r=>STATUS_LEVEL[r.entry.status]||null);
+  const grid=[1,2,3,4].map(l=>`<line class="tc-grid" x1="0" x2="100%" y1="${y(l)}" y2="${y(l)}"/>`).join("");
+  const d=linePath(lv,y);
+  const keyOf=l=>Object.keys(STATUS_LEVEL).find(k=>STATUS_LEVEL[k]===l);
+  const pts=lv.map((l,i)=>l?`<circle class="tc-dot st ${keyOf(l)}" cx="${trendX(i)}" cy="${y(l)}" r="6"/>`:"").join("");
+  return trendChartSVG("status", rows, h, y, `${grid}${d?`<path class="tc-line status" d="${d}"/>`:""}${pts}`,
+    `<b>Status</b>${["healthy","watch","risk","noaccess"].map(k=>`<span><i class="tc-key ${k}"></i>${esc(STATUS_LABEL[k])}</span>`).join("")}`, last);
+}
+function trendsCardHTML(tid){
+  const rows=(RETRO_HISTORY[tid]||[]).filter(r=>sprintPhase(r.sprint)!=="upcoming");
+  const on=trendsOn(), names={mood:"Mood", hours:"Hours", status:"Status"};
+  const charts=on.map((k,i)=>({mood:moodChart, hours:hoursChart, status:statusChart})[k](rows, i===on.length-1)).join("");
+  return `<div class="card rh-trend" data-tid="${tid}"><div class="notes-head"><h2 style="border:0;margin:0;padding:0">Trends</h2>
+      <span class="tc-toggles" role="group" aria-label="Show">${TREND_KEYS.map(k=>
+        `<button class="tc-toggle${on.includes(k)?" on":""}" data-trend="${k}" aria-pressed="${on.includes(k)}">${names[k]}</button>`).join("")}</span></div>
+    <div class="tc-stack">${charts}<div class="tc-tip" hidden></div></div></div>`;
+}
+// Hover: highlight the column across all charts and show that sprint's values.
+function trendHover(card, i){
+  card.querySelectorAll(".tc-col").forEach(c=>c.classList.toggle("hot", i!=null && c.dataset.col===String(i)));
+  const tip=card.querySelector(".tc-tip"); if(!tip) return;
+  if(i==null){ tip.hidden=true; return; }
+  const r=(RETRO_HISTORY[card.dataset.tid]||[]).filter(x=>sprintPhase(x.sprint)!=="upcoming")[i]; if(!r){ tip.hidden=true; return; }
+  const m=r.retro&&moodOf(r.retro.mood), st=r.entry.status||"unrated", t=targetOf(r.sprint);
+  tip.innerHTML=`<b>${esc(r.sprint.name||("Sprint "+r.sprint.n))}</b>
+    <span>Mood: ${m?`${m.e} ${esc(m.l)}`:"—"}</span>
+    <span>Hours: ${Math.round((r.hours||0)*10)/10} of ${t}</span>
+    <span>Status: <span class="pill ${st}"><span class="d"></span>${STATUS_LABEL[st]}</span></span>`;
+  const svg=card.querySelector(".tc-svg"), box=svg.getBoundingClientRect(), stack=card.querySelector(".tc-stack").getBoundingClientRect();
+  // Beside the highlighted column (right of it, or left near the edge) so it never covers that column's points.
+  const scale=box.width/svg.viewBox.baseVal.width, colL=box.left-stack.left+i*TREND_COL*scale, colR=colL+TREND_COL*scale;
+  tip.style.left=`${colR+196<=stack.width ? colR+8 : Math.max(colL-188,0)}px`;
+  tip.style.top=`${Math.max((stack.height-130)/2,0)}px`;
+  tip.hidden=false;
 }
 function retroHistoryHTML(tid){
   const rows=RETRO_HISTORY[tid];
@@ -1754,7 +1932,7 @@ function retroHistoryHTML(tid){
         <dt>Instructor rating</dt><dd><span class="pill ${st}"><span class="d"></span>${STATUS_LABEL[st]}</span></dd>
         <dt>Sprint review</dt><dd class="soft">${esc(r.entry.review||"Not reviewed yet.")}</dd></dl></div>`;
   }).join("");
-  return `<div class="card rh-trend"><h2>Mood by sprint</h2>${moodTrendSVG(shown)}</div>${cards}`;
+  return `${trendsCardHTML(tid)}${cards}`;
 }
 
 /* ---------- sprint countdown (student) ----------
@@ -2192,6 +2370,7 @@ async function onMainClick(e){
   const ov = e.target.closest("[data-ov-open]"); if (ov) { const [tid,sid]=ov.dataset.ovOpen.split(":"); await openTeamSprint(tid,sid); return; }
   if (e.target.closest("[data-ov-refresh]")) { OVERVIEW=null; await ensureOverview(); return; }
   if (e.target.closest("[data-ov-export]")) { await exportOverviewCSV(); return; }
+  const tg = e.target.closest("[data-trend]"); if (tg) { toggleTrend(tg.dataset.trend); return; }
   const sp = e.target.closest("[data-sprint-open]"); if (sp) { const [tid,sid]=sp.dataset.sprintOpen.split(":"); await openSprint(tid,sid); return; }
   const addList=e.target.closest("[data-list-add]"); if(addList){ const [tid,field]=addList.dataset.listAdd.split(":"); await addProjectListItem(tid,field); return; }
   const removeList=e.target.closest("[data-list-remove]"); if(removeList){ const [tid,field,index]=removeList.dataset.listRemove.split(":"); await removeProjectListItem(tid,field,index); return; }
@@ -2541,6 +2720,7 @@ function renderNoCourses(){
 // Re-show after an edit: keep the sub-view (sprint page, summary) the user was on.
 function stay(tid){ const h=location.hash.slice(1); show(h.split("__")[0]===tid ? h : tid); }
 function markNav(view){
+  document.querySelectorAll(".icon-circle[data-summary]").forEach(b=>b.classList.toggle("on", view.endsWith("__summary")));
   const navView=studentView() ? view : view.split("__")[0];
   const onSprint=view.endsWith("__sprint") && SPRINT;
   document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",
@@ -2573,6 +2753,10 @@ $("nav").addEventListener("click", async e=>{
   if(b.dataset.course){ history.replaceState(null,"","#"+b.dataset.view); await loadCourse(b.dataset.course); return; }
   show(b.dataset.view); });
 $("main").addEventListener("click", onMainClick);
+$("main").addEventListener("pointerover", e=>{ const col=e.target.closest(".tc-col"); const card=e.target.closest(".rh-trend");
+  if(card) trendHover(card, col ? Number(col.dataset.col) : null); });
+$("main").addEventListener("pointerout", e=>{ const card=e.target.closest(".rh-trend");
+  if(card && !card.contains(e.relatedTarget)) trendHover(card, null); });
 $("projectSel").onchange = e => show(e.target.value);
 function closeAccountMenus(){ document.querySelectorAll(".account.open").forEach(a=>{ a.classList.remove("open");
   a.querySelector("[data-account-toggle]")?.setAttribute("aria-expanded","false"); }); }
