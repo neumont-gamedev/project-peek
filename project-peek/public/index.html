@@ -22,14 +22,18 @@
     --noaccess:#6b7688; --noaccess-bg:rgba(107,118,136,.12);
     --unrated:#8b93a3; --unrated-bg:rgba(139,147,163,.10);
     --shadow:0 1px 2px rgba(20,28,45,.04), 0 4px 16px rgba(20,28,45,.06);
+    --ground-grad:linear-gradient(155deg, #eef3fa 0%, #e6edf8 48%, #dde7f5 100%);
+    --field:var(--surface-2);   /* data-entry fields */
+    --panel-grad:radial-gradient(120% 90% at 0% 0%, rgba(255,221,0,.07) 0%, transparent 55%),
+      linear-gradient(160deg, #ffffff 0%, #f7f9fc 60%, #eef2f8 100%);
     --font-sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     --font-mono:ui-monospace,"Cascadia Code","SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --ground:var(--brand-black); --surface:var(--brand-gray-dark); --surface-2:rgba(63,68,68,.62);
+      --ground:#000; --surface:#141416; --surface-2:#1e1e21;
       --ink:var(--brand-white); --ink-soft:var(--brand-gray-light); --ink-faint:rgba(219,221,223,.62);
-      --line:var(--brand-gray); --line-soft:rgba(219,221,223,.14);
+      --line:#2a2a2e; --line-soft:rgba(219,221,223,.10);
       --accent:var(--brand-yellow); --accent-ink:var(--brand-yellow); --accent-contrast:var(--brand-black);
       --accent-soft:rgba(255,221,0,.16);
       --healthy:#5ec27f; --healthy-bg:rgba(94,194,127,.14);
@@ -37,12 +41,17 @@
       --risk:#ef6d5c;   --risk-bg:rgba(239,109,92,.15);
       --noaccess:#8a94a6; --noaccess-bg:rgba(138,148,166,.14);
       --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.28);
+    --ground-grad:none;
+    --field:#000;
+    color-scheme:dark;
+    --panel-grad:radial-gradient(120% 90% at 0% 0%, rgba(255,221,0,.06) 0%, transparent 55%),
+      linear-gradient(160deg, #222226 0%, #161618 55%, #0f0f11 100%);
     }
   }
   :root[data-theme="dark"] {
-    --ground:var(--brand-black); --surface:var(--brand-gray-dark); --surface-2:rgba(63,68,68,.62);
+    --ground:#000; --surface:#141416; --surface-2:#1e1e21;
     --ink:var(--brand-white); --ink-soft:var(--brand-gray-light); --ink-faint:rgba(219,221,223,.62);
-    --line:var(--brand-gray); --line-soft:rgba(219,221,223,.14);
+    --line:#2a2a2e; --line-soft:rgba(219,221,223,.10);
     --accent:var(--brand-yellow); --accent-ink:var(--brand-yellow); --accent-contrast:var(--brand-black);
     --accent-soft:rgba(255,221,0,.16);
     --healthy:#5ec27f; --healthy-bg:rgba(94,194,127,.14);
@@ -50,14 +59,19 @@
     --risk:#ef6d5c;   --risk-bg:rgba(239,109,92,.15);
     --noaccess:#8a94a6; --noaccess-bg:rgba(138,148,166,.14);
     --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.28);
+    --ground-grad:none;
+    --field:#000;
+    color-scheme:dark;
+    --panel-grad:radial-gradient(120% 90% at 0% 0%, rgba(255,221,0,.06) 0%, transparent 55%),
+      linear-gradient(160deg, #222226 0%, #161618 55%, #0f0f11 100%);
   }
   :root[data-theme="dark"] input[type="date"],
-  :root[data-theme="dark"] input[type="time"] { color-scheme:dark; background-color:var(--surface)!important; color:var(--ink)!important; }
+  :root[data-theme="dark"] input[type="time"] { color-scheme:dark; background-color:var(--field)!important; color:var(--ink)!important; }
   :root[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
   :root[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator { filter:none; opacity:.9; }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) input[type="date"],
-    :root:not([data-theme="light"]) input[type="time"] { color-scheme:dark; background-color:var(--surface)!important; color:var(--ink)!important; }
+    :root:not([data-theme="light"]) input[type="time"] { color-scheme:dark; background-color:var(--field)!important; color:var(--ink)!important; }
     :root:not([data-theme="light"]) input[type="date"]::-webkit-calendar-picker-indicator,
     :root:not([data-theme="light"]) input[type="time"]::-webkit-calendar-picker-indicator { filter:none; opacity:.9; }
   }
@@ -79,13 +93,14 @@
   }
   * { box-sizing:border-box; }
   [hidden] { display: none !important; }   /* ensure the hidden attribute wins over .app/.signin display rules */
-  body { margin:0; background:var(--ground); color:var(--ink); font-family:var(--font-sans);
+  body { margin:0; background:var(--ground); background-image:var(--ground-grad); background-attachment:fixed;
+    min-height:100vh; color:var(--ink); font-family:var(--font-sans);
     line-height:1.55; -webkit-font-smoothing:antialiased; }
   a { color:var(--accent-ink); text-underline-offset:2px; }
 
   /* sign-in */
   .signin { min-height:100vh; display:grid; place-items:center; padding:24px; }
-  .signin .card { background:var(--surface); border:1px solid var(--line); border-radius:16px;
+  .signin .card { background:var(--surface); border:1px solid var(--line); border-radius:12px;
     box-shadow:var(--shadow); padding:40px 36px; max-width:400px; text-align:center; }
   .signin .logo { font-family:var(--font-mono); font-size:12px; letter-spacing:.16em; text-transform:uppercase;
     color:var(--accent-ink); font-weight:600; }
@@ -97,29 +112,47 @@
   .btn:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
   .muted { color:var(--ink-faint); font-size:12px; }
 
-  .app { display:grid; grid-template-columns:264px minmax(0,1fr); min-height:100vh; }
-  .side { position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
-    background:var(--surface); border-right:1px solid var(--line); padding:22px 16px;
-    display:flex; flex-direction:column; }
-  .brand { display:flex; flex-direction:column; gap:2px; padding:0 8px 14px; margin-bottom:6px;
-    border-bottom:1px solid var(--line-soft); }
-  .brand-title{ display:flex; align-items:center; gap:10px; min-width:0; }
-  .brand-mark{ width:44px; height:auto; flex:0 0 44px; display:block; }
+  .app { display:grid; grid-template-columns:280px minmax(0,1fr); min-height:100vh; }
+  /* Left column: the logo pill, then the sidebar as its own rounded panel filling the rest. */
+  .side-col { position:sticky; top:16px; align-self:start; height:calc(100vh - 32px); margin:16px 0 16px 16px;
+    display:flex; flex-direction:column; gap:20px; min-height:0; }
+  .side { flex:1 1 auto; min-height:0; overflow-y:auto;
+    background:var(--surface); border:1px solid var(--line); border-radius:12px;
+    box-shadow:var(--shadow); padding:16px 14px 18px; display:flex; flex-direction:column; }
+  .brand { display:flex; flex-direction:column; gap:6px; }
+  /* Logo + name in a pill. */
+  .brand-title{ display:flex; align-self:stretch; align-items:center; gap:10px; min-width:0;
+    height:54px; padding:0 18px 0 10px; border-radius:12px; background:var(--surface); border:1px solid var(--line);
+    box-shadow:var(--shadow); }
+  .brand-mark{ width:38px; height:auto; flex:0 0 38px; display:block; }
   .brand .code{ min-width:0; color:var(--ink); font-family:"Arial Rounded MT Bold","Trebuchet MS",var(--font-sans);
-    font-size:23px; font-weight:900; line-height:1; letter-spacing:0; white-space:nowrap; }
+    font-size:20px; font-weight:900; line-height:1; letter-spacing:0; white-space:nowrap; }
   .brand .code .peek{ color:var(--brand-yellow); -webkit-text-stroke:.45px var(--brand-gray); text-shadow:0 1px 0 rgba(0,0,0,.18); }
-  .brand .name { margin-left:54px; font-size:13px; font-weight:650; letter-spacing:0; color:var(--ink-soft); }
-  .switcher { margin:12px 4px 4px; }
-  .switcher select { width:100%; font-family:var(--font-sans); font-size:13.5px; color:var(--ink);
-    background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:8px 10px; }
-  .nav { display:flex; flex-direction:column; gap:1px; margin-top:8px; }
+  .brand .name { margin-left:16px; font-size:13px; font-weight:650; letter-spacing:0; color:var(--ink-soft); }
+  /* Course / project / sprint pickers, with a rule under the group. */
+  .switchers { display:flex; flex-direction:column; gap:8px; padding-bottom:16px; margin-bottom:6px;
+    border-bottom:1px solid var(--line-soft); }
+  .switcher select { width:100%; appearance:none; -webkit-appearance:none; cursor:pointer;
+    font-family:var(--font-sans); font-size:15px; color:var(--ink);
+    background-color:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:13px 38px 13px 16px;
+    background-image:linear-gradient(45deg, transparent 50%, var(--ink-faint) 50%), linear-gradient(135deg, var(--ink-faint) 50%, transparent 50%);
+    background-position:calc(100% - 20px) 50%, calc(100% - 15px) 50%; background-size:5px 5px; background-repeat:no-repeat; }
+  .switcher select:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
+  .switcher select:disabled { cursor:default; color:var(--ink-soft); }
+  .nav { display:flex; flex-direction:column; gap:6px; margin-top:8px; }
   .nav-label { font-family:var(--font-mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase;
     color:var(--ink-faint); padding:12px 8px 6px; }
-  .nav button { all:unset; cursor:pointer; display:flex; align-items:center; gap:9px;
-    padding:7px 8px; border-radius:7px; font-size:13.5px; color:var(--ink-soft); }
+  .nav button { all:unset; cursor:pointer; display:flex; align-items:center; gap:10px;
+    padding:10px 12px; border-radius:12px; font-size:14px; color:var(--ink-soft); }
   .nav button:hover { background:var(--surface-2); color:var(--ink); }
-  .nav button.active { background:var(--accent-soft); color:var(--ink); font-weight:600; }
+  /* Selected item: solid brand yellow with a chevron on the right. */
+  .nav button.active { background:var(--accent); color:var(--accent-contrast); font-weight:600; }
+  .nav button.active::after { content:""; margin-left:auto; width:7px; height:7px; flex:0 0 auto;
+    border-right:2px solid currentColor; border-top:2px solid currentColor; transform:rotate(45deg); margin-right:4px; }
+  .nav button.active .nav-ic { color:var(--accent-contrast); }
+  .nav button.active .dot { box-shadow:0 0 0 2px rgba(0,0,0,.25); }
   .nav button:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
+  .nav .nav-ic { width:8px; display:inline-flex; justify-content:center; font-size:12px; color:var(--ink-faint); }
   .nav .dot { width:8px; height:8px; border-radius:50%; flex:0 0 auto; }
   .nav .home { font-family:var(--font-mono); font-size:13px; }
   .nav .tname { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -132,10 +165,127 @@
   .side-foot .who { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .side-foot button { all:unset; cursor:pointer; color:var(--accent-ink); font-size:12.5px; }
   .side-foot button:hover { text-decoration:underline; }
+  .sprint-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(275px,1fr)); gap:18px; }
+  .sprint-panel{ all:unset; box-sizing:border-box; cursor:pointer; display:flex; flex-direction:column; gap:10px;
+    background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:19px 20px 18px;
+    box-shadow:var(--shadow); position:relative; overflow:hidden; transition:transform .12s, border-color .12s; }
+  .sprint-panel::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--unrated); }
+  .sprint-panel.healthy::before{background:var(--healthy);} .sprint-panel.watch::before{background:var(--watch);}
+  .sprint-panel.risk::before{background:var(--risk);} .sprint-panel.noaccess::before{background:var(--noaccess);}
+  .sprint-panel:hover{ border-color:var(--accent); transform:translateY(-1px); }
+  .sprint-panel:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .sprint-panel .pill{ align-self:flex-start; font-size:13.5px; padding:5px 11px; }
+  .sp-head{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; font-size:19px; color:var(--ink); }
+  .sp-tag{ font-family:var(--font-mono); font-size:12.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-faint); }
+  .sp-tag.cur{ color:var(--accent-ink); }
+  .sp-dates{ font-size:15.5px; color:var(--ink-soft); }
+  .sp-body{ display:flex; align-items:center; gap:20px; margin:5px 0; }
+  .sp-stats{ display:flex; flex-direction:column; gap:10px; font-size:15px; color:var(--ink-soft); white-space:nowrap; }
+  .hours-ring{ width:120px; height:120px; flex:0 0 120px; }
+  .hours-ring circle{ fill:none; stroke-width:12; }
+  .hours-ring .track{ stroke:var(--surface-2); }
+  .hours-ring .arc{ stroke:var(--ink-faint); stroke-linecap:round; transition:stroke-dasharray .4s ease; }
+  .hours-ring.low .arc{ stroke:var(--risk); }
+  .hours-ring.ok .arc{ stroke:var(--healthy); }
+  .hours-ring text{ text-anchor:middle; fill:var(--ink-soft); }
+  .hours-ring .ring-n{ font-family:var(--font-mono); font-size:21px; font-weight:600; fill:var(--ink); dominant-baseline:middle; }
+  .hours-ring .ring-l{ font-size:9.5px; }
+  .hours-ring.low .ring-n{ fill:var(--risk); }
+  .hours-ring.ok .ring-n{ fill:var(--healthy); }
+  .sp-stats b{ font-family:var(--font-mono); font-size:19px; color:var(--ink); margin-right:5px; font-variant-numeric:tabular-nums; }
+  .chip-btn{ cursor:pointer; font:inherit; }
+  .sp-foot{ display:flex; justify-content:space-between; align-items:center; }
+  .sp-mood{ font-size:28px; line-height:1; }
+  .sp-nudge{ font-size:15px; font-weight:600; color:var(--accent-ink); }
+  .callout{ background:var(--accent-soft); border:1px solid var(--accent); border-radius:9px; padding:11px 13px;
+    font-size:13.5px; color:var(--ink); margin-bottom:12px; }
+  /* Mirrors the left column (16px from the top, 54px logo box, 20px gap) so the first
+     panel on each side starts at the same height. .main has 34px top padding. */
+  .top-row{ display:flex; justify-content:space-between; align-items:center; gap:12px; height:54px; margin:-18px 0 20px; }
+  .icon-bar{ display:inline-flex; gap:8px; padding:6px; border-radius:12px; background:var(--surface);
+    border:1px solid var(--line); box-shadow:var(--shadow); }
+  .icon-circle{ all:unset; box-sizing:border-box; cursor:pointer; width:40px; height:40px; border-radius:50%;
+    display:grid; place-items:center; background:var(--surface-2); color:var(--ink-soft);
+    transition:transform .12s, box-shadow .12s; }
+  .icon-circle svg{ width:22px; height:22px; display:block; }
+  .icon-circle:hover{ transform:translateY(-1px); box-shadow:0 0 0 2px var(--accent); color:var(--ink); }
+  .icon-circle:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .icon-circle.off{ cursor:default; opacity:.35; filter:grayscale(1); }
+  .icon-circle.off:hover{ transform:none; box-shadow:none; }
+  .icon-circle .i-sun{ display:none; }
+  :root[data-theme="dark"] .icon-circle .i-sun{ display:block; }
+  :root[data-theme="dark"] .icon-circle .i-moon{ display:none; }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) .icon-circle .i-sun{ display:block; }
+    :root:not([data-theme="light"]) .icon-circle .i-moon{ display:none; }
+  }
+  .card.project-head{ margin-top:0; margin-bottom:8px; }
+  .view-flush > .top-row + .card{ margin-top:0; }   /* first panel lines up with the sidebar */   /* the top row supplies the gap above */
+  .project-overview{ color:var(--ink-soft); font-size:15px; line-height:1.6; max-width:72ch; margin:12px 0 0; }
+  .top-right{ display:inline-flex; align-items:center; gap:12px; }
+  .account{ position:relative; }
+  .account-btn{ all:unset; box-sizing:border-box; cursor:pointer; display:flex; align-items:center; gap:14px;
+    height:54px; padding:0 16px 0 22px; border-radius:12px; background:var(--surface); border:1px solid var(--line);
+    box-shadow:var(--shadow); max-width:280px; }
+  .account-btn:hover{ border-color:var(--accent); }
+  .account-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .acct-text{ display:flex; flex-direction:column; min-width:0; line-height:1.25; }
+  .acct-name{ font-size:14px; font-weight:650; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .acct-email{ font-size:12.5px; color:var(--ink-soft); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .acct-chev{ width:18px; height:18px; flex:0 0 18px; color:var(--ink-soft); transition:transform .15s; }
+  .account.open .acct-chev{ transform:rotate(180deg); }
+  .account-menu{ display:none; position:absolute; right:0; top:calc(100% + 8px); min-width:180px; z-index:20;
+    background:var(--surface); border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow); padding:6px; }
+  .account.open .account-menu{ display:block; }
+  .account-menu button{ all:unset; box-sizing:border-box; cursor:pointer; display:block; width:100%;
+    padding:9px 12px; border-radius:8px; font-size:13.5px; color:var(--ink); }
+  .account-menu button:hover, .account-menu button:focus-visible{ background:var(--surface-2); }
+  @media (max-width:720px){ .acct-email{ display:none; } .account-btn{ height:46px; padding:0 12px 0 16px; } }
+  .locked-note{ margin-top:12px; padding:10px 12px; border:1px dashed var(--line); border-radius:9px;
+    font-size:13px; color:var(--ink-soft); background:var(--surface-2); }
+  .goal-row .goal-mark{ width:18px; text-align:center; color:var(--ink-faint); }
+  .goal-row.done .goal-mark{ color:var(--healthy); font-weight:700; }
+  .goal-end{ display:flex; align-items:center; gap:8px; }
+  .result{ font-size:11.5px; font-weight:600; padding:3px 8px; border-radius:99px; white-space:nowrap;
+    background:var(--surface-2); color:var(--ink-soft); }
+  .result.done{ background:var(--healthy-bg); color:var(--healthy); }
+  .result.partial{ background:var(--watch-bg); color:var(--ink); }
+  .result.notdone{ color:var(--risk); }
+  .result-sel{ font:inherit; font-size:12.5px; padding:4px 6px; border:1px solid var(--line); border-radius:6px;
+    background:var(--surface); color:var(--ink); }
+  .result-sel.done{ border-color:var(--healthy); color:var(--healthy); background:var(--healthy-bg); }
+  .result-sel.partial{ border-color:var(--watch); background:var(--watch-bg); }
+  .result-sel.notdone{ border-color:var(--risk); color:var(--risk); }
+  .entry-form.with-student{ grid-template-columns:minmax(160px,1fr) 150px 100px minmax(160px,1fr) auto; max-width:960px; }
+  .wrap-form{ margin-top:16px; display:flex; flex-direction:column; gap:8px; }
+  .wrap-form textarea{ min-height:70px; }
+  .wrap-goal{ display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;
+    padding:8px 0; border-bottom:1px solid var(--line-soft); font-size:13.5px; }
+  .seg{ display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .seg label{ cursor:pointer; }
+  .seg input{ position:absolute; opacity:0; pointer-events:none; }
+  .seg span{ display:block; padding:5px 10px; font-size:12.5px; color:var(--ink-soft); border-left:1px solid var(--line); }
+  .seg label:first-child span{ border-left:0; }
+  .seg input:checked + span{ background:var(--accent-soft); color:var(--ink); font-weight:600; }
+  .seg input:focus-visible + span{ outline:2px solid var(--accent); outline-offset:-2px; }
+  .mood-picker{ display:flex; gap:8px; flex-wrap:wrap; }
+  .mood-picker label{ cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:3px;
+    padding:8px 10px; border:1px solid var(--line); border-radius:10px; min-width:64px; }
+  .mood-picker input{ position:absolute; opacity:0; pointer-events:none; }
+  .mood-face{ font-size:28px; line-height:1; filter:grayscale(.7); opacity:.7; transition:transform .1s; }
+  .mood-l{ font-size:11.5px; color:var(--ink-soft); }
+  .mood-picker label:has(input:checked){ border-color:var(--accent); background:var(--accent-soft); }
+  .mood-picker label:has(input:checked) .mood-face{ filter:none; opacity:1; transform:scale(1.12); }
+  .mood-picker label:has(input:focus-visible){ outline:2px solid var(--accent); outline-offset:1px; }
+  .retro{ margin-bottom:10px; }
+  .retro-mood{ display:flex; align-items:center; gap:12px; margin-bottom:12px; font-size:14px; }
+  .mood-big{ font-size:38px; line-height:1; }
+  .retro-meta{ font-size:12px; margin:10px 0 0; }
+  @media (max-width:720px){ .entry-form.with-student{ grid-template-columns:1fr; } }
   .preview-bar{ background:var(--watch-bg); border:1px solid var(--watch); color:var(--ink); border-radius:9px;
     padding:9px 12px; margin-bottom:18px; font-size:12.5px; }
 
-  .main { padding:34px clamp(20px,4vw,56px) 80px; max-width:1040px; }
+  .main { padding:34px clamp(20px,4vw,56px) 80px; min-width:0; }
   .view { display:none; }
   .view.active { display:block; }
   .eyebrow { font-family:var(--font-mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase;
@@ -213,7 +363,7 @@
     font-size:16px; line-height:1; padding:2px 4px; }
   .side-foot .syncinfo { font-size:11px; color:var(--ink-faint); line-height:1.5; }
   .side-foot .syncinfo .warn { color:var(--watch); }
-  .card { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:22px 24px;
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:22px 24px;
     box-shadow:var(--shadow); margin-top:22px; }
   .kv { display:grid; grid-template-columns:132px 1fr; gap:8px 18px; font-size:14px; }
   .kv dt{ font-family:var(--font-mono); font-size:11.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-faint); padding-top:2px; }
@@ -275,9 +425,15 @@
   .structured-card .summary-section > .time-list{ margin-top:0; }
   .structured-card .summary-section > .muted{ margin:0; }
   textarea{ width:100%; min-height:96px; resize:vertical; font-family:var(--font-sans); font-size:14px; color:var(--ink);
-    background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:11px 13px; line-height:1.5; }
+    background:var(--field); border:1px solid var(--line); border-radius:10px; padding:11px 13px; line-height:1.5; }
   textarea:focus{ outline:2px solid var(--accent); outline-offset:0; border-color:transparent; }
   textarea::placeholder{ color:var(--ink-faint); }
+  /* Plain text fields inside sections (project title, repo and board links) match the textareas. */
+  .summary-section > input:not([type=checkbox]):not([type=radio]){ display:block; width:100%; max-width:520px;
+    font-family:var(--font-sans); font-size:14px; color:var(--ink); background:var(--field);
+    border:1px solid var(--line); border-radius:8px; padding:10px 12px; }
+  .summary-section > input:focus{ outline:2px solid var(--accent); outline-offset:0; border-color:transparent; }
+  .summary-section > input::placeholder{ color:var(--ink-faint); }
   .btn.secondary { background:transparent; color:var(--ink-soft); border:1px solid var(--line); }
   .btn.secondary:hover { background:var(--surface-2); color:var(--ink); }
   .mgr-head { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:14px;
@@ -302,14 +458,13 @@
   .form label { display:flex; flex-direction:column; gap:6px; font-family:var(--font-mono);
     font-size:11px; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-faint); }
   .form input, .form select { font-family:var(--font-sans); font-size:14px; color:var(--ink);
-    background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:9px 11px; text-transform:none; letter-spacing:normal; }
+    background:var(--field); border:1px solid var(--line); border-radius:8px; padding:9px 11px; text-transform:none; letter-spacing:normal; }
   .form input:focus, .form select:focus { outline:2px solid var(--accent); outline-offset:0; border-color:transparent; }
   .form input:disabled { background:var(--surface-2); color:var(--ink-soft); cursor:not-allowed; opacity:.8; }
   @media (max-width:860px){ .mrow{ grid-template-columns:1fr auto; } .mproj{ display:none; } .form{ grid-template-columns:1fr; } }
-  .empty { background:var(--surface); border:1px dashed var(--line); border-radius:14px; padding:26px; margin-top:24px; }
+  .empty { background:var(--surface); border:1px dashed var(--line); border-radius:12px; padding:26px; margin-top:24px; }
   .empty code { font-family:var(--font-mono); font-size:12.5px; background:var(--surface-2); padding:2px 6px; border-radius:5px; }
   /* --- sprints --- */
-  .switcher + .switcher { margin-top:6px; }
   .sfrozen{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; background:var(--surface-2);
     border:1px solid var(--line); border-radius:9px; padding:10px 12px; font-size:12.5px;
     color:var(--ink-soft); margin:0 0 14px; }
@@ -317,7 +472,7 @@
   .sgrid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px 18px; }
   .sgrid label{ display:flex; flex-direction:column; gap:5px; font-size:12px; color:var(--ink-soft); }
   .sgrid input, .sgrid select{ font-family:var(--font-sans); font-size:14px; color:var(--ink);
-    background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:8px 10px; }
+    background:var(--field); border:1px solid var(--line); border-radius:8px; padding:8px 10px; }
   .sgrid input:focus, .sgrid select:focus{ outline:2px solid var(--accent); outline-offset:0; border-color:transparent; }
   .sgrid input:disabled, .sgrid select:disabled, textarea:disabled{ background:var(--surface-2); color:var(--ink-soft); cursor:not-allowed; }
   .band{ fill:var(--accent-soft); }
@@ -342,41 +497,75 @@
   .badge{ font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase;
     padding:3px 7px; border-radius:5px; background:var(--accent-soft); color:var(--accent-ink); }
   .badge.past{ background:var(--noaccess-bg); color:var(--noaccess); }
-  .goal-list,.time-list{ display:flex; flex-direction:column; gap:8px; margin:12px 0 0; }
+  .goal-list,.time-list{ display:flex; flex-direction:column; gap:8px; margin:12px 0 0; max-width:760px; }
   .goal-row,.time-row{ display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:10px;
-    border-top:1px solid var(--line-soft); padding:10px 0; font-size:13.5px; }
+    border-top:1px solid var(--line-soft); padding:10px 0; font-size:14px; }
   .goal-row.done .goal-text{ text-decoration:line-through; color:var(--ink-faint); }
   .goal-row input[type="checkbox"]{ width:17px; height:17px; accent-color:var(--healthy); }
   .goal-meta,.time-meta{ color:var(--ink-faint); font-family:var(--font-mono); font-size:11px; }
-  .entry-form{ display:grid; grid-template-columns:150px 100px minmax(180px,1fr) auto; gap:10px; align-items:end; margin-top:12px; }
+  .entry-form{ display:grid; grid-template-columns:150px 100px minmax(180px,1fr) auto; gap:10px; align-items:end; margin-top:12px; max-width:760px; }
   .entry-form.goal-form{ grid-template-columns:minmax(220px,1fr) auto; }
   .entry-form label{ display:flex; flex-direction:column; gap:5px; font-size:11px; color:var(--ink-faint); font-family:var(--font-mono); text-transform:uppercase; }
-  .entry-form input{ font:inherit; color:var(--ink); background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:9px 10px; }
+  .entry-form input, .entry-form select{ font:inherit; font-family:var(--font-sans); font-size:14px; text-transform:none; color:var(--ink); background:var(--field); border:1px solid var(--line); border-radius:8px; padding:9px 10px; }
+  .entry-form input:focus, .entry-form select:focus{ outline:2px solid var(--accent); outline-offset:0; border-color:transparent; }
+  /* Hours: no browser spinner arrows; students type the number. */
+  input[type=number]{ -moz-appearance:textfield; appearance:textfield; }
+  input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button{ -webkit-appearance:none; margin:0; }
   .role-tag{ font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:.1em; color:var(--accent-ink); }
-  .inline-add{ display:grid; grid-template-columns:1fr 38px; gap:8px; }
-  .inline-add input{ width:100%; font:inherit; color:var(--ink); background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:9px 10px; }
   .icon-btn{ width:38px; height:38px; border:1px solid var(--line); border-radius:8px; background:var(--surface-2); color:var(--accent-ink);
     font-size:21px; line-height:1; cursor:pointer; display:grid; place-items:center; }
   .icon-btn.add{ color:#fff; background:var(--healthy); border-color:var(--healthy); }
-  .icon-btn.remove{ color:#fff; background:var(--risk); border-color:var(--risk); }
+  /* Remove is a small quiet × that sits right beside its item; red only on hover. */
+  .icon-btn.remove{ width:28px; height:28px; font-size:18px; color:var(--ink-faint); background:transparent; border-color:transparent; }
+  .icon-btn.remove:hover{ color:var(--risk); background:var(--risk-bg); filter:none; }
   .icon-btn:hover{ filter:brightness(.9); }
-  .item-list{ display:flex; flex-direction:column; margin:0 0 8px; }
-  .item-row{ display:grid; grid-template-columns:1fr auto; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid var(--line-soft); font-size:13.5px; }
+  /* Tags for features / technology. */
+  .tag-list{ display:flex; flex-wrap:wrap; gap:8px; margin:0 0 14px; }
+  .tag{ display:inline-flex; align-items:center; gap:6px; padding:6px 6px 6px 12px; border-radius:8px;
+    background:var(--field); border:1px solid var(--line); font-size:14px; color:var(--ink); }
+  .tag-x{ all:unset; cursor:pointer; width:20px; height:20px; border-radius:5px; display:grid; place-items:center;
+    font-size:15px; line-height:1; color:var(--ink-faint); }
+  .tag-x:hover{ color:var(--risk); background:var(--risk-bg); }
+  .tag-x:focus-visible{ outline:2px solid var(--accent); }
+  .empty-note{ margin:0 0 12px; font-size:13px; }
+  /* Input with its Add button attached, kept to a readable width. */
+  .add-group{ display:flex; max-width:520px; }
+  .add-group input{ flex:1; min-width:0; font:inherit; font-size:14px; color:var(--ink); background:var(--field);
+    border:1px solid var(--line); border-right:0; border-radius:8px 0 0 8px; padding:9px 12px; }
+  .add-group input:focus{ outline:2px solid var(--accent); outline-offset:-1px; }
+  .add-btn{ all:unset; box-sizing:border-box; cursor:pointer; padding:0 16px; display:inline-flex; align-items:center;
+    border-radius:0 8px 8px 0; background:var(--accent); color:var(--accent-contrast); font-size:13.5px; font-weight:650; white-space:nowrap; }
+  .add-btn:hover{ filter:brightness(.95); }
+  .add-btn:focus-visible{ outline:2px solid var(--ink); outline-offset:2px; }
+  .entry-form .add-btn{ border-radius:8px; height:40px; }
   .summary-list{ margin:0; padding-left:18px; }
   .summary-list li+li{ margin-top:5px; }
   @media (max-width:720px){ .entry-form{ grid-template-columns:1fr; } }
   @media (max-width:820px){ .sgrid{ grid-template-columns:1fr; } .srow{ grid-template-columns:1fr auto; } }
+  /* --- roster + setup --- */
+  .picker{ display:flex; flex-direction:column; gap:1px; border:1px solid var(--line); border-radius:9px; overflow:hidden; }
+  .pick-row{ display:flex; align-items:center; gap:10px; padding:9px 12px; background:var(--surface);
+    font-size:13.5px; cursor:pointer; }
+  .pick-row:hover{ background:var(--surface-2); }
+  .pick-row.taken{ cursor:not-allowed; color:var(--ink-faint); }
+  .pick-row .muted{ margin-left:auto; font-size:11.5px; }
+  .setup-note{ font-size:12px; color:var(--ink-soft); margin:6px 0 0; }
   .theme-btn{ all:unset; cursor:pointer; display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--ink-soft); padding:6px 8px; border-radius:7px; }
   .theme-btn:hover{ background:var(--surface-2); color:var(--ink); }
 
   @media (max-width: 860px){
     .app{ grid-template-columns:1fr; }
-    .side{ position:static; height:auto; border-right:none; border-bottom:1px solid var(--line); }
+    .side-col{ position:static; height:auto; margin:12px 12px 0; }
+    .side{ border-radius:12px; }
     .nav{ flex-flow:row wrap; } .nav-label{ width:100%; } .nav .tname{ max-width:130px; }
     .tiles{ grid-template-columns:repeat(2,1fr); } .metrics{ grid-template-columns:1fr; }
     .kv{ grid-template-columns:1fr; gap:2px 0; } .kv dt{ padding-top:12px; }
     .main{ padding:26px 20px 70px; } .side-foot{ margin-top:16px; }
   }
+  /* Panel gradient: a faint yellow glow in the top-left corner over a soft diagonal shade.
+     Last in the sheet so it layers over each panel's solid background colour. */
+  .card, .side, .brand-title, .sprint-panel, .icon-bar, .account-btn, .account-menu {
+    background-image:var(--panel-grad); }
 </style>
 <script>
   /* Applied before first paint so a refresh doesn't flash the other theme. */
@@ -397,14 +586,18 @@
 </div>
 
 <div class="app" id="app" hidden>
+  <div class="side-col">
+  <div class="brand">
+    <div class="brand-title"><img class="brand-mark" src="./project-peek-logo.png?v=2" alt="">
+      <span class="code"><span>Project</span> <span class="peek">Peek</span></span></div>
+    <span class="name" id="modeName">Team Tracker</span>
+  </div>
   <aside class="side">
-    <div class="brand">
-      <div class="brand-title"><img class="brand-mark" src="./project-peek-logo.png?v=2" alt="">
-        <span class="code"><span>Project</span> <span class="peek">Peek</span></span></div>
-      <span class="name" id="modeName">Team Tracker</span>
+    <div class="switchers">
+      <div class="switcher"><select id="courseSel" aria-label="Course"></select></div>
+      <div class="switcher" id="projectSwitch" hidden><select id="projectSel" aria-label="Project"></select></div>
+      <div class="switcher"><select id="sprintSel" aria-label="Sprint"></select></div>
     </div>
-    <div class="switcher"><select id="courseSel" aria-label="Course"></select></div>
-    <div class="switcher"><select id="sprintSel" aria-label="Sprint"></select></div>
     <nav class="nav" id="nav"></nav>
     <div class="side-foot">
       <button class="btn" id="syncBtn" style="justify-content:center">⟳ Sync now</button>
@@ -415,16 +608,17 @@
       <button id="signOutBtn">Sign out</button>
     </div>
   </aside>
+  </div>
   <main class="main" id="main"></main>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged }
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, connectAuthEmulator }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, collectionGroup, query, where, getDocs, doc, getDoc, setDoc, deleteDoc, serverTimestamp }
+import { getFirestore, collection, collectionGroup, query, where, getDocs, doc, getDoc, setDoc, deleteDoc, serverTimestamp, connectFirestoreEmulator }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getFunctions, httpsCallable }
+import { getFunctions, httpsCallable, connectFunctionsEmulator }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
 
 const firebaseConfig = {
@@ -442,6 +636,16 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const functions = getFunctions(app);
+// Served from localhost (firebase emulators:start) → use the local emulators, never
+// live data. The Auth emulator's Google popup accepts any email, so you can sign in
+// as e.g. test1@student.neumont.edu to test the student side.
+const EMULATED = ["localhost", "127.0.0.1"].includes(location.hostname);
+if (EMULATED) {
+  connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
+  connectFirestoreEmulator(db, "127.0.0.1", 8080);
+  connectFunctionsEmulator(functions, "127.0.0.1", 5001);
+  console.log("Using local Firebase emulators");
+}
 
 const STATUS_LABEL = { healthy:"On Track", watch:"Slightly Behind", risk:"Off Track", noaccess:"No Progress Demonstrated", unrated:"Pending" };
 const STATUS_ORDER = ["unrated","noaccess","risk","watch","healthy"];
@@ -460,17 +664,20 @@ let UID=null, OWNER_UID=null, USER_EMAIL="", IS_ADMIN=false, PREVIEW_STUDENT=fal
 let COURSES=[], COURSE=null, TEAMS=[], ASSIGNED_TEAMS=[], NOTES={}, RANGE=[null,null], ALLDAYS=[];
 let SPRINTS=[], SPRINT=null, ENTRIES={}, GOALS={}, TIME_ENTRIES={}, UNLOCKED=false, DASH_STATUS_FILTER="all";
 let LAST_SYNC=null, SYNC_REPORT=null, SYNC_SCHEDULE={};
+let SPRINT_STATS={}, RETROS={};   // student view: {teamId: {sprintId: {hours, goals, done, status, start, end}}}
 const TODAY = new Date().toISOString().slice(0,10);
 function instructorView(){ return IS_ADMIN && !PREVIEW_STUDENT; }
 function studentView(){ return !IS_ADMIN || PREVIEW_STUDENT; }
 
 /* ---------- auth ---------- */
 const $ = id => document.getElementById(id);
-const ALLOWED_DOMAIN = "neumont.edu";
+const ALLOWED_DOMAIN = "neumont.edu";          // instructors
+const STUDENT_DOMAIN = "student.neumont.edu";  // students
 function googleProvider(){
   const p = new GoogleAuthProvider();
-  // prompt: always show the account chooser; hd: hint the Neumont Google Workspace.
-  p.setCustomParameters({ prompt: "select_account", hd: ALLOWED_DOMAIN });
+  // prompt: always show the account chooser. No hd hint: it takes a single domain,
+  // and both staff and student accounts need to appear.
+  p.setCustomParameters({ prompt: "select_account" });
   return p;
 }
 async function doSignIn(){
@@ -492,12 +699,13 @@ onAuthStateChanged(auth, async user => {
   console.log("auth state:", user ? user.uid : "(signed out)");
   if (!user) { $("app").hidden = true; $("signin").hidden = false; return; }
 
-  // Enforce the @neumont.edu domain (rules enforce it too; this is the friendly gate).
+  // Enforce the Neumont domains (rules enforce them too; this is the friendly gate).
   const email = (user.email || "").toLowerCase();
-  if (!user.emailVerified || !email.endsWith("@" + ALLOWED_DOMAIN)) {
+  const okDomain = email.endsWith("@" + ALLOWED_DOMAIN) || email.endsWith("@" + STUDENT_DOMAIN);
+  if (!user.emailVerified || !okDomain) {
     await signOut(auth);
     $("app").hidden = true; $("signin").hidden = false;
-    $("signinErr").textContent = "Please sign in with your @" + ALLOWED_DOMAIN + " account.";
+    $("signinErr").textContent = "Please sign in with your @" + ALLOWED_DOMAIN + " or @" + STUDENT_DOMAIN + " account.";
     return;
   }
 
@@ -521,6 +729,13 @@ function fmtWhen(d){
   return d.toLocaleDateString([], {month:"short", day:"numeric"}) + " " + time;
 }
 function applyModeChrome(){
+  $("projectSwitch").hidden = !studentView();
+  $("sprintSel").parentElement.hidden = studentView();
+  $("themeBtn").hidden = studentView();
+  $("modeName").hidden = !IS_ADMIN;     // students don't need a role label
+  document.querySelector(".side-foot").hidden = !IS_ADMIN;   // nothing left in it for students
+  $("who").hidden = !IS_ADMIN;          // real students get the account menu instead
+  $("signOutBtn").hidden = !IS_ADMIN;
   $("syncBtn").hidden = !instructorView();
   $("syncInfo").hidden = !instructorView();
   $("modeName").textContent = PREVIEW_STUDENT ? "Student preview" : (IS_ADMIN ? "Instructor" : "Student");
@@ -571,22 +786,31 @@ function syncBannerHTML(){
 /* ---------- data ---------- */
 async function loadWorkspace(){
   COURSES = [];
-  const snap = await getDocs(collection(db, `users/${UID}/courses`));
-  snap.forEach(d => COURSES.push({ id:d.id, ...d.data() }));
-  IS_ADMIN = COURSES.length > 0;
+  // The domain decides the role, matching the rules: staff own courses, students
+  // only see the teams they're assigned to.
+  IS_ADMIN = USER_EMAIL.endsWith("@" + ALLOWED_DOMAIN);
+  if (IS_ADMIN) {
+    const snap = await getDocs(collection(db, `users/${UID}/courses`));
+    snap.forEach(d => COURSES.push({ id:d.id, ...d.data() }));
+  }
   OWNER_UID = IS_ADMIN ? UID : null;
   ASSIGNED_TEAMS = [];
   if (!IS_ADMIN) {
-    const assigned = await getDocs(query(collectionGroup(db, "teams"), where("studentEmails", "array-contains", USER_EMAIL)));
+    // A student's courses come from their enrollment docs (so a solo student can
+    // open a course before they have a project), plus any course they have a team in.
+    const [enrolled, assigned] = await Promise.all([
+      getDocs(query(collectionGroup(db, "enrollments"), where("email", "==", USER_EMAIL))),
+      getDocs(query(collectionGroup(db, "teams"), where("studentEmails", "array-contains", USER_EMAIL)))]);
     assigned.forEach(d => ASSIGNED_TEAMS.push({ id:d.id, ...d.data() }));
     const seen = new Set();
-    ASSIGNED_TEAMS.forEach(t => {
-      const key = `${t.ownerUid}:${t.courseId}`;
-      if (!t.ownerUid || !t.courseId || seen.has(key)) return;
+    const addCourse = (ownerUid, courseId, code, name, type) => {
+      const key = `${ownerUid}:${courseId}`;
+      if (!ownerUid || !courseId || seen.has(key)) return;
       seen.add(key);
-      COURSES.push({ id:t.courseId, ownerUid:t.ownerUid, code:t.courseCode||t.courseId,
-        name:t.courseName||t.courseCode||t.courseId, type:t.courseType||"team" });
-    });
+      COURSES.push({ id:courseId, ownerUid, code:code||courseId, name:name||code||courseId, type:type||"team" });
+    };
+    enrolled.forEach(d => { const e=d.data(); addCourse(e.ownerUid, e.courseId, e.courseCode, e.courseName, e.courseType); });
+    ASSIGNED_TEAMS.forEach(t => addCourse(t.ownerUid, t.courseId, t.courseCode, t.courseName, t.courseType));
   }
   COURSES.sort((a,b)=> (a.name||a.id).localeCompare(b.name||b.id));
   const sel = $("courseSel");
@@ -616,6 +840,7 @@ async function loadCourse(cid){
     tSnap.forEach(d => TEAMS.push({ id:d.id, ...d.data() }));
     const nSnap = await getDocs(collection(db, `users/${OWNER_UID}/courses/${cid}/notes`));
     nSnap.forEach(d => NOTES[d.id] = d.data());
+    await syncEnrollments().catch(e => console.error("enrollment sync failed:", e));
   } else {
     TEAMS = ASSIGNED_TEAMS.filter(t => t.ownerUid===OWNER_UID && t.courseId===cid);
   }
@@ -695,7 +920,7 @@ async function loadSprints(){
   await loadEntries();
 }
 async function loadEntries(){
-  ENTRIES={}; GOALS={}; TIME_ENTRIES={};
+  ENTRIES={}; GOALS={}; TIME_ENTRIES={}; RETROS={};
   if(!SPRINT) return;
   if(IS_ADMIN){
     const snap = await getDocs(collection(db, `${cpath()}/sprints/${SPRINT.id}/entries`));
@@ -708,10 +933,12 @@ async function loadEntries(){
   }
   await Promise.all(TEAMS.map(async t => {
     const base = `${cpath()}/sprints/${SPRINT.id}/entries/${t.id}`;
-    const [goals, time] = await Promise.all([
+    const [goals, time, retro] = await Promise.all([
       getDocs(collection(db, `${base}/goals`)),
-      getDocs(collection(db, `${base}/time`))
+      getDocs(collection(db, `${base}/time`)),
+      getDocs(collection(db, `${base}/retro`))
     ]);
+    RETROS[t.id] = retro.docs.map(d=>({id:d.id,...d.data()}));
     GOALS[t.id] = goals.docs.map(d=>({id:d.id,...d.data()}))
       .sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0));
     TIME_ENTRIES[t.id] = time.docs.map(d=>({id:d.id,...d.data()}))
@@ -788,12 +1015,40 @@ function rateStats(cbd){
 /* ---------- nav ---------- */
 function renderNav(){
   const nav=$("nav");
+  if(studentView()){ renderProjectSel(); nav.innerHTML=studentNavHTML(); markNav(location.hash.slice(1)||""); return; }
   const teams=[...TEAMS].sort((a,b)=>(a.team||"").localeCompare(b.team||""));
   nav.innerHTML = `<div class="nav-label">Overview</div>
     <button data-view="dashboard" class="home"><span>▚ Dashboard</span></button>
     ${instructorView()?`<button data-view="manage" class="home"><span>⚙ Manage ${L().units}</span></button>`:""}
     <div class="nav-label">${L().Units}</div>` +
     teams.map(t=>`<button data-view="${t.id}"><span class="dot ${statusOf(t)}"></span><span class="tname">${esc(t.team)}</span></button>`).join("");
+}
+
+// Student sidebar: course and project pickers sit above the rule; below it, the
+// pages of the selected project (dashboard, summary, and each sprint).
+function currentTeamId(){
+  const base=(location.hash.slice(1)||"").split("__")[0];
+  return (TEAMS.find(t=>t.id===base)||TEAMS[0]||{}).id;
+}
+function renderProjectSel(){
+  const sel=$("projectSel"), tid=currentTeamId();
+  if(!TEAMS.length){
+    sel.innerHTML=`<option>${(COURSE&&(COURSE.type||"team")==="solo")?"No project yet":"Not on a project yet"}</option>`;
+    sel.disabled=true; return;
+  }
+  sel.disabled=false;
+  sel.innerHTML=[...TEAMS].sort((a,b)=>(a.project||a.team||"").localeCompare(b.project||b.team||""))
+    .map(t=>`<option value="${esc(t.id)}">${esc(t.project||t.team)}</option>`).join("");
+  if(tid) sel.value=tid;
+}
+function studentNavHTML(){
+  const t=TEAMS.find(x=>x.id===currentTeamId());
+  if(!t || !isSetUp(t)) return "";
+  const sprints=[...SPRINTS].reverse().map(sp=>
+    `<button data-sprint-nav="${t.id}:${sp.id}"><span class="dot ${isPast(sp)?"unrated":"healthy"}"></span><span class="tname">${esc(sp.name||("Sprint "+sp.n))}${isPast(sp)?"":" · current"}</span></button>`).join("");
+  return `<button data-view="${t.id}"><span class="nav-ic">▚</span><span class="tname">Dashboard</span></button>
+    <button data-view="${t.id}__summary"><span class="nav-ic">✎</span><span class="tname">Project summary</span></button>
+    ${SPRINTS.length?`<div class="nav-label">Sprints</div>${sprints}`:""}`;
 }
 
 /* ---------- render ---------- */
@@ -840,12 +1095,13 @@ function projectInfo(t){
     tech:asList(student.tech||legacy.tech), flag:legacy.flag||"" };
 }
 function itemListEditor(t,field,label,help,items){
+  const one=label==="Key features"?"feature":"technology";
   return `<section class="summary-section"><label class="nlbl summary-heading"><span title="${esc(help)}">${label}</span></label>
-    ${items.length?`<div class="item-list">${items.map((item,index)=>`<div class="item-row"><span>${esc(item)}</span>
-      <button class="icon-btn remove" data-list-remove="${t.id}:${field}:${index}" title="Remove" aria-label="Remove ${esc(item)}">−</button></div>`).join("")}</div>`:""}
-    <div class="inline-add">
-    <input id="project-${field}-${t.id}" aria-label="Add ${label.toLowerCase()}">
-    <button class="icon-btn add" data-list-add="${t.id}:${field}" title="Add ${label.toLowerCase()}" aria-label="Add ${label.toLowerCase()}">+</button></div></section>`;
+    ${items.length?`<div class="tag-list">${items.map((item,index)=>`<span class="tag">${esc(item)}<button class="tag-x" data-list-remove="${t.id}:${field}:${index}" title="Remove" aria-label="Remove ${esc(item)}">×</button></span>`).join("")}</div>`
+      :`<p class="muted empty-note">None added yet.</p>`}
+    <div class="add-group">
+      <input id="project-${field}-${t.id}" placeholder="Add a ${one}…" aria-label="Add ${label.toLowerCase()}">
+      <button class="add-btn" data-list-add="${t.id}:${field}">+ Add</button></div></section>`;
 }
 function projectSummaryHTML(t){
   const p=projectInfo(t);
@@ -859,43 +1115,148 @@ function projectSummaryHTML(t){
     <section class="summary-section"><label class="nlbl summary-heading"><span title="2-3 sentence overview of the project.">Overview</span></label>
       <textarea data-project="${t.id}:concept">${esc(p.concept)}</textarea></section>
     ${itemListEditor(t,"features","Key features","Add the project's key features.",p.features)}
-    ${itemListEditor(t,"tech","Technology","Add the technologies used by the project.",p.tech)}</div>`;
+    ${itemListEditor(t,"tech","Technology","Add the technologies used by the project.",p.tech)}
+    <section class="summary-section"><label class="nlbl" for="link-project-${t.id}">Project title</label>
+      <input id="link-project-${t.id}" data-setup="${t.id}:project" value="${esc(t.project||"")}" placeholder="e.g. Hero's Blacksmith"></section>
+    <section class="summary-section"><label class="nlbl" for="link-github-${t.id}">GitHub repository</label>
+      <input id="link-github-${t.id}" data-setup="${t.id}:github" value="${esc(t.github||"")}" placeholder="https://github.com/owner/repo">
+      <p class="setup-note">Changing this re-points the commit history your instructor sees.</p></section>
+    <section class="summary-section"><label class="nlbl" for="link-trello-${t.id}">Trello board <span class="muted">(optional)</span></label>
+      <input id="link-trello-${t.id}" data-setup="${t.id}:trello" value="${esc(t.trello||"")}" placeholder="https://trello.com/b/xxxx"></section></div>`;
 }
+/* ---------- sprint flow (student) ----------
+   Not started → (add a goal) → In progress → (submit wrap-up) → Submitted.
+   Time logging unlocks with the first goal; submitting locks the sprint for the
+   student until the instructor reopens it. A past sprint is closed either way. */
+const MOODS=[{v:1,e:"😞",l:"Rough"},{v:2,e:"😕",l:"Not great"},{v:3,e:"😐",l:"Okay"},{v:4,e:"🙂",l:"Good"},{v:5,e:"😄",l:"Great"}];
+const RESULTS={done:"Done",partial:"Partly done",notdone:"Not done"};
+function moodOf(v){ return MOODS.find(m=>m.v===Number(v)); }
+function myGoals(tid){ return (GOALS[tid]||[]).filter(g=>g.studentEmail===USER_EMAIL); }
+function myRetro(tid){ return (RETROS[tid]||[]).find(r=>r.studentEmail===USER_EMAIL); }
+function canEdit(tid){ return studentView() && !frozen() && !myRetro(tid); }
+function sprintStage(tid){
+  if(myRetro(tid)) return "Submitted";
+  if(frozen()) return "Closed";
+  return myGoals(tid).length ? "In progress" : "Not started";
+}
+function resultPill(r){ return r?`<span class="result ${r}">${RESULTS[r]}</span>`:""; }
 function goalsHTML(t){
-  const goals=GOALS[t.id]||[];
-  return `<div class="card structured-card"><div class="notes-head"><h2 style="border:0;margin:0;padding:0">Sprint Goals</h2></div>
+  const goals=GOALS[t.id]||[], edit=canEdit(t.id);
+  // Instructor sets any goal's result; a student sets their own while the sprint is open.
+  const resultCtl=g=> (instructorView()&&!frozen()) || (edit&&g.studentEmail===USER_EMAIL)
+    ? `<select class="result-sel ${g.result||""}" data-goal-result="${t.id}:${g.id}" aria-label="Goal status">
+        <option value="">—</option>${Object.keys(RESULTS).map(k=>`<option value="${k}"${g.result===k?" selected":""}>${RESULTS[k]}</option>`).join("")}</select>`
+    : resultPill(g.result);
+  return `<div class="card structured-card" id="goals-${t.id}"><div class="notes-head"><h2 style="border:0;margin:0;padding:0">Sprint Goals</h2></div>
+    ${edit&&!goals.length?`<div class="callout"><b>Enter your sprint goals to get started.</b>
+      What do you plan to finish this sprint? Time logging unlocks once you've added at least one goal.</div>`:""}
     <section class="summary-section">
-    ${goals.length?`<div class="goal-list">${goals.map(g=>`<div class="goal-row ${g.completed?"done":""}">
-      <input type="checkbox" data-goal-check="${t.id}:${g.id}"${g.completed?" checked":""}${instructorView()&&!frozen()?"":" disabled"} aria-label="Goal complete">
-      <span><span class="goal-text">${esc(g.text)}</span><br><span class="goal-meta">${esc(g.studentEmail||"")}</span></span>
-      ${studentView()&&!frozen()&&g.studentEmail===USER_EMAIL&&!g.completed?`<button class="icon-btn remove" data-goal-remove="${t.id}:${g.id}" title="Remove goal" aria-label="Remove goal">−</button>`:""}</div>`).join("")}</div>`
-      :`<p class="muted">No sprint goals entered yet.</p>`}</section>
-    ${studentView()&&!frozen()?`<section class="summary-section"><label class="nlbl summary-heading"><span title="Add a specific result to complete during this sprint.">Add a sprint goal</span></label>
-      <div class="entry-form goal-form"><label>Goal<input id="goal-new-${t.id}"></label>
-      <button class="icon-btn add" data-goal-add="${t.id}" title="Add goal" aria-label="Add goal">+</button></div></section>`:""}</div>`;
+    ${goals.length?`<div class="goal-list">${goals.map(g=>`<div class="goal-row ${g.result==="done"||g.completed?"done":""}">
+      <span class="goal-mark">${g.result==="done"||g.completed?"✓":"•"}</span>
+      <span class="goal-text">${esc(g.text)}</span>
+      <span class="goal-end">${resultCtl(g)}${edit&&g.studentEmail===USER_EMAIL&&!g.completed?`<button class="icon-btn remove" data-goal-remove="${t.id}:${g.id}" title="Remove goal" aria-label="Remove goal">×</button>`:""}</span></div>`).join("")}</div>`
+      :(edit?"":`<p class="muted">No sprint goals entered.</p>`)}</section>
+    ${edit?`<section class="summary-section"><label class="nlbl summary-heading" for="goal-new-${t.id}"><span title="Add a specific result to complete during this sprint.">Add a sprint goal</span></label>
+      <div class="entry-form goal-form"><label>Goal<input id="goal-new-${t.id}" placeholder="e.g. Player can save and load a game"></label>
+      <button class="add-btn" data-goal-add="${t.id}">+ Add</button></div></section>`:""}</div>`;
 }
 function timeHTML(t){
-  const rows=TIME_ENTRIES[t.id]||[], total=rows.reduce((n,x)=>n+(Number(x.hours)||0),0);
+  const rows=TIME_ENTRIES[t.id]||[], total=rows.reduce((n,x)=>n+(Number(x.hours)||0),0), edit=canEdit(t.id);
+  const students=t.studentEmails||[];
+  let form="";
+  if(edit && !myGoals(t.id).length)
+    form=`<div class="locked-note">🔒 Add at least one sprint goal to start logging time.</div>`;
+  else if(edit || (instructorView() && !frozen() && students.length))
+    form=`<section class="summary-section"><label class="nlbl summary-heading"><span title="Record the time spent working on the project.">Log time</span></label>
+      <div class="entry-form${instructorView()?" with-student":""}">
+      ${instructorView()?`<label>Student<select id="time-student-${t.id}">${students.map(em=>`<option value="${esc(em)}">${esc(em)}</option>`).join("")}</select></label>`:""}
+      <label>Date<input id="time-date-${t.id}" type="date" value="${TODAY}"></label>
+      <label>Hours<input id="time-hours-${t.id}" type="number" min="0.25" step="0.25"></label>
+      <label>Work completed<input id="time-note-${t.id}"></label>
+      <button class="add-btn" data-time-add="${t.id}">+ Add</button></div></section>`;
   return `<div class="card structured-card"><div class="notes-head"><h2 style="border:0;margin:0;padding:0">Time Worked</h2>
     <span class="card-total">${total.toFixed(1).replace(/\.0$/,"")} hours total</span></div>
     <section class="summary-section">
     ${rows.length?`<div class="time-list">${rows.map(x=>`<div class="time-row"><span class="time-meta">${esc(x.date)}</span>
-      <span><b>${esc(x.hours)} hr</b>${x.note?` · ${esc(x.note)}`:""}<br><span class="time-meta">${esc(x.studentEmail||"")}</span></span>
-      ${studentView()&&!frozen()&&x.studentEmail===USER_EMAIL?`<button class="icon-btn remove" data-time-remove="${t.id}:${x.id}" title="Remove time entry" aria-label="Remove time entry">−</button>`:""}</div>`).join("")}</div>`:"<p class=\"muted\">No time recorded yet.</p>"}
-    </section>${studentView()&&!frozen()?`<section class="summary-section"><label class="nlbl summary-heading"><span title="Record the time spent working on the project.">Log time</span></label>
-      <div class="entry-form"><label>Date<input id="time-date-${t.id}" type="date" value="${TODAY}"></label>
-      <label>Hours<input id="time-hours-${t.id}" type="number" min="0.25" step="0.25"></label>
-      <label>Work completed<input id="time-note-${t.id}"></label>
-      <button class="icon-btn add" data-time-add="${t.id}" title="Add time entry" aria-label="Add time entry">+</button></div></section>`:""}</div>`;
+      <span><b>${esc(x.hours)} hr</b>${x.note?` · ${esc(x.note)}`:""}</span>
+      ${(edit&&x.studentEmail===USER_EMAIL)||(instructorView()&&!frozen())?`<button class="icon-btn remove" data-time-remove="${t.id}:${x.id}" title="Remove time entry" aria-label="Remove time entry">×</button>`:""}</div>`).join("")}</div>`:"<p class=\"muted\">No time recorded yet.</p>"}
+    </section>${form}</div>`;
+}
+function retroViewHTML(r){
+  const m=moodOf(r.mood), when=r.submittedAt&&r.submittedAt.toDate?fmtWhen(r.submittedAt.toDate()):"";
+  return `<div class="retro">
+    <div class="retro-mood">${m?`<span class="mood-big" aria-hidden="true">${m.e}</span><span><b>${esc(m.l)}</b><br><span class="muted">How the sprint felt</span></span>`:""}</div>
+    <dl class="kv"><dt>What went well</dt><dd class="soft">${esc(r.wentWell)||"—"}</dd>
+      <dt>Could be improved</dt><dd class="soft">${esc(r.improve)||"—"}</dd></dl>
+    <p class="muted retro-meta">${esc(r.studentEmail||"")}${when?` · submitted ${esc(when)}`:""}</p></div>`;
+}
+function wrapUpHTML(t){
+  if(instructorView()){
+    const rs=RETROS[t.id]||[];
+    return `<div class="card"><h2>Sprint Retrospective</h2>${rs.length?rs.map(r=>retroViewHTML(r)+
+      `<div class="panel-actions"><button class="linkbtn" data-reopen="${t.id}:${esc(r.studentEmail)}">Reopen sprint for ${esc(r.studentEmail)}</button></div>`).join("")
+      :`<p class="muted">Not submitted yet.</p>`}</div>`;
+  }
+  const r=myRetro(t.id);
+  if(r) return `<div class="card"><div class="notes-head"><h2 style="border:0;margin:0;padding:0">Sprint Retrospective</h2><span class="role-tag">Submitted</span></div>
+    ${retroViewHTML(r)}<p class="muted">This sprint is locked. Ask your instructor if something needs changing.</p></div>`;
+  const goals=myGoals(t.id);
+  if(!canEdit(t.id) || !goals.length) return "";
+  return `<div class="card" id="wrap-${t.id}"><h2>Sprint Retrospective</h2>
+    <p class="muted" style="margin:0 0 12px">At the end of the sprint, mark how each goal went and reflect on the sprint. Submitting locks it.</p>
+    <button class="btn" data-wrap-open="${t.id}">Submit sprint…</button>
+    <div class="wrap-form" id="wrap-form-${t.id}" hidden>
+      <label class="nlbl">How did each goal go?</label>
+      ${goals.map(g=>`<div class="wrap-goal"><span>${esc(g.text)}</span><span class="seg">${Object.keys(RESULTS).map(k=>
+        `<label><input type="radio" name="res-${g.id}" value="${k}"${g.result===k?" checked":""}><span>${RESULTS[k]}</span></label>`).join("")}</span></div>`).join("")}
+      <label class="nlbl">How did the sprint feel?</label>
+      <div class="mood-picker" role="radiogroup">${MOODS.map(m=>`<label title="${m.l}"><input type="radio" name="mood-${t.id}" value="${m.v}"><span class="mood-face">${m.e}</span><span class="mood-l">${m.l}</span></label>`).join("")}</div>
+      <label class="nlbl" for="well-${t.id}">What went well?</label>
+      <textarea id="well-${t.id}" placeholder="What worked this sprint?"></textarea>
+      <label class="nlbl" for="improve-${t.id}">What could be improved?</label>
+      <textarea id="improve-${t.id}" placeholder="What would you change next sprint?"></textarea>
+      <div class="panel-actions"><button class="btn" data-submit-sprint="${t.id}">Submit sprint</button>
+        <button class="btn secondary" data-wrap-open="${t.id}">Cancel</button></div>
+      <p class="muted" id="wrapErr-${t.id}" style="color:var(--risk);margin-top:10px"></p>
+    </div></div>`;
+}
+async function submitSprint(tid){
+  const err=$("wrapErr-"+tid), goals=myGoals(tid);
+  const results=goals.map(g=>({g, v:(document.querySelector(`input[name="res-${g.id}"]:checked`)||{}).value}));
+  const mood=Number((document.querySelector(`input[name="mood-${tid}"]:checked`)||{}).value||0);
+  const wentWell=fval("well-"+tid), improve=fval("improve-"+tid);
+  const miss=[];
+  if(results.some(x=>!x.v)) miss.push("a result for every goal");
+  if(!mood) miss.push("how the sprint felt");
+  if(!wentWell) miss.push("what went well");
+  if(!improve) miss.push("what could be improved");
+  if(miss.length){ if(err) err.textContent="Still needed: "+miss.join(", ")+"."; return; }
+  try{
+    // Goal results first: once the wrap-up exists the rules lock the goals.
+    await Promise.all(results.filter(x=>x.g.result!==x.v).map(x=>
+      setDoc(doc(db,`${sprintEntryPath(tid)}/goals/${x.g.id}`), {result:x.v, updatedAt:serverTimestamp()}, {merge:true})));
+    await setDoc(doc(db,`${sprintEntryPath(tid)}/retro/${USER_EMAIL}`),
+      {studentEmail:USER_EMAIL, mood, wentWell, improve, submittedAt:serverTimestamp()});
+    await loadEntries(); render(); stay(tid);
+  }catch(e){ console.error(e); if(err) err.textContent=e.code+" — "+e.message; }
+}
+async function reopenSprint(tid,email){
+  await deleteDoc(doc(db,`${sprintEntryPath(tid)}/retro/${email}`));
+  await loadEntries(); render(); stay(tid);
+}
+async function setGoalResult(tid,gid,result){
+  await setDoc(doc(db,`${sprintEntryPath(tid)}/goals/${gid}`), {result, updatedAt:serverTimestamp()}, {merge:true});
+  const goal=(GOALS[tid]||[]).find(x=>x.id===gid); if(goal) goal.result=result;
+  render(); stay(tid);
 }
 function sprintCardHTML(t){
   if(!SPRINT) return "";
   const e=entryOf(t.id), w=winOf(t.id), ro=frozen()?" disabled":"";
   const statuses=["unrated","healthy","watch","risk","noaccess"];
   if(studentView()) return `<div class="card"><div class="notes-head"><h2 style="border:none;margin:0;padding:0">${esc(SPRINT.name||("Sprint "+SPRINT.n))}${winLabel(t.id)?` · ${esc(winLabel(t.id))}`:""}</h2>
-      <span class="role-tag">Student mode</span></div>
+      <span class="role-tag">${sprintStage(t.id)}</span></div>
       <dl class="kv" style="margin-top:14px"><dt>Instructor rating</dt><dd><span class="pill ${statusOf(t)}"><span class="d"></span>${STATUS_LABEL[statusOf(t)]}</span></dd>
-      <dt>Sprint review</dt><dd class="soft">${esc(e.review||"Not reviewed yet.")}</dd></dl></div>${goalsHTML(t)}${timeHTML(t)}`;
+      <dt>Sprint review</dt><dd class="soft">${esc(e.review||"Not reviewed yet.")}</dd></dl></div>${goalsHTML(t)}${timeHTML(t)}${wrapUpHTML(t)}`;
   return `<div class="card">
     <div class="notes-head"><h2 style="border:none;margin:0;padding:0">${esc(SPRINT.name||("Sprint "+SPRINT.n))}${winLabel(t.id)?` · ${esc(winLabel(t.id))}`:""}</h2>
       <span class="saved" id="saved-${t.id}">saved ✓</span></div>
@@ -912,23 +1273,67 @@ function sprintCardHTML(t){
     </div>
     <label class="nlbl" for="rev-${t.id}">Sprint review</label>
     <textarea id="rev-${t.id}" data-sp="${t.id}:review" placeholder="What did they demo? Progress vs. sprint goal, blockers, action items…"${ro}>${esc(e.review||"")}</textarea>
-  </div>${goalsHTML(t)}${timeHTML(t)}`;
+  </div>${goalsHTML(t)}${timeHTML(t)}${wrapUpHTML(t)}`;
 }
-function teamHTML(t){
-  const a=sprintAct(t), w=winOf(t.id), st=statusOf(t);
-  return `<div class="view" id="view-${t.id}">
-    <span class="eyebrow">${esc(STATUS_LABEL[st])}</span>
-    <div class="thead"><div class="titles"><h1>${esc(t.team)}</h1>
-      ${t.project?`<div class="project">▸ ${esc(t.project)}</div>`:""}
-      ${t.members?`<div class="members"><b>${Lt(t).who}:</b> ${esc(t.members)}</div>`:""}</div>
-      <span class="pill ${st}" style="margin-top:6px"><span class="d"></span>${STATUS_LABEL[st]}</span></div>
-    <div class="chips">
-      <a class="chip" href="${esc(t.github)}" target="_blank" rel="noopener"><span class="ic">GH</span>GitHub</a>
-      ${t.trello?`<a class="chip" href="${esc(t.trello)}" target="_blank" rel="noopener"><span class="ic">TR</span>Trello</a>`:`<span class="chip disabled"><span class="ic">TR</span>No Trello</span>`}
-    </div>
-    ${projectSummaryHTML(t)}
-    ${sprintCardHTML(t)}
-    <div class="card"><h2>GitHub Activity${SPRINT?` · ${esc(SPRINT.name||("Sprint "+SPRINT.n))}`:""}${a.synced?` · synced ${esc(fmtWhen(new Date(a.synced)))}`:""}</h2>
+// A student lands here until the project is set up; afterwards they get the normal
+// project page. The instructor always sees the real page, set up or not.
+function setupHTML(t){
+  const p=projectInfo(t);
+  return `<div class="view" id="view-${t.id}">${accountRowHTML()}
+    <span class="eyebrow">Project setup</span>
+    <h1>Set up ${esc(t.team)}</h1>
+    <p class="lede">Tell your instructor what you're building and where the work lives. You can change all of this later.</p>
+    <div class="card structured-card"><div class="notes-head"><h2 style="border:0;margin:0;padding:0">Your project</h2>
+      <span class="saved" id="saved-project-${t.id}">saved ✓</span></div>
+      <section class="summary-section"><label class="nlbl" for="setup-project-${t.id}">Project title</label>
+        <input id="setup-project-${t.id}" data-setup="${t.id}:project" value="${esc(t.project||"")}" placeholder="e.g. Hero's Blacksmith"></section>
+      <section class="summary-section"><label class="nlbl" for="setup-concept-${t.id}">Overview</label>
+        <textarea id="setup-concept-${t.id}" data-project="${t.id}:concept" placeholder="2–3 sentences on what the project is.">${esc(p.concept)}</textarea></section>
+      ${itemListEditor(t,"features","Key features","Add the project's key features.",p.features)}
+      ${itemListEditor(t,"tech","Technology","Add the technologies used by the project.",p.tech)}
+      <section class="summary-section"><label class="nlbl" for="setup-github-${t.id}">GitHub repository</label>
+        <input id="setup-github-${t.id}" data-setup="${t.id}:github" value="${esc(t.github||"")}" placeholder="https://github.com/owner/repo">
+        <p class="setup-note">Your commit activity is read from this repo, so it has to be the one you actually push to.</p></section>
+      <section class="summary-section"><label class="nlbl" for="setup-trello-${t.id}">Trello board <span class="muted">(optional)</span></label>
+        <input id="setup-trello-${t.id}" data-setup="${t.id}:trello" value="${esc(t.trello||"")}" placeholder="https://trello.com/b/xxxx"></section>
+      <div class="panel-actions"><button class="btn" data-mact="setup-done" data-tid="${t.id}">Finish setup</button></div>
+      <p class="muted" id="setupErr-${t.id}" style="color:var(--risk);margin-top:10px"></p>
+    </div></div>`;
+}
+/* ---------- student-created projects (solo courses) ----------
+   The doc id is fixed per student ("solo-" + the email's local part) and the rules
+   require it, so a student can only ever create one project per course. */
+function ownProjectId(){ return "solo-" + USER_EMAIL.split("@")[0]; }
+function noProjectHTML(){
+  if((COURSE.type||"team")!=="solo")
+    return `<div class="view active" id="view-dashboard">${accountRowHTML()}<span class="eyebrow">${esc(COURSE.code||COURSE.id)}</span>
+      <h1>No project yet</h1><p class="lede">Your instructor hasn't put you on a ${L().unit} in this course yet.</p></div>`;
+  return `<div class="view active" id="view-dashboard">${accountRowHTML()}<span class="eyebrow">${esc(COURSE.code||COURSE.id)}</span>
+    <h1>Add your project</h1>
+    <p class="lede">Start with a title. Next you'll add an overview, features, and your GitHub and Trello links.</p>
+    <div class="card"><section class="summary-section"><label class="nlbl" for="ownProjectTitle">Project title</label>
+      <input id="ownProjectTitle" placeholder="e.g. Hero's Blacksmith"></section>
+      <div class="panel-actions"><button class="btn" data-mact="own-project-add">+ Add project</button></div>
+      <p class="muted" id="ownProjectErr" style="color:var(--risk);margin-top:10px"></p></div></div>`;
+}
+async function createOwnProject(){
+  const err=$("ownProjectErr"), title=fval("ownProjectTitle");
+  if(!title){ if(err) err.textContent="Enter a project title."; return; }
+  const id=ownProjectId(), who=(auth.currentUser&&auth.currentUser.displayName)||USER_EMAIL.split("@")[0];
+  const data={ team:who, members:who, project:title, studentEmails:[USER_EMAIL], type:"solo",
+    ownerUid:OWNER_UID, courseId:COURSE.id, courseCode:COURSE.code||COURSE.id,
+    courseName:COURSE.name||COURSE.code||COURSE.id, courseType:COURSE.type||"solo",
+    github:"", trello:"", status:"unrated", setupComplete:false,
+    createdAt:serverTimestamp(), updatedAt:serverTimestamp() };
+  try{
+    await setDoc(doc(db,`${cpath()}/teams/${id}`), data);
+    ASSIGNED_TEAMS.push({ id, ...data });
+    await loadCourse(COURSE.id); show(id);
+  }catch(e){ console.error(e); if(err) err.textContent = e.code+" — "+e.message; }
+}
+function githubCardHTML(t){
+  const a=sprintAct(t), w=winOf(t.id);
+  return `<div class="card"><h2>GitHub Activity${SPRINT?` · ${esc(SPRINT.name||("Sprint "+SPRINT.n))}`:""}${a.synced?` · synced ${esc(fmtWhen(new Date(a.synced)))}`:""}</h2>
       ${a.ok?`<div class="metrics"><div class="metric"><div class="n">${esc(a.total)}</div><div class="l">commits</div></div>
         <div class="metric"><div class="n">${esc(a.days)}</div><div class="l">active days</div></div>
         <div class="metric"><div class="n">${esc(a.last_fmt||a.last)}</div><div class="l">last commit</div></div></div>
@@ -939,7 +1344,147 @@ function teamHTML(t){
         <div class="chart">${chartSVG(a.commits_by_day,{band:[w.start,w.end]})}</div>
         ${a.contribs_all_time&&SPRINT?`<p class="muted" style="margin:12px 0 0">Contributor split is all-time — run <b>Sync now</b> to break it down per sprint.</p>`:""}
         <div class="contribs">${contribHTML(a)}</div><p class="obs">${esc(a.obs)}</p>`
-      :`<div class="noaccess-box"><span class="ic">🔒</span><span>${esc(a.obs)}</span></div>`}</div>
+      :`<div class="noaccess-box"><span class="ic">🔒</span><span>${esc(a.obs)}</span></div>`}</div>`;
+}
+/* ---------- student views ----------
+   Each project gets three views: a home (title, overview, and a grid of sprint
+   panels), a sprint page (rating, goals, time, wrap-up, activity for the selected
+   sprint), and the project summary. View ids: <tid>, <tid>__sprint, <tid>__summary. */
+function studentTeamHTML(t){
+  if(!isSetUp(t)) return setupHTML(t);
+  const top=topRowHTML(t);
+  return `<div class="view" id="view-${t.id}">${top}
+    <div id="proj-head-${t.id}">${projectHeadHTML(t)}</div>
+    <h2 style="margin-top:30px">Sprints</h2>
+    <div id="sprint-grid-${t.id}">${sprintGridHTML(t)}</div>
+  </div>
+  <div class="view view-flush" id="view-${t.id}__sprint">${top}
+    ${SPRINT?`${sprintCardHTML(t)}${githubCardHTML(t)}`:`<p class="muted">No sprint selected.</p>`}
+  </div>
+  <div class="view view-flush" id="view-${t.id}__summary">${top}
+    ${projectSummaryHTML(t)}
+  </div>`;
+}
+/* Top-right icon bar on every student page: GitHub, Trello, light/dark. The two
+   links come from the project; without one the button is shown dimmed. */
+const ICON_GITHUB=`<svg viewBox="0 -3.1 2490.3 2493" aria-hidden="true"><ellipse cx="1245.2" cy="1243.4" fill="#fff" rx="1217.6" ry="1246.5"/><path fill="#5c6bc0" d="m1245.2 1.6c-687.6 0-1245.2 557.4-1245.2 1245.1 0 550.2 356.8 1016.9 851.5 1181.5 62.2 11.5 85.1-27 85.1-59.9 0-29.7-1.2-127.8-1.7-231.8-346.4 75.3-419.5-146.9-419.5-146.9-56.6-143.9-138.3-182.2-138.3-182.2-113-77.3 8.5-75.7 8.5-75.7 125 8.8 190.9 128.3 190.9 128.3 111.1 190.4 291.3 135.3 362.3 103.5 11.2-80.5 43.4-135.4 79.1-166.5-276.6-31.5-567.3-138.3-567.3-615.4 0-135.9 48.6-247 128.3-334.2-12.9-31.3-55.5-157.9 12.1-329.4 0 0 104.6-33.5 342.5 127.6 99.3-27.6 205.8-41.4 311.7-41.9 105.8.5 212.4 14.3 311.9 41.9 237.7-161.1 342.1-127.6 342.1-127.6 67.8 171.5 25.1 298.2 12.2 329.5 79.8 87.2 128.1 198.3 128.1 334.2 0 478.2-291.3 583.6-568.6 614.4 44.7 38.6 84.5 114.4 84.5 230.6 0 166.6-1.4 300.7-1.4 341.7 0 33.1 22.4 72 85.5 59.7 494.5-164.8 850.8-631.4 850.8-1181.4 0-687.7-557.5-1245.1-1245.1-1245.1"/></svg>`;
+const ICON_TRELLO=`<svg viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="72" fill="#1868db"/><rect x="95" y="95" width="125" height="293" rx="20" fill="#fff"/><rect x="292" y="95" width="125" height="176" rx="20" fill="#fff"/></svg>`;
+const ICON_MOON=`<svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>`;
+const ICON_SUN=`<svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></g></svg>`;
+function iconBarHTML(t){
+  const link=(url,icon,label,missing)=> url
+    ? `<a class="icon-circle" href="${esc(url)}" target="_blank" rel="noopener" title="${label}" aria-label="${label}">${icon}</a>`
+    : `<span class="icon-circle off" title="${missing}" aria-label="${missing}">${icon}</span>`;
+  return `<div class="icon-bar">
+    ${link(t.github,ICON_GITHUB,"Open GitHub repository","No GitHub repo yet. Add it in Project summary.")}
+    ${link(t.trello,ICON_TRELLO,"Open Trello board","No Trello board yet. Add it in Project summary.")}
+    <button class="icon-circle" data-theme-toggle title="Switch light/dark mode" aria-label="Switch light/dark mode">${ICON_MOON}${ICON_SUN}</button></div>`;
+}
+// Signed-in student's name and email, with a dropdown (sign out).
+function accountHTML(){
+  const u=auth.currentUser, name=(u&&u.displayName)||USER_EMAIL.split("@")[0];
+  return `<div class="account">
+    <button class="account-btn" data-account-toggle aria-haspopup="menu" aria-expanded="false">
+      <span class="acct-text"><span class="acct-name">${esc(name)}</span><span class="acct-email">${esc(USER_EMAIL)}</span></span>
+      <svg class="acct-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="account-menu" role="menu"><button role="menuitem" data-sign-out>Sign out</button></div></div>`;
+}
+// Top row with just the account menu, for student pages without a project yet.
+function accountRowHTML(){ return IS_ADMIN?"":`<div class="top-row"><span></span><span class="top-right">${accountHTML()}</span></div>`; }
+// One row at the top of each student page: optional back link left; icon bar and
+// account menu right.
+function topRowHTML(t,left){
+  return `<div class="top-row"><span>${left||""}</span><span class="top-right">
+    <span id="icon-bar-${t.id}" class="icon-bar-slot">${iconBarHTML(t)}</span>${accountHTML()}</span></div>`;
+}
+// Title and overview on a student's project home. Kept separate so edits made
+// on the summary page can refresh it in place (see refreshProjectHead).
+function projectHeadHTML(t){
+  const p=projectInfo(t);
+  return `<div class="card project-head">
+    <span class="eyebrow">${esc(COURSE.code||COURSE.id)}${COURSE.name&&COURSE.name!==COURSE.code?` · ${esc(COURSE.name)}`:""}</span>
+    <h1>${esc(t.project||t.team)}</h1>
+    ${p.concept?`<p class="project-overview">${esc(p.concept)}</p>`:""}</div>`;
+}
+function refreshProjectHead(tid){
+  const t=TEAMS.find(x=>x.id===tid), el=$("proj-head-"+tid);
+  if(!t || !el || !studentView()) return;
+  el.innerHTML=projectHeadHTML(t);
+  document.querySelectorAll(`[id="icon-bar-${tid}"]`).forEach(x=>x.innerHTML=iconBarHTML(t));
+  renderNav(); markNav(location.hash.slice(1)||tid);   // the sidebar shows the project title
+}
+// Hours ring on a sprint panel: fills toward HOURS_TARGET, red below it, green at or above.
+const HOURS_TARGET=20;
+function hoursRingSVG(hours){
+  const r=36, c=2*Math.PI*r, known=hours!=null, f=known?Math.min(hours/HOURS_TARGET,1):0;
+  const cls=!known?"":hours>=HOURS_TARGET?"ok":"low";
+  const label=known?String(Math.round(hours*10)/10):"…";
+  return `<svg class="hours-ring ${cls}" viewBox="0 0 96 96" role="img" aria-label="${known?`${label} of ${HOURS_TARGET} hours`:"Loading hours"}">
+    <circle class="track" cx="48" cy="48" r="${r}"/>
+    ${f>0?`<circle class="arc" cx="48" cy="48" r="${r}" stroke-dasharray="${(c*f).toFixed(2)} ${c.toFixed(2)}" transform="rotate(-90 48 48)"/>`:""}
+    <text class="ring-n" x="48" y="45">${label}</text>
+    <text class="ring-l" x="48" y="64">of ${HOURS_TARGET} hrs</text></svg>`;
+}
+function sprintGridHTML(t){
+  if(!SPRINTS.length) return `<p class="muted">Your instructor hasn't started a sprint yet.</p>`;
+  const stats=SPRINT_STATS[t.id]||{}, cbd=(t.act&&t.act.ok&&t.act.commits_by_day)||null;
+  return `<div class="sprint-grid">${[...SPRINTS].reverse().map(sp=>{
+    const x=stats[sp.id], start=(x&&x.start)||sp.start||"", end=(x&&x.end)||sp.end||"";
+    const st=(x&&x.status)||"unrated", cur=!isPast(sp);
+    const commits=cbd?Object.values(sliceCbd(cbd,start,end)).reduce((a,b)=>a+b,0):null;
+    return `<button class="sprint-panel ${st}" data-sprint-open="${t.id}:${sp.id}">
+      <span class="sp-head"><b>${esc(sp.name||("Sprint "+sp.n))}</b><span class="sp-tag${cur?" cur":""}">${x&&x.submitted?"Submitted":cur?"Current":"Past"}</span></span>
+      <span class="sp-dates">${start&&end?`${esc(fmtD(start))} – ${esc(fmtD(end))}`:"&nbsp;"}</span>
+      <span class="sp-body">${hoursRingSVG(x?x.hours:null)}
+        <span class="sp-stats">
+          <span><b>${x?`${x.done}/${x.goals}`:"…"}</b>goals done</span>
+          <span><b>${commits==null?"—":commits}</b>commits</span></span></span>
+      <span class="sp-foot"><span class="pill ${st}"><span class="d"></span>${STATUS_LABEL[st]}</span>
+        ${x&&moodOf(x.mood)?`<span class="sp-mood" title="Felt: ${esc(moodOf(x.mood).l)}">${moodOf(x.mood).e}</span>`:""}</span>
+      ${cur&&x&&!x.goals&&!x.submitted?`<span class="sp-nudge">Enter goals to get started →</span>`:""}
+    </button>`;}).join("")}</div>`;
+}
+// Hours, goals and rating for every sprint of one project. Reloaded whenever its
+// home view is shown, so the panels reflect anything just logged on a sprint page.
+async function loadSprintStats(tid){
+  const out={};
+  await Promise.all(SPRINTS.map(async sp=>{
+    const base=`${cpath()}/sprints/${sp.id}/entries/${tid}`;
+    const [e, goals, time, retro]=await Promise.all([getDoc(doc(db,base)),
+      getDocs(collection(db,`${base}/goals`)), getDocs(collection(db,`${base}/time`)), getDocs(collection(db,`${base}/retro`))]);
+    const ed=e.exists()?e.data():{};
+    const rs=retro.docs.map(d=>d.data()), mine=rs.find(r=>r.studentEmail===USER_EMAIL)||(IS_ADMIN?rs[0]:null);
+    out[sp.id]={ status:ed.status||"unrated", start:ed.start||"", end:ed.end||"",
+      submitted:!!mine, mood:mine?mine.mood:null,
+      goals:goals.size, done:goals.docs.filter(d=>d.data().result==="done"||d.data().completed).length,
+      hours:time.docs.reduce((n,d)=>n+(Number(d.data().hours)||0),0) };
+  }));
+  SPRINT_STATS[tid]=out;
+  const t=TEAMS.find(x=>x.id===tid), el=$("sprint-grid-"+tid);
+  if(t && el) el.innerHTML=sprintGridHTML(t);
+}
+async function openSprint(tid,sid){
+  history.replaceState(null,"","#"+tid+"__sprint");
+  if(!SPRINT || SPRINT.id!==sid) await setSprint(sid);   // setSprint re-renders and shows the hash
+  else show(tid+"__sprint");
+}
+function teamHTML(t){
+  if(studentView()) return studentTeamHTML(t);
+  const a=sprintAct(t), w=winOf(t.id), st=statusOf(t);
+  return `<div class="view" id="view-${t.id}">
+    <span class="eyebrow">${esc(STATUS_LABEL[st])}</span>
+    <div class="thead"><div class="titles"><h1>${esc(t.team)}</h1>
+      ${t.project?`<div class="project">▸ ${esc(t.project)}</div>`:""}
+      ${t.members?`<div class="members"><b>${Lt(t).who}:</b> ${esc(t.members)}</div>`:""}</div>
+      <span class="pill ${st}" style="margin-top:6px"><span class="d"></span>${STATUS_LABEL[st]}</span></div>
+    <div class="chips">
+      ${t.github?`<a class="chip" href="${esc(t.github)}" target="_blank" rel="noopener"><span class="ic">GH</span>GitHub</a>`:`<span class="chip disabled"><span class="ic">GH</span>No repo yet</span>`}
+      ${t.trello?`<a class="chip" href="${esc(t.trello)}" target="_blank" rel="noopener"><span class="ic">TR</span>Trello</a>`:`<span class="chip disabled"><span class="ic">TR</span>No Trello</span>`}
+    </div>
+    ${projectSummaryHTML(t)}
+    ${sprintCardHTML(t)}
+    ${githubCardHTML(t)}
     ${a.trello?`<div class="card"><h2>Trello Board · as of ${esc(a.trello.date||"")}</h2>
       <div class="tsum">${a.trello.total_cards} open cards · ${a.trello.lists.length} lists</div>
       ${a.trello.cards_by_stage?`<div class="tby"><span class="tby-lbl">Workflow</span> Backlog <b>${a.trello.cards_by_stage.backlog||0}</b> · Active <b>${a.trello.cards_by_stage.active||0}</b> · Complete <b>${a.trello.cards_by_stage.complete||0}</b></div>`:""}
@@ -975,12 +1520,13 @@ function manageHTML(){
       </div>
     </div>
     <div id="courseForm" hidden></div>
+    ${rosterPanelHTML()}
     <div class="card"><h2>${l.Units}</h2>
       <div id="teamForm" hidden></div>
       <div class="mgr">${teams.map(t=>`<div class="mrow">
         <span class="pill ${statusOf(t)}"><span class="d"></span>${STATUS_LABEL[statusOf(t)]}</span>
         <span class="mname">${esc(t.team)}</span>
-        <span class="mproj">${esc(t.project)}</span>
+        <span class="mproj">${esc(t.project)||(isSetUp(t)?"":"<i>awaiting student setup</i>")}</span>
         <span class="mbtns"><button class="linkbtn" data-mact="edit" data-tid="${t.id}">Edit</button>
           <button class="linkbtn danger" data-mact="remove" data-tid="${t.id}">Remove</button></span>
       </div>`).join("") || `<p class="muted" style="padding:14px 16px">No ${l.units} yet.</p>`}</div>
@@ -1035,9 +1581,7 @@ function sprintFormHTML(sp){
       <label>End<input id="sp_end" type="date" value="${esc(v.end||"")}"></label>
     </div>
     ${sp?`<p class="muted" style="margin-top:12px">This is the course's default window. Review windows already set on a
-      ${L().unit}'s page keep their own dates — change those there.</p>`:`<p class="muted" style="margin-top:12px">Each ${L().unit} starts the day after their last review and keeps
-      their usual weekday, so windows stay aligned to when you actually meet. Roles carry over from the previous
-      sprint — edit them on each ${L().unit}'s page.</p>`}
+      ${L().unit}'s page keep their own dates — change those there.</p>`:""}
     <div style="margin-top:16px;display:flex;gap:10px">
       <button class="btn" data-mact="sprint-save"${sp?` data-sid="${sp.id}"`:""}>Save</button>
       <button class="btn secondary" data-mact="sprint-cancel">Cancel</button>
@@ -1059,10 +1603,13 @@ function teamFormHTML(t){
       <label>Type<select id="f_type"><option value="team"${defType==="team"?" selected":""}>Team</option><option value="solo"${defType==="solo"?" selected":""}>Solo</option></select></label>
       <label>Project title (optional)<input id="f_project" value="${esc(v.project)}" placeholder="e.g. Hero's Blacksmith"></label>
       <label>Member(s)<input id="f_members" value="${esc(v.members)}" placeholder="names, comma-separated"></label>
-      <label>Student email(s)<input id="f_student_emails" value="${esc((v.studentEmails||[]).join(", "))}" placeholder="student@neumont.edu, teammate@neumont.edu"></label>
       <label>GitHub URL<input id="f_github" value="${esc(v.github)}" placeholder="https://github.com/owner/repo"></label>
       <label>Trello URL<input id="f_trello" value="${esc(v.trello)}" placeholder="https://trello.com/b/xxxx (optional)"></label>
     </div>
+    <label class="nlbl" style="margin-top:14px">Assigned students</label>
+    ${rosterPickerHTML(v)}
+    <p class="setup-note">Students set the repo and board links themselves during setup; anything you enter above
+      overrides what they chose.</p>
     <div style="margin-top:16px;display:flex;gap:10px">
       <button class="btn" data-mact="save"${t?` data-tid="${t.id}"`:""}>Save</button>
       <button class="btn secondary" data-mact="cancel">Cancel</button>
@@ -1071,8 +1618,9 @@ function teamFormHTML(t){
 }
 function render(){
   const main=$("main");
+  if(!IS_ADMIN && !TEAMS.length){ main.innerHTML = noProjectHTML(); return; }
   main.innerHTML = (PREVIEW_STUDENT?`<div class="preview-bar"><b>Student preview</b> · Changes here are saved to the live project data.</div>`:"") +
-    dashboardHTML() + TEAMS.map(teamHTML).join("") + (instructorView()?manageHTML():"");
+    (studentView()?"":dashboardHTML()) + TEAMS.map(teamHTML).join("") + (instructorView()?manageHTML():"");
   const dashboardSprintFilter=$("dashboardSprintFilter"), dashboardStatusFilter=$("dashboardStatusFilter");
   if(dashboardSprintFilter) dashboardSprintFilter.onchange=e=>setSprint(e.target.value);
   if(dashboardStatusFilter) dashboardStatusFilter.onchange=e=>{
@@ -1097,7 +1645,37 @@ function render(){
   });
   wireSprintFields();
   wireStudentProjectFields();
+  wireSetupFields();
   wireScheduleDays();
+}
+// Fields a student owns directly on the team doc (title and the two links). The rules
+// allow exactly these, so a failure here means the field list drifted from the rules.
+function wireSetupFields(){
+  document.querySelectorAll("[data-setup]").forEach(el=>{
+    const [tid,field]=el.dataset.setup.split(":");
+    let tmr;
+    el.addEventListener("input", ()=>{ clearTimeout(tmr); tmr=setTimeout(async ()=>{
+      const val=el.value.trim();
+      try{
+        await setDoc(doc(db,`${cpath()}/teams/${tid}`), {[field]:val, updatedAt:serverTimestamp()}, {merge:true});
+        const t=TEAMS.find(x=>x.id===tid); if(t) t[field]=val;
+        flash("saved-project-"+tid); refreshProjectHead(tid);
+      }catch(e){ console.error(e); }
+    },600); });
+  });
+}
+async function finishSetup(tid){
+  const t=TEAMS.find(x=>x.id===tid)||{}, err=$("setupErr-"+tid), p=projectInfo(t);
+  const miss=[];
+  if(!t.project) miss.push("a project title");
+  if(!p.concept) miss.push("an overview");
+  if(!t.github)  miss.push("a GitHub repository");
+  if(miss.length){ if(err) err.textContent = "Still needed: " + miss.join(", ") + "."; return; }
+  try{
+    await setDoc(doc(db,`${cpath()}/teams/${tid}`), {setupComplete:true, updatedAt:serverTimestamp()}, {merge:true});
+    t.setupComplete=true;
+    render(); show(tid);
+  }catch(e){ console.error(e); if(err) err.textContent = e.code+" — "+e.message; }
 }
 function flash(id){ const b=$(id); if(b){ b.classList.add("show"); setTimeout(()=>b.classList.remove("show"),1200); } }
 
@@ -1137,7 +1715,7 @@ async function saveStudentProject(tid,changes){
   const next={concept:current.concept,features:current.features,tech:current.tech,...changes};
   await setDoc(doc(db, `${cpath()}/teams/${tid}`), {studentProject:next,updatedAt:serverTimestamp()}, {merge:true});
   if(t) t.studentProject=next;
-  flash("saved-project-"+tid);
+  flash("saved-project-"+tid); refreshProjectHead(tid);
 }
 function wireStudentProjectFields(){
   if(instructorView()) return;
@@ -1155,12 +1733,12 @@ async function addProjectListItem(tid,field){
   if(!value) return;
   const current=projectInfo(TEAMS.find(t=>t.id===tid)||{});
   await saveStudentProject(tid,{[field]:[...current[field],value]});
-  render(); show(tid);
+  render(); stay(tid);
 }
 async function removeProjectListItem(tid,field,index){
   const current=projectInfo(TEAMS.find(t=>t.id===tid)||{});
   await saveStudentProject(tid,{[field]:current[field].filter((_,i)=>i!==Number(index))});
-  render(); show(tid);
+  render(); stay(tid);
 }
 function wireScheduleDays(){
   const box=$("schedule_days"), label=$("schedule_days_label"); if(!box||!label) return;
@@ -1179,36 +1757,40 @@ async function addGoal(tid){
   const id="g-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,6);
   await setDoc(doc(db, `${sprintEntryPath(tid)}/goals/${id}`),
     {text:textValue,completed:false,studentEmail:USER_EMAIL,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
-  await loadEntries(); render(); show(tid);
+  await loadEntries(); render(); stay(tid);
 }
 async function removeGoal(tid,gid){
   await deleteDoc(doc(db, `${sprintEntryPath(tid)}/goals/${gid}`));
-  await loadEntries(); render(); show(tid);
-}
-async function toggleGoal(tid,gid,completed){
-  await setDoc(doc(db, `${sprintEntryPath(tid)}/goals/${gid}`), {completed,completedAt:completed?serverTimestamp():null,updatedAt:serverTimestamp()}, {merge:true});
-  const goal=(GOALS[tid]||[]).find(x=>x.id===gid); if(goal) goal.completed=completed;
-  render(); show(tid);
+  await loadEntries(); render(); stay(tid);
 }
 async function addTime(tid){
   const dateValue=fval("time-date-"+tid), hours=Number(fval("time-hours-"+tid)), note=fval("time-note-"+tid);
+  const studentEmail=instructorView()?fval("time-student-"+tid):USER_EMAIL;
   if(!dateValue||!Number.isFinite(hours)||hours<=0){ alert("Enter a date and hours greater than zero."); return; }
   const id="t-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,6);
   await setDoc(doc(db, `${sprintEntryPath(tid)}/time/${id}`),
-    {date:dateValue,hours,note,studentEmail:USER_EMAIL,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
-  await loadEntries(); render(); show(tid);
+    {date:dateValue,hours,note,studentEmail,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
+  await loadEntries(); render(); stay(tid);
 }
 async function removeTime(tid,timeId){
   await deleteDoc(doc(db, `${sprintEntryPath(tid)}/time/${timeId}`));
-  await loadEntries(); render(); show(tid);
+  await loadEntries(); render(); stay(tid);
 }
 async function onMainClick(e){
   const g = e.target.closest("[data-goto]"); if (g) { show(g.dataset.goto); return; }
+  const wo = e.target.closest("[data-wrap-open]"); if (wo) { const f=$("wrap-form-"+wo.dataset.wrapOpen); if(f){ f.hidden=!f.hidden; if(!f.hidden) f.scrollIntoView({behavior:"smooth",block:"start"}); } return; }
+  const ss = e.target.closest("[data-submit-sprint]"); if (ss) { await submitSprint(ss.dataset.submitSprint); return; }
+  const ro = e.target.closest("[data-reopen]"); if (ro) { const [tid,...em]=ro.dataset.reopen.split(":"); await reopenSprint(tid,em.join(":")); return; }
+  if (e.target.closest("[data-theme-toggle]")) { $("themeBtn").click(); return; }
+  const acct = e.target.closest("[data-account-toggle]");
+  if (acct) { const box=acct.closest(".account"), open=!box.classList.contains("open");
+    closeAccountMenus(); box.classList.toggle("open",open); acct.setAttribute("aria-expanded",open); return; }
+  if (e.target.closest("[data-sign-out]")) { closeAccountMenus(); await signOut(auth); return; }
+  const sp = e.target.closest("[data-sprint-open]"); if (sp) { const [tid,sid]=sp.dataset.sprintOpen.split(":"); await openSprint(tid,sid); return; }
   const addList=e.target.closest("[data-list-add]"); if(addList){ const [tid,field]=addList.dataset.listAdd.split(":"); await addProjectListItem(tid,field); return; }
   const removeList=e.target.closest("[data-list-remove]"); if(removeList){ const [tid,field,index]=removeList.dataset.listRemove.split(":"); await removeProjectListItem(tid,field,index); return; }
   const addGoalBtn=e.target.closest("[data-goal-add]"); if(addGoalBtn){ await addGoal(addGoalBtn.dataset.goalAdd); return; }
   const removeGoalBtn=e.target.closest("[data-goal-remove]"); if(removeGoalBtn){ const [tid,gid]=removeGoalBtn.dataset.goalRemove.split(":"); await removeGoal(tid,gid); return; }
-  const goalCheck=e.target.closest("[data-goal-check]"); if(goalCheck){ const [tid,gid]=goalCheck.dataset.goalCheck.split(":"); await toggleGoal(tid,gid,goalCheck.checked); return; }
   const addTimeBtn=e.target.closest("[data-time-add]"); if(addTimeBtn){ await addTime(addTimeBtn.dataset.timeAdd); return; }
   const removeTimeBtn=e.target.closest("[data-time-remove]"); if(removeTimeBtn){ const [tid,timeId]=removeTimeBtn.dataset.timeRemove.split(":"); await removeTime(tid,timeId); return; }
   const m = e.target.closest("[data-mact]"); if (!m) return;
@@ -1223,6 +1805,10 @@ async function onMainClick(e){
   // course actions
   // sprint actions
   else if (act === "schedule-save") await saveSchedule();
+  else if (act === "roster-add")    await addToRoster();
+  else if (act === "roster-remove") await removeFromRoster(m.dataset.email);
+  else if (act === "setup-done")    await finishSetup(m.dataset.tid);
+  else if (act === "own-project-add") await createOwnProject();
   else if (act === "sprint-add")    openSprintForm(null);
   else if (act === "sprint-edit")   openSprintForm(SPRINTS.find(sp=>sp.id===m.dataset.sid));
   else if (act === "sprint-cancel"){ const f=$("sprintForm"); if(f){f.hidden=true; f.innerHTML="";} }
@@ -1259,30 +1845,112 @@ function slugId(name){
   const base = name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,24) || "team";
   return base + "-" + Date.now().toString(36).slice(-4);
 }
+/* ---------- roster ----------
+   course.studentEmails is the enrollment list the instructor keeps; a team's
+   studentEmails is the subset assigned to it. Membership is instructor-written,
+   except that in a solo course a student creates their own one-person project. */
+function roster(){ return (COURSE && COURSE.studentEmails) || []; }
+function teamOfEmail(em){ return TEAMS.find(t=>(t.studentEmails||[]).includes(em)) || null; }
+// Projects created before setup tracking existed are judged by what they already have,
+// so nobody is sent back through setup for work they already did.
+function isSetUp(t){
+  if(t.setupComplete===true) return true;
+  if(t.setupComplete===false) return false;
+  return !!(t.github && projectInfo(t).concept);
+}
+async function saveRoster(emails){
+  const next=[...new Set(emails)].sort();
+  await setDoc(doc(db,cpath()), {studentEmails:next}, {merge:true});
+  if(COURSE) COURSE.studentEmails=next;
+  await syncEnrollments();
+}
+/* One small doc per enrolled student (enrollments/{email}) carrying just the course
+   label. Students can't read the course doc (it holds the whole roster), so this is
+   how they find a course they're enrolled in before they have a project. Kept in step
+   with course.studentEmails on every save and course load, so it self-heals. */
+async function syncEnrollments(){
+  if(!IS_ADMIN || !COURSE) return;
+  const base=`${cpath()}/enrollments`;
+  const want={courseId:COURSE.id, ownerUid:UID, courseCode:COURSE.code||COURSE.id,
+    courseName:COURSE.name||COURSE.code||COURSE.id, courseType:COURSE.type||"team"};
+  const have={}; (await getDocs(collection(db,base))).forEach(d=>have[d.id]=d.data());
+  const emails=new Set(roster()), ops=[];
+  emails.forEach(em=>{
+    const h=have[em];
+    if(!h || Object.keys(want).some(k=>h[k]!==want[k]) || h.email!==em)
+      ops.push(setDoc(doc(db,`${base}/${em}`), {...want, email:em}));
+  });
+  Object.keys(have).forEach(em=>{ if(!emails.has(em)) ops.push(deleteDoc(doc(db,`${base}/${em}`))); });
+  await Promise.all(ops);
+}
+async function addToRoster(){
+  const err=$("rosterErr"); if(err) err.textContent="";
+  const added=parseStudentEmails(fval("rosterAdd"));
+  if(!added.length){ if(err) err.textContent="Enter at least one email address."; return; }
+  if(!validStudentEmails(added)){ if(err) err.textContent="Use only valid @student.neumont.edu addresses."; return; }
+  try{ await saveRoster([...roster(),...added]); await loadCourse(COURSE.id); show("manage"); }
+  catch(e){ console.error(e); if(err) err.textContent = e.code+" — "+e.message; }
+}
+async function removeFromRoster(em){
+  const t=teamOfEmail(em);
+  if(t && !confirm(`${em} is assigned to ${t.team}. Remove them from the course and from that ${L().unit}?`)) return;
+  try{
+    if(t){
+      const next=(t.studentEmails||[]).filter(x=>x!==em);
+      await setDoc(doc(db,`${cpath()}/teams/${t.id}`), {studentEmails:next, updatedAt:serverTimestamp()}, {merge:true});
+    }
+    await saveRoster(roster().filter(x=>x!==em));
+    await loadCourse(COURSE.id); show("manage");
+  }catch(e){ console.error(e); alert("Couldn't remove: " + (e.message||e)); }
+}
+function rosterPanelHTML(){
+  const list=roster();
+  return `<div class="card"><h2>Students</h2>
+    <p class="muted" style="margin:0 0 10px">Add students by their @student.neumont.edu address, then assign them to a
+    ${L().unit}. They sign in and set the project up themselves.</p>
+    <div class="mgr">${list.length?list.map(em=>{
+      const t=teamOfEmail(em);
+      const pill = !t ? `<span class="pill unrated"><span class="d"></span>Unassigned</span>`
+        : isSetUp(t) ? `<span class="pill healthy"><span class="d"></span>Set up</span>`
+        : `<span class="pill watch"><span class="d"></span>Needs setup</span>`;
+      return `<div class="mrow">${pill}
+        <span class="mname">${esc(em)}</span>
+        <span class="mproj">${t?esc(t.team):"—"}</span>
+        <span class="mbtns"><button class="linkbtn danger" data-mact="roster-remove" data-email="${esc(em)}">Remove</button></span>
+      </div>`;}).join(""):`<p class="muted" style="padding:14px 16px">No students enrolled yet.</p>`}</div>
+    <div class="panel-actions" style="display:block">
+      <label class="nlbl" for="rosterAdd">Add students</label>
+      <textarea id="rosterAdd" placeholder="student@student.neumont.edu, teammate@student.neumont.edu — commas, spaces or one per line"></textarea>
+      <div style="margin-top:10px"><button class="btn" data-mact="roster-add">+ Add to course</button></div>
+      <p class="muted" id="rosterErr" style="color:var(--risk);margin-top:10px"></p>
+    </div></div>`;
+}
+function rosterPickerHTML(v){
+  const list=roster(), mine=new Set(v.studentEmails||[]);
+  if(!list.length) return `<p class="muted">No students on the course roster yet — add them under <b>Students</b> first.</p>`;
+  return `<div class="picker">${list.map(em=>{
+    const other=TEAMS.find(t=>t.id!==v.id && (t.studentEmails||[]).includes(em));
+    return `<label class="pick-row${other?" taken":""}">
+      <input type="checkbox" class="f_student" value="${esc(em)}"${mine.has(em)?" checked":""}${other?" disabled":""}>
+      <span>${esc(em)}</span>${other?`<span class="muted">on ${esc(other.team)}</span>`:""}</label>`;}).join("")}</div>`;
+}
 function parseStudentEmails(value){
   return [...new Set(String(value||"").split(/[;,\s]+/).map(x=>x.trim().toLowerCase()).filter(Boolean))];
 }
-function validStudentEmails(emails){ return emails.every(x=>/^[^@\s]+@neumont\.edu$/.test(x)); }
-async function updateCourseStudentEmails(teams){
-  const emails=[...new Set((teams||[]).flatMap(t=>t.studentEmails||[]))].sort();
-  await setDoc(doc(db,cpath()), {studentEmails:emails}, {merge:true});
-  if(COURSE) COURSE.studentEmails=emails;
-}
+function validStudentEmails(emails){ return emails.every(x=>/^[^@\s]+@student\.neumont\.edu$/.test(x)); }
 async function saveTeam(tid){
-  const studentEmails=parseStudentEmails(fval("f_student_emails"));
+  const studentEmails=[...document.querySelectorAll(".f_student:checked")].map(x=>x.value);
   const data = { team:fval("f_team"), project:fval("f_project"), members:fval("f_members"),
                  studentEmails, github:fval("f_github"), trello:fval("f_trello"), type:fval("f_type")||"team",
                  ownerUid:UID, courseId:COURSE.id, courseCode:COURSE.code||COURSE.id,
                  courseName:COURSE.name||COURSE.code||COURSE.id, courseType:COURSE.type||"team" };
   if (!data.team){ $("formErr").textContent = "Name is required."; return; }
-  if (!validStudentEmails(studentEmails)){ $("formErr").textContent = "Use only valid @neumont.edu student email addresses."; return; }
+  if (!validStudentEmails(studentEmails)){ $("formErr").textContent = "Use only valid @student.neumont.edu addresses."; return; }
   let id = tid, payload = { ...data };
   if (!id){ id = slugId(data.team); payload.prop={concept:"",features:"",tech:"",flag:""}; payload.sprint=null;
             payload.why=""; payload.notes=""; if(!payload.status) payload.status="unrated"; }
   try {
     await setDoc(doc(db, `users/${UID}/courses/${COURSE.id}/teams/${id}`), payload, { merge:true });
-    const nextTeams=TEAMS.filter(x=>x.id!==id).concat([{...(TEAMS.find(x=>x.id===id)||{}),id,...payload}]);
-    await updateCourseStudentEmails(nextTeams);
     if (!tid && SPRINT)   // a team added mid-course joins the sprint already running
       await setDoc(doc(db, `${cpath()}/sprints/${SPRINT.id}/entries/${id}`),
         { po:"", sm:"", devs:"", hours:"", start:SPRINT.start, end:SPRINT.end,
@@ -1296,7 +1964,6 @@ async function removeTeam(tid){
     await deleteDoc(doc(db, `users/${UID}/courses/${COURSE.id}/notes/${tid}`)).catch(()=>{});
     for (const sp of SPRINTS)
       await deleteDoc(doc(db, `${cpath()}/sprints/${sp.id}/entries/${tid}`)).catch(()=>{});
-    await updateCourseStudentEmails(TEAMS.filter(t=>t.id!==tid));
     await loadCourse(COURSE.id); show("manage");
   } catch(e){ console.error(e); alert("Couldn't remove: " + (e.message||e)); }
 }
@@ -1459,21 +2126,58 @@ function renderNoCourses(){
     ? `<span class="eyebrow">Getting started</span><h1>Create your first course</h1>
       <p class="lede">Add a course, then add its teams. The daily sync will fill in each team's commit and Trello activity.</p>
       <div style="margin:18px 0"><button class="btn" data-mact="course-add">+ New course</button></div><div id="courseForm" hidden></div>`
-    : `<span class="eyebrow">Student mode</span><h1>No projects assigned</h1>
+    : `${accountRowHTML()}<span class="eyebrow">Student mode</span><h1>No projects assigned</h1>
       <p class="lede">Ask your instructor to add ${esc(USER_EMAIL)} to the project's Student email(s) field.</p>`;
 }
 
 /* ---------- routing + theme ---------- */
+// Re-show after an edit: keep the sub-view (sprint page, summary) the user was on.
+function stay(tid){ const h=location.hash.slice(1); show(h.split("__")[0]===tid ? h : tid); }
+function markNav(view){
+  const navView=studentView() ? view : view.split("__")[0];
+  const onSprint=view.endsWith("__sprint") && SPRINT;
+  document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",
+    b.dataset.sprintNav ? !!onSprint && b.dataset.sprintNav===`${view.split("__")[0]}:${SPRINT.id}`
+      : b.dataset.view===navView && !b.dataset.course));
+}
 function show(view){
+  // Students have no course dashboard; anything unknown lands on their first project.
+  if(studentView() && TEAMS.length && !document.getElementById("view-"+view)) view=TEAMS[0].id;
+  // Switching project (picker or link) rebuilds the student nav for that project.
+  if(studentView() && $("projectSel").value!==view.split("__")[0] && TEAMS.some(t=>t.id===view.split("__")[0])){
+    history.replaceState(null,"","#"+view); renderNav();
+  }
   document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
   (document.getElementById("view-"+view)||document.getElementById("view-dashboard"))?.classList.add("active");
-  document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active", b.dataset.view===view));
+  markNav(view);
+  if(studentView() && document.getElementById("sprint-grid-"+view))
+    loadSprintStats(view).catch(e=>console.error("sprint stats:", e));
   window.scrollTo({top:0});
   if(location.hash.slice(1)!==view) history.replaceState(null,"","#"+view);
 }
 window.addEventListener("hashchange", ()=>show(location.hash.slice(1)||"dashboard"));
-$("nav").addEventListener("click", e=>{ const b=e.target.closest("button[data-view]"); if(b) show(b.dataset.view); });
-$("main").addEventListener("click", onMainClick);   // delegated: team + course actions (works on all views)
+$("nav").addEventListener("click", async e=>{
+  const sn=e.target.closest("button[data-sprint-nav]");
+  if(sn){ const [tid,sid]=sn.dataset.sprintNav.split(":"); await openSprint(tid,sid); return; }
+  const b=e.target.closest("button[data-view]"); if(!b) return;
+  if(b.dataset.course){ history.replaceState(null,"","#"+b.dataset.view); await loadCourse(b.dataset.course); return; }
+  show(b.dataset.view); });
+$("main").addEventListener("click", onMainClick);
+$("projectSel").onchange = e => show(e.target.value);
+function closeAccountMenus(){ document.querySelectorAll(".account.open").forEach(a=>{ a.classList.remove("open");
+  a.querySelector("[data-account-toggle]")?.setAttribute("aria-expanded","false"); }); }
+document.addEventListener("click", e=>{ if(!e.target.closest(".account")) closeAccountMenus(); });
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeAccountMenus(); });
+$("main").addEventListener("keydown", e=>{   // Enter in an add field = click its Add button
+  if(e.key!=="Enter" || e.target.tagName!=="INPUT") return;
+  const btn=e.target.closest(".add-group, .entry-form")?.querySelector("[data-list-add],[data-goal-add],[data-time-add]");
+  if(btn){ e.preventDefault(); btn.click(); }
+});
+$("main").addEventListener("change", async e=>{   // goal status dropdown (student during the sprint, instructor on review)
+  const sel=e.target.closest("[data-goal-result]"); if(!sel) return;
+  const [tid,gid]=sel.dataset.goalResult.split(":");
+  try{ await setGoalResult(tid,gid,sel.value); }catch(err){ console.error(err); alert("Couldn't save: "+(err.message||err)); }
+});   // delegated: team + course actions (works on all views)
 const root=document.documentElement;
 $("modeToggle").onclick=()=>{
   if(!IS_ADMIN) return;

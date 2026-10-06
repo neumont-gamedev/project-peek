@@ -1,10 +1,18 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function isNeumont() {
-      return request.auth != null
-        && request.auth.token.email_verified == true
-        && request.auth.token.email.matches('.*@neumont[.]edu');
+    // Instructors sign in with @neumont.edu, students with @student.neumont.edu.
+    // Only staff can own courses; only student accounts get the student paths.
+    function isVerified() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    function isStaff() {
+      return isVerified() && request.auth.token.email.lower().matches('[^@]+@neumont[.]edu');
+    }
+
+    function isStudent() {
+      return isVerified() && request.auth.token.email.lower().matches('[^@]+@student[.]neumont[.]edu');
     }
 
     function email() {
@@ -12,7 +20,7 @@ service cloud.firestore {
     }
 
     function isOwner(ownerUid) {
-      return isNeumont() && request.auth.uid == ownerUid;
+      return isStaff() && request.auth.uid == ownerUid;
     }
 
     function coursePath(ownerUid, courseId) {
@@ -24,30 +32,72 @@ service cloud.firestore {
     }
 
     function isCourseStudent(ownerUid, courseId) {
-      return isNeumont()
+      return isStudent()
         && email() in get(coursePath(ownerUid, courseId)).data.studentEmails;
     }
 
+    // A student's sprint is locked for them once they've submitted their wrap-up.
+    function submitted(ownerUid, courseId, sprintId, teamId) {
+      return exists(/databases/$(database)/documents/users/$(ownerUid)/courses/$(courseId)/sprints/$(sprintId)/entries/$(teamId)/retro/$(email()));
+    }
+
     function isTeamStudent(ownerUid, courseId, teamId) {
-      return isNeumont()
+      return isStudent()
         && email() in get(teamPath(ownerUid, courseId, teamId)).data.studentEmails;
+    }
+
+    // Collection-group lookup a student uses to find their assigned teams. The
+    // nested teams match below doesn't cover collection-group queries.
+    match /{path=**}/teams/{teamId} {
+      allow read: if isStudent() && email() in resource.data.studentEmails;
+    }
+
+    // Collection-group lookup a student uses to find the courses they're enrolled in.
+    match /{path=**}/enrollments/{enrollmentId} {
+      allow read: if isStudent() && resource.data.email == email();
     }
 
     match /users/{ownerUid} {
       allow read, write: if isOwner(ownerUid);
 
       match /courses/{courseId} {
-        allow read: if isOwner(ownerUid) || isCourseStudent(ownerUid, courseId);
-        allow write: if isOwner(ownerUid);
+        // Owner-only: the course doc holds the full enrollment list (studentEmails).
+        // Students still pass isCourseStudent checks below, since rules-side get()
+        // isn't limited by this read rule.
+        allow read, write: if isOwner(ownerUid);
 
         match /teams/{teamId} {
           allow read: if isOwner(ownerUid)
-            || (isNeumont() && email() in resource.data.studentEmails);
-          allow create, delete: if isOwner(ownerUid);
+            || (isStudent() && email() in resource.data.studentEmails);
+          allow delete: if isOwner(ownerUid);
+          // In a solo course an enrolled student creates their own one-person project.
+          // The id is fixed per student, so they can only ever create one.
+          allow create: if isOwner(ownerUid)
+            || (isCourseStudent(ownerUid, courseId)
+              && get(coursePath(ownerUid, courseId)).data.get('type', 'team') == 'solo'
+              && teamId == 'solo-' + email().split('@')[0]
+              && request.resource.data.studentEmails == [email()]
+              && request.resource.data.ownerUid == ownerUid
+              && request.resource.data.courseId == courseId
+              && request.resource.data.type == 'solo'
+              && request.resource.data.status == 'unrated'
+              && request.resource.data.setupComplete == false
+              && request.resource.data.keys().hasOnly(['team', 'members', 'project',
+                   'studentEmails', 'type', 'ownerUid', 'courseId', 'courseCode',
+                   'courseName', 'courseType', 'github', 'trello', 'status',
+                   'setupComplete', 'createdAt', 'updatedAt']));
+          // Students set up their own project: title, description, and the repo/board
+          // links. Membership (studentEmails) stays instructor-written, so a student
+          // can never add themselves to another project.
           allow update: if isOwner(ownerUid)
             || (isTeamStudent(ownerUid, courseId, teamId)
               && request.resource.data.diff(resource.data).affectedKeys()
-                .hasOnly(['studentProject', 'updatedAt']));
+                .hasOnly(['studentProject', 'project', 'github', 'trello',
+                          'setupComplete', 'updatedAt']));
+        }
+
+        match /enrollments/{enrollmentId} {
+          allow read, write: if isOwner(ownerUid);
         }
 
         match /notes/{noteId} {
@@ -66,15 +116,20 @@ service cloud.firestore {
               allow read: if isOwner(ownerUid) || isTeamStudent(ownerUid, courseId, teamId);
               allow write: if isOwner(ownerUid);
               allow create: if isTeamStudent(ownerUid, courseId, teamId)
+                && !submitted(ownerUid, courseId, sprintId, teamId)
                 && request.resource.data.studentEmail == email()
                 && request.resource.data.completed == false;
+              // Students edit their goal text and mark their own result until they submit.
               allow update: if isTeamStudent(ownerUid, courseId, teamId)
+                && !submitted(ownerUid, courseId, sprintId, teamId)
                 && resource.data.studentEmail == email()
                 && request.resource.data.studentEmail == resource.data.studentEmail
                 && request.resource.data.completed == resource.data.completed
                 && request.resource.data.diff(resource.data).affectedKeys()
-                  .hasOnly(['text', 'updatedAt']);
+                  .hasOnly(['text', 'result', 'updatedAt'])
+                && request.resource.data.get('result', '') in ['', 'done', 'partial', 'notdone'];
               allow delete: if isTeamStudent(ownerUid, courseId, teamId)
+                && !submitted(ownerUid, courseId, sprintId, teamId)
                 && resource.data.studentEmail == email()
                 && resource.data.completed == false;
             }
@@ -83,14 +138,33 @@ service cloud.firestore {
               allow read: if isOwner(ownerUid) || isTeamStudent(ownerUid, courseId, teamId);
               allow write: if isOwner(ownerUid);
               allow create: if isTeamStudent(ownerUid, courseId, teamId)
+                && !submitted(ownerUid, courseId, sprintId, teamId)
                 && request.resource.data.studentEmail == email();
               allow update: if isTeamStudent(ownerUid, courseId, teamId)
+                && !submitted(ownerUid, courseId, sprintId, teamId)
                 && resource.data.studentEmail == email()
                 && request.resource.data.studentEmail == resource.data.studentEmail
                 && request.resource.data.diff(resource.data).affectedKeys()
                   .hasOnly(['date', 'hours', 'note', 'updatedAt']);
               allow delete: if isTeamStudent(ownerUid, courseId, teamId)
+                && !submitted(ownerUid, courseId, sprintId, teamId)
                 && resource.data.studentEmail == email();
+            }
+
+            // End-of-sprint wrap-up, one per student (doc id = their email). Creating it
+            // submits the sprint; only the instructor can change or delete (reopen) it.
+            match /retro/{retroId} {
+              allow read: if isOwner(ownerUid) || isTeamStudent(ownerUid, courseId, teamId);
+              allow write: if isOwner(ownerUid);
+              allow create: if isTeamStudent(ownerUid, courseId, teamId)
+                && retroId == email()
+                && request.resource.data.studentEmail == email()
+                && request.resource.data.mood is int
+                && request.resource.data.mood >= 1 && request.resource.data.mood <= 5
+                && request.resource.data.wentWell is string && request.resource.data.wentWell.size() <= 4000
+                && request.resource.data.improve is string && request.resource.data.improve.size() <= 4000
+                && request.resource.data.keys().hasOnly(['studentEmail', 'mood', 'wentWell',
+                     'improve', 'submittedAt']);
             }
           }
         }
