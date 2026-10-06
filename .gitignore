@@ -25,6 +25,8 @@ env/
 firebase-debug.log
 firestore-debug.log
 ui-debug.log
+database-debug.log
+.emulator-data/
 .runtimeconfig.json
 
 # --- Generated output (rebuild with: python tracker/run_all.py) ---
