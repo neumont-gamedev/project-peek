@@ -577,6 +577,22 @@
   .card, .side, .brand-title, .sprint-panel, .icon-bar, .account-btn, .account-menu {
     background-image:var(--panel-grad); }
   /* Sprint card tinted by the instructor's rating. After the panel-gradient rule so it layers on top. */
+  .card.rh-trend{ margin-top:0; }
+  .mood-trend{ width:100%; height:auto; display:block; }
+  .mood-trend .mt-grid{ stroke:var(--line-soft); stroke-width:1; }
+  .mood-trend .mt-line{ fill:none; stroke:var(--accent); stroke-width:3; stroke-linejoin:round; stroke-linecap:round; }
+  .mood-trend .mt-dot{ fill:var(--accent); }
+  .mood-trend text{ text-anchor:middle; }
+  .mood-trend .mt-emoji{ font-size:26px; }
+  .mood-trend .mt-label{ font-size:13px; fill:var(--ink-soft); }
+  .mood-trend .mt-none{ font-size:14px; fill:var(--ink-faint); }
+  .retro-card.pending{ opacity:.8; }
+  .rh-top{ display:flex; align-items:center; gap:12px; margin:14px 0 6px; font-size:14px; flex-wrap:wrap; }
+  .rh-goals{ margin-left:auto; font-size:13px; color:var(--ink-soft); }
+  .rh-goal-list{ list-style:none; margin:8px 0 14px; padding:0; max-width:760px; }
+  .rh-goal-list li{ display:flex; justify-content:space-between; align-items:center; gap:12px; padding:7px 0;
+    border-top:1px solid var(--line-soft); font-size:14px; }
+  .rh-kv{ margin-top:6px; }
   .countdown{ display:flex; align-items:center; gap:14px; margin:14px 0 4px; padding:12px 16px; border-radius:12px;
     background:var(--surface-2); border:1px solid var(--line); color:var(--ink); font-size:14px; line-height:1.45; }
   .countdown.urgent{ background:var(--watch-bg); border-color:var(--watch); }
@@ -595,6 +611,7 @@
   .after-end.has b{ color:var(--watch); font-family:var(--font-mono); }
   .ov-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
   .ov-wrap{ margin-top:22px; }
+  .ov-actions{ display:flex; gap:8px; flex-wrap:wrap; }
   .ov-table{ min-width:0; width:auto; }
   .ov-table thead th{ vertical-align:bottom; white-space:nowrap; }
   .ov-table th.ov-sprint span{ display:block; color:var(--ink); font-size:11.5px; }
@@ -738,7 +755,8 @@ let COURSES=[], COURSE=null, TEAMS=[], ASSIGNED_TEAMS=[], NOTES={}, RANGE=[null,
 let SPRINTS=[], SPRINT=null, ENTRIES={}, GOALS={}, TIME_ENTRIES={}, UNLOCKED=false, DASH_STATUS_FILTER="all";
 let LAST_SYNC=null, SYNC_REPORT=null, SYNC_SCHEDULE={};
 let SPRINT_STATS={}, RETROS={};
-let EDITING_TIME="";   // "teamId:timeId" while a time entry is open for editing
+let EDITING_TIME="";
+let RETRO_HISTORY={};  // student view: {teamId: [{sprint, retro, goals, entry}]}, oldest first   // "teamId:timeId" while a time entry is open for editing
 let OVERVIEW=null;   // instructor class overview: {course, loadedAt, cells:{teamId:{sprintId:{…}}}}   // student view: {teamId: {sprintId: {hours, goals, done, status, start, end}}}
 // Local calendar date (not UTC, which flips to tomorrow in the evening in Mountain time).
 const TODAY = (d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`)(new Date());
@@ -1155,6 +1173,7 @@ function studentNavHTML(){
     `<button data-sprint-nav="${t.id}:${sp.id}"><span class="dot ${sprintPhase(sp)==="current"?"healthy":"unrated"}"></span><span class="tname">${esc(sp.name||("Sprint "+sp.n))}${{current:" · current",grace:" · last day",upcoming:" · upcoming",closed:""}[sprintPhase(sp)]}</span>${hasNewFeedback(t.id,sp.id)?`<span class="nav-new" title="New feedback"></span>`:""}</button>`).join("");
   return `<button data-view="${t.id}"><span class="nav-ic">▚</span><span class="tname">Dashboard</span></button>
     <button data-view="${t.id}__summary"><span class="nav-ic">✎</span><span class="tname">Project summary</span></button>
+    <button data-view="${t.id}__retros"><span class="nav-ic">◷</span><span class="tname">Retrospectives</span></button>
     ${SPRINTS.length?`<div class="nav-label">Sprints</div>${sprints}`:""}`;
 }
 
@@ -1167,7 +1186,8 @@ function studentNavHTML(){
 function overviewViewHTML(){
   return `<div class="view" id="view-overview">
     <div class="ov-head"><h1>Class overview</h1>
-      <button class="btn secondary" data-ov-refresh>↻ Refresh</button></div>
+      <span class="ov-actions"><button class="btn secondary" data-ov-export>⬇ Export CSV</button>
+        <button class="btn secondary" data-ov-refresh>↻ Refresh</button></span></div>
     <div id="overview-body">${overviewBodyHTML()}</div></div>`;
 }
 async function ensureOverview(){
@@ -1186,8 +1206,11 @@ async function ensureOverview(){
         (cells[t.id] ||= {})[sp.id]={
           hours: time.docs.reduce((n,d)=>n+(Number(d.data().hours)||0),0),
           goals: goals.size, done: goals.docs.filter(d=>d.data().result==="done"||d.data().completed).length,
+          partial: goals.docs.filter(d=>d.data().result==="partial").length,
+          notdone: goals.docs.filter(d=>d.data().result==="notdone").length,
           submitted: rs.length>0, mood: rs.length ? rs[0].mood : null,
-          status: e.status||"unrated", reviewDate: e.reviewDate||"" };
+          wentWell: rs.length ? rs[0].wentWell||"" : "", improve: rs.length ? rs[0].improve||"" : "",
+          status: e.status||"unrated", review: e.review||"", reviewDate: e.reviewDate||"" };
       }));
     }));
     if(!COURSE || COURSE.id!==course) return;   // switched course while loading
@@ -1228,6 +1251,39 @@ function overviewBodyHTML(){
     <tbody>${rows}</tbody></table></div>
     <p class="muted ov-legend">${["healthy","watch","risk","noaccess"].map(k=>`<span class="ov-key ${k}"></span>${esc(STATUS_LABEL[k])}`).join(" · ")}
       · Updated ${esc(fmtWhen(OVERVIEW.loadedAt))}</p>`;
+}
+// CSV of the overview for grading: one row per project per sprint (upcoming sprints
+// left out). UTF-8 with a BOM so Excel keeps emoji and accented names intact.
+async function exportOverviewCSV(){
+  await ensureOverview();
+  if(!OVERVIEW || OVERVIEW.course!==COURSE.id){ alert("The overview hasn't loaded yet. Try again in a moment."); return; }
+  const cols=["Course","Student","Email","Project","Sprint","Start","End","Target hours","Hours logged","Met target",
+    "Goals","Goals done","Goals partly done","Goals not done","Retrospective submitted","Mood (1-5)","Mood",
+    "What went well","Could be improved","Rating","Review","Review date","Commits in sprint","Commits after sprint end"];
+  const cell=v=>{ const t=v==null?"":String(v); return /[",\n\r]/.test(t) ? `"${t.replace(/"/g,'""')}"` : t; };
+  const lines=[cols.map(cell).join(",")];
+  const teams=[...TEAMS].sort((a,b)=>(a.team||"").localeCompare(b.team||""));
+  for(const t of teams){
+    const cbd=(t.act&&t.act.ok&&t.act.commits_by_day)||null;
+    for(const sp of SPRINTS){
+      if(sprintPhase(sp)==="upcoming") continue;
+      const c=(OVERVIEW.cells[t.id]||{})[sp.id]; if(!c) continue;
+      const target=targetOf(sp), m=moodOf(c.mood);
+      const inSprint=cbd&&sp.start&&sp.end ? Object.values(sliceCbd(cbd,sp.start,sp.end)).reduce((a,b)=>a+b,0) : "";
+      const after=cbd&&sp.end ? Object.keys(cbd).filter(d=>d>sp.end).reduce((a,d)=>a+cbd[d],0) : "";
+      lines.push([COURSE.code||COURSE.id, t.team||"", (t.studentEmails||[]).join("; "), t.project||"",
+        sp.name||("Sprint "+sp.n), sp.start||"", sp.end||"", target, Math.round(c.hours*100)/100, c.hours>=target?"Yes":"No",
+        c.goals, c.done, c.partial, c.notdone, c.submitted?"Yes":"No", c.mood||"", m?m.l:"",
+        c.wentWell, c.improve, c.status==="unrated"?"":STATUS_LABEL[c.status], c.review, c.reviewDate,
+        inSprint, after].map(cell).join(","));
+    }
+  }
+  const blob=new Blob(["\uFEFF"+lines.join("\r\n")], {type:"text/csv;charset=utf-8"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=`${(COURSE.code||COURSE.id).replace(/[^\w-]+/g,"_")}-sprints-${TODAY}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
 }
 // Open one project's sprint from the overview (instructor).
 async function openTeamSprint(tid,sid){
@@ -1566,6 +1622,9 @@ function studentTeamHTML(t){
   <div class="view view-flush" id="view-${t.id}__sprint">${top}
     ${SPRINT?`${sprintCardHTML(t)}${githubCardHTML(t)}`:`<p class="muted">No sprint selected.</p>`}
   </div>
+  <div class="view view-flush" id="view-${t.id}__retros">${top}
+    <div id="retros-${t.id}">${retroHistoryHTML(t.id)}</div>
+  </div>
   <div class="view view-flush" id="view-${t.id}__summary">${top}
     ${projectSummaryHTML(t)}
   </div>`;
@@ -1635,6 +1694,69 @@ function hoursRingSVG(hours, target){
     <text class="ring-n" x="48" y="45">${label}</text>
     <text class="ring-l" x="48" y="64">of ${HOURS_TARGET} hrs</text></svg>`;
 }
+/* ---------- retrospective history (student) ----------
+   Every sprint's retrospective side by side, newest first, with a mood trend across
+   sprints. Each card pairs the student's own reflection and goal results with the
+   instructor's rating and review. Reloaded each time the page is opened. */
+async function loadRetroHistory(tid){
+  const rows=await Promise.all(SPRINTS.map(async sp=>{
+    const base=`${cpath()}/sprints/${sp.id}/entries/${tid}`;
+    const [e, goals, retro]=await Promise.all([getDoc(doc(db,base)),
+      getDocs(collection(db,`${base}/goals`)), getDocs(collection(db,`${base}/retro`))]);
+    const rs=retro.docs.map(d=>d.data());
+    return { sprint:sp, entry:e.exists()?e.data():{},
+      retro: rs.find(r=>r.studentEmail===USER_EMAIL) || (IS_ADMIN ? rs[0] : null) || null,
+      goals: goals.docs.map(d=>d.data()).filter(g=>IS_ADMIN || g.studentEmail===USER_EMAIL)
+        .sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0)) };
+  })).catch(err=>{ console.error("retro history:", err); return null; });
+  if(!rows) return;
+  RETRO_HISTORY[tid]=rows;
+  const el=$("retros-"+tid); if(el) el.innerHTML=retroHistoryHTML(tid);
+}
+// Mood across sprints as a small line chart: one column per sprint (oldest → newest),
+// a point and emoji where a retrospective exists, the line broken where one is missing.
+function moodTrendSVG(rows){
+  const colW=120, h=210, top=40, bottom=38, plotH=h-top-bottom, w=Math.max(rows.length*colW, colW*3);
+  const x=i=>colW/2+i*colW, y=m=>top+plotH-(m-1)/4*plotH;
+  const grid=[1,2,3,4,5].map(m=>`<line class="mt-grid" x1="0" x2="${w}" y1="${y(m)}" y2="${y(m)}"/>`).join("");
+  let path="", pen=false;
+  rows.forEach((r,i)=>{ const m=r.retro&&Number(r.retro.mood);
+    if(m){ path+=`${pen?"L":"M"}${x(i)} ${y(m)} `; pen=true; } else pen=false; });
+  const pts=rows.map((r,i)=>{ const m=r.retro&&moodOf(r.retro.mood);
+    const label=`<text class="mt-label" x="${x(i)}" y="${h-10}">${esc(r.sprint.name||("Sprint "+r.sprint.n))}</text>`;
+    return label + (m ? `<circle class="mt-dot" cx="${x(i)}" cy="${y(m.v)}" r="5"/><text class="mt-emoji" x="${x(i)}" y="${y(m.v)-12}">${m.e}</text>`
+                      : `<text class="mt-none" x="${x(i)}" y="${top+plotH/2}">—</text>`);
+  }).join("");
+  return `<svg class="mood-trend" viewBox="0 0 ${w} ${h}" style="max-width:${w}px" role="img" aria-label="Mood by sprint">
+    ${grid}${path?`<path class="mt-line" d="${path}"/>`:""}${pts}</svg>`;
+}
+function retroHistoryHTML(tid){
+  const rows=RETRO_HISTORY[tid];
+  if(!rows) return `<div class="card"><p class="muted">Loading your retrospectives…</p></div>`;
+  const shown=rows.filter(r=>sprintPhase(r.sprint)!=="upcoming");
+  if(!shown.length) return `<div class="card"><p class="muted">No sprints yet.</p></div>`;
+  const cards=[...shown].reverse().map(r=>{
+    const sp=r.sprint, ret=r.retro, m=ret&&moodOf(ret.mood), st=r.entry.status||"unrated";
+    const name=esc(sp.name||("Sprint "+sp.n)), dates=sp.start&&sp.end?`${esc(fmtD(sp.start))} – ${esc(fmtD(sp.end))}`:"";
+    const ph=sprintPhase(sp);
+    if(!ret) return `<div class="card retro-card pending"><div class="notes-head"><h2 style="border:0;margin:0;padding:0">${name}</h2>
+        <span class="muted">${dates}</span></div>
+      <p class="muted" style="margin:10px 0 0">${ph==="closed"?"No retrospective was submitted for this sprint."
+        :"Not submitted yet. Submit it from the sprint page when the sprint wraps up."}</p></div>`;
+    const counts={done:0,partial:0,notdone:0}; r.goals.forEach(g=>{ if(counts[g.result]!=null) counts[g.result]++; });
+    return `<div class="card retro-card sprint-card ${st}"><div class="notes-head"><h2 style="border:0;margin:0;padding:0">${name}</h2>
+        <span class="muted">${dates}</span></div>
+      <div class="rh-top">${m?`<span class="mood-big" aria-hidden="true">${m.e}</span><span><b>${esc(m.l)}</b><br><span class="muted">How the sprint felt</span></span>`:""}
+        <span class="rh-goals">${counts.done} done · ${counts.partial} partly · ${counts.notdone} not done</span></div>
+      ${r.goals.length?`<ul class="rh-goal-list">${r.goals.map(g=>`<li><span class="goal-text">${esc(g.text)}</span>${resultPill(g.result)}</li>`).join("")}</ul>`:""}
+      <dl class="kv rh-kv"><dt>What went well</dt><dd class="soft">${esc(ret.wentWell)||"—"}</dd>
+        <dt>Could be improved</dt><dd class="soft">${esc(ret.improve)||"—"}</dd>
+        <dt>Instructor rating</dt><dd><span class="pill ${st}"><span class="d"></span>${STATUS_LABEL[st]}</span></dd>
+        <dt>Sprint review</dt><dd class="soft">${esc(r.entry.review||"Not reviewed yet.")}</dd></dl></div>`;
+  }).join("");
+  return `<div class="card rh-trend"><h2>Mood by sprint</h2>${moodTrendSVG(shown)}</div>${cards}`;
+}
+
 /* ---------- sprint countdown (student) ----------
    Days left in the current sprint, with what's still to do. Neutral until the last
    URGENT_DAYS days, then amber; the grace day gets its own "last day" banner. The
@@ -2069,6 +2191,7 @@ async function onMainClick(e){
   if (e.target.closest("[data-sign-out]")) { closeAccountMenus(); await signOut(auth); return; }
   const ov = e.target.closest("[data-ov-open]"); if (ov) { const [tid,sid]=ov.dataset.ovOpen.split(":"); await openTeamSprint(tid,sid); return; }
   if (e.target.closest("[data-ov-refresh]")) { OVERVIEW=null; await ensureOverview(); return; }
+  if (e.target.closest("[data-ov-export]")) { await exportOverviewCSV(); return; }
   const sp = e.target.closest("[data-sprint-open]"); if (sp) { const [tid,sid]=sp.dataset.sprintOpen.split(":"); await openSprint(tid,sid); return; }
   const addList=e.target.closest("[data-list-add]"); if(addList){ const [tid,field]=addList.dataset.listAdd.split(":"); await addProjectListItem(tid,field); return; }
   const removeList=e.target.closest("[data-list-remove]"); if(removeList){ const [tid,field,index]=removeList.dataset.listRemove.split(":"); await removeProjectListItem(tid,field,index); return; }
@@ -2436,6 +2559,7 @@ function show(view){
   markNav(view);
   if(view==="overview" && instructorView()) ensureOverview();
   if(studentView() && view.endsWith("__sprint")) markFeedbackSeen(view.split("__")[0]);
+  if(studentView() && view.endsWith("__retros")) loadRetroHistory(view.split("__")[0]);
   if(studentView() && document.getElementById("sprint-grid-"+view))
     loadSprintStats(view).catch(e=>console.error("sprint stats:", e));
   window.scrollTo({top:0});
