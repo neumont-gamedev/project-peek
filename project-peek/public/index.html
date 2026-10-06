@@ -502,6 +502,14 @@
     border-top:1px solid var(--line-soft); padding:10px 0; font-size:14px; }
   .goal-row.done .goal-text{ text-decoration:line-through; color:var(--ink-faint); }
   .goal-row input[type="checkbox"]{ width:17px; height:17px; accent-color:var(--healthy); }
+  .row-actions{ display:flex; align-items:center; gap:2px; }
+  .icon-btn.edit{ width:28px; height:28px; font-size:15px; color:var(--ink-faint); background:transparent; border-color:transparent; }
+  .icon-btn.edit:hover{ color:var(--accent-ink); background:var(--accent-soft); filter:none; }
+  .time-row.editing{ display:block; }
+  .time-edit{ margin-top:0; grid-template-columns:150px 100px minmax(160px,1fr) auto; }
+  .te-actions{ display:flex; gap:8px; }
+  .te-cancel{ height:40px; padding:0 14px; }
+  @media (max-width:720px){ .time-edit{ grid-template-columns:1fr; } }
   .time-date{ font-size:14px; color:var(--ink-soft); min-width:90px; font-variant-numeric:tabular-nums; white-space:nowrap; }
   .time-date .dow{ display:inline-block; min-width:2.4em; color:var(--ink); font-weight:600; }
   .goal-meta,.time-meta{ color:var(--ink-faint); font-family:var(--font-mono); font-size:11px; }
@@ -730,6 +738,7 @@ let COURSES=[], COURSE=null, TEAMS=[], ASSIGNED_TEAMS=[], NOTES={}, RANGE=[null,
 let SPRINTS=[], SPRINT=null, ENTRIES={}, GOALS={}, TIME_ENTRIES={}, UNLOCKED=false, DASH_STATUS_FILTER="all";
 let LAST_SYNC=null, SYNC_REPORT=null, SYNC_SCHEDULE={};
 let SPRINT_STATS={}, RETROS={};
+let EDITING_TIME="";   // "teamId:timeId" while a time entry is open for editing
 let OVERVIEW=null;   // instructor class overview: {course, loadedAt, cells:{teamId:{sprintId:{…}}}}   // student view: {teamId: {sprintId: {hours, goals, done, status, start, end}}}
 // Local calendar date (not UTC, which flips to tomorrow in the evening in Mountain time).
 const TODAY = (d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`)(new Date());
@@ -1017,7 +1026,7 @@ async function rollSprints(){
   }
 }
 async function loadEntries(){
-  ENTRIES={}; GOALS={}; TIME_ENTRIES={}; RETROS={};
+  ENTRIES={}; GOALS={}; TIME_ENTRIES={}; RETROS={}; EDITING_TIME="";
   if(!SPRINT) return;
   if(IS_ADMIN){
     const snap = await getDocs(collection(db, `${cpath()}/sprints/${SPRINT.id}/entries`));
@@ -1352,9 +1361,19 @@ function timeHTML(t){
   return `<div class="card structured-card"><div class="notes-head"><h2 style="border:0;margin:0;padding:0">Time Worked</h2>
     <span class="card-total">${total.toFixed(1).replace(/\.0$/,"")} hours total</span></div>
     <section class="summary-section">
-    ${rows.length?`<div class="time-list">${rows.map(x=>`<div class="time-row"><span class="time-date"><span class="dow">${esc(dowOf(x.date))}</span> ${esc(fmtD(x.date))}</span>
+    ${rows.length?`<div class="time-list">${rows.map(x=>{
+      const key=`${t.id}:${x.id}`, mine=(edit&&x.studentEmail===USER_EMAIL)||(instructorView()&&!frozen());
+      if(mine && EDITING_TIME===key) return `<div class="time-row editing"><div class="entry-form time-edit">
+        <label>Date<input id="te-date-${x.id}" type="date" value="${esc(x.date||"")}"></label>
+        <label>Hours<input id="te-hours-${x.id}" type="number" min="0.25" step="0.25" value="${esc(String(x.hours??""))}"></label>
+        <label>Work completed<input id="te-note-${x.id}" value="${esc(x.note||"")}"></label>
+        <span class="te-actions"><button class="add-btn" data-time-save="${key}">Save</button>
+          <button class="btn secondary te-cancel" data-time-cancel>Cancel</button></span></div></div>`;
+      return `<div class="time-row"><span class="time-date"><span class="dow">${esc(dowOf(x.date))}</span> ${esc(fmtD(x.date))}</span>
       <span><b>${esc(x.hours)} hr</b>${x.note?` · ${esc(x.note)}`:""}</span>
-      ${(edit&&x.studentEmail===USER_EMAIL)||(instructorView()&&!frozen())?`<button class="icon-btn remove" data-time-remove="${t.id}:${x.id}" title="Remove time entry" aria-label="Remove time entry">×</button>`:""}</div>`).join("")}</div>`:"<p class=\"muted\">No time recorded yet.</p>"}
+      ${mine?`<span class="row-actions"><button class="icon-btn edit" data-time-edit="${key}" title="Edit time entry" aria-label="Edit time entry">✎</button>
+        <button class="icon-btn remove" data-time-remove="${key}" title="Remove time entry" aria-label="Remove time entry">×</button></span>`:""}</div>`;
+    }).join("")}</div>`:"<p class=\"muted\">No time recorded yet.</p>"}
     </section>${form}</div>`;
 }
 function retroViewHTML(r){
@@ -2021,6 +2040,19 @@ async function addTime(tid){
     {date:dateValue,hours,note,studentEmail,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
   await loadEntries(); render(); stay(tid);
 }
+async function saveTimeEdit(tid,timeId){
+  const date=fval("te-date-"+timeId), hours=Number(fval("te-hours-"+timeId)), note=fval("te-note-"+timeId);
+  if(!date||!Number.isFinite(hours)||hours<=0){ alert("Enter a date and hours greater than zero."); return; }
+  await setDoc(doc(db, `${sprintEntryPath(tid)}/time/${timeId}`), {date,hours,note,updatedAt:serverTimestamp()}, {merge:true});
+  EDITING_TIME="";
+  await loadEntries(); render(); stay(tid);
+}
+function openTimeEdit(key){
+  const tid=key.split(":")[0];
+  EDITING_TIME=key; render(); stay(tid);
+  const el=$("te-hours-"+key.split(":")[1]); if(el){ el.focus(); el.select(); }
+}
+function cancelTimeEdit(){ if(!EDITING_TIME) return; const tid=EDITING_TIME.split(":")[0]; EDITING_TIME=""; render(); stay(tid); }
 async function removeTime(tid,timeId){
   await deleteDoc(doc(db, `${sprintEntryPath(tid)}/time/${timeId}`));
   await loadEntries(); render(); stay(tid);
@@ -2043,6 +2075,9 @@ async function onMainClick(e){
   const addGoalBtn=e.target.closest("[data-goal-add]"); if(addGoalBtn){ await addGoal(addGoalBtn.dataset.goalAdd); return; }
   const removeGoalBtn=e.target.closest("[data-goal-remove]"); if(removeGoalBtn){ const [tid,gid]=removeGoalBtn.dataset.goalRemove.split(":"); await removeGoal(tid,gid); return; }
   const addTimeBtn=e.target.closest("[data-time-add]"); if(addTimeBtn){ await addTime(addTimeBtn.dataset.timeAdd); return; }
+  const editTimeBtn=e.target.closest("[data-time-edit]"); if(editTimeBtn){ openTimeEdit(editTimeBtn.dataset.timeEdit); return; }
+  const saveTimeBtn=e.target.closest("[data-time-save]"); if(saveTimeBtn){ const [tid,timeId]=saveTimeBtn.dataset.timeSave.split(":"); await saveTimeEdit(tid,timeId); return; }
+  if(e.target.closest("[data-time-cancel]")){ cancelTimeEdit(); return; }
   const removeTimeBtn=e.target.closest("[data-time-remove]"); if(removeTimeBtn){ const [tid,timeId]=removeTimeBtn.dataset.timeRemove.split(":"); await removeTime(tid,timeId); return; }
   const m = e.target.closest("[data-mact]"); if (!m) return;
   const act = m.dataset.mact, tid = m.dataset.tid;
@@ -2418,10 +2453,10 @@ $("projectSel").onchange = e => show(e.target.value);
 function closeAccountMenus(){ document.querySelectorAll(".account.open").forEach(a=>{ a.classList.remove("open");
   a.querySelector("[data-account-toggle]")?.setAttribute("aria-expanded","false"); }); }
 document.addEventListener("click", e=>{ if(!e.target.closest(".account")) closeAccountMenus(); });
-document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeAccountMenus(); });
+document.addEventListener("keydown", e=>{ if(e.key==="Escape"){ closeAccountMenus(); if(e.target.closest && e.target.closest(".time-edit")) cancelTimeEdit(); } });
 $("main").addEventListener("keydown", e=>{   // Enter in an add field = click its Add button
   if(e.key!=="Enter" || e.target.tagName!=="INPUT") return;
-  const btn=e.target.closest(".add-group, .entry-form")?.querySelector("[data-list-add],[data-goal-add],[data-time-add]");
+  const btn=e.target.closest(".add-group, .entry-form")?.querySelector("[data-list-add],[data-goal-add],[data-time-add],[data-time-save]");
   if(btn){ e.preventDefault(); btn.click(); }
 });
 $("main").addEventListener("change", async e=>{   // goal status dropdown (student during the sprint, instructor on review)
