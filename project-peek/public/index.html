@@ -575,6 +575,12 @@
   .cd-days{ flex:0 0 auto; min-width:44px; height:44px; padding:0 6px; border-radius:10px; display:grid; place-items:center;
     font-family:var(--font-mono); font-size:22px; font-weight:700; background:var(--field); color:var(--accent-ink); }
   .countdown.urgent .cd-days{ color:var(--watch); }
+  .sp-foot-l{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .sp-new{ font-size:12.5px; font-weight:700; padding:4px 10px; border-radius:99px;
+    background:var(--accent); color:var(--accent-contrast); white-space:nowrap; }
+  .nav-new{ margin-left:auto; width:9px; height:9px; border-radius:50%; flex:0 0 auto; background:var(--accent);
+    box-shadow:0 0 0 3px var(--accent-soft); }
+  .nav button.active .nav-new{ display:none; }
   .cd-todo{ color:var(--ink-soft); font-size:13.5px; }
   .after-end{ margin:10px 0 4px; font-size:13px; color:var(--ink-soft); }
   .after-end.has{ color:var(--ink); }
@@ -994,11 +1000,14 @@ async function loadSprints(){
   await loadEntries();
 }
 // When the newest sprint has ended, add the next one(s) with the same length so
-// students always have a current sprint. Mirrors roll_sprints in functions/main.py.
+// students always have a current sprint. A course whose last sprint ended more than
+// one sprint-length ago is treated as finished and left alone (no backfilling last
+// term). Mirrors roll_sprints in functions/main.py.
 async function rollSprints(){
   let cur=lastSprint();
   if(!cur || !cur.start || !cur.end || cur.end>=TODAY) return;
   const len=Math.round((new Date(cur.end+"T00:00:00Z")-new Date(cur.start+"T00:00:00Z"))/86400000)+1;
+  if(addDays(cur.end, len) < TODAY) return;
   for(let guard=0; cur.end<TODAY && guard<52; guard++){
     const n=(cur.n||SPRINTS.length)+1, start=nextDay(cur.end);
     let sid="s"+n; while(SPRINTS.some(x=>x.id===sid)) sid+="b";
@@ -1134,7 +1143,7 @@ function studentNavHTML(){
   const t=TEAMS.find(x=>x.id===currentTeamId());
   if(!t || !isSetUp(t)) return "";
   const sprints=[...SPRINTS].reverse().map(sp=>
-    `<button data-sprint-nav="${t.id}:${sp.id}"><span class="dot ${sprintPhase(sp)==="current"?"healthy":"unrated"}"></span><span class="tname">${esc(sp.name||("Sprint "+sp.n))}${{current:" · current",grace:" · last day",upcoming:" · upcoming",closed:""}[sprintPhase(sp)]}</span></button>`).join("");
+    `<button data-sprint-nav="${t.id}:${sp.id}"><span class="dot ${sprintPhase(sp)==="current"?"healthy":"unrated"}"></span><span class="tname">${esc(sp.name||("Sprint "+sp.n))}${{current:" · current",grace:" · last day",upcoming:" · upcoming",closed:""}[sprintPhase(sp)]}</span>${hasNewFeedback(t.id,sp.id)?`<span class="nav-new" title="New feedback"></span>`:""}</button>`).join("");
   return `<button data-view="${t.id}"><span class="nav-ic">▚</span><span class="tname">Dashboard</span></button>
     <button data-view="${t.id}__summary"><span class="nav-ic">✎</span><span class="tname">Project summary</span></button>
     ${SPRINTS.length?`<div class="nav-label">Sprints</div>${sprints}`:""}`;
@@ -1649,7 +1658,8 @@ function sprintGridHTML(t){
         <span class="sp-stats">
           <span><b>${x?`${x.done}/${x.goals}`:"…"}</b>goals done</span>
           <span><b>${commits==null?"—":commits}</b>commits</span></span></span>
-      <span class="sp-foot"><span class="pill ${st}"><span class="d"></span>${STATUS_LABEL[st]}</span>
+      <span class="sp-foot"><span class="sp-foot-l"><span class="pill ${st}"><span class="d"></span>${STATUS_LABEL[st]}</span>
+        ${x&&x.newFeedback?`<span class="sp-new">New feedback</span>`:""}</span>
         ${x&&moodOf(x.mood)?`<span class="sp-mood" title="Felt: ${esc(moodOf(x.mood).l)}">${moodOf(x.mood).e}</span>`:""}</span>
       ${(cur||ph==="grace")&&x&&!x.goals&&!x.submitted?`<span class="sp-nudge">Enter goals to get started →</span>`:""}
     </button>`;}).join("")}</div>`;
@@ -1660,11 +1670,14 @@ async function loadSprintStats(tid){
   const out={};
   await Promise.all(SPRINTS.map(async sp=>{
     const base=`${cpath()}/sprints/${sp.id}/entries/${tid}`;
-    const [e, goals, time, retro]=await Promise.all([getDoc(doc(db,base)),
-      getDocs(collection(db,`${base}/goals`)), getDocs(collection(db,`${base}/time`)), getDocs(collection(db,`${base}/retro`))]);
+    const [e, goals, time, retro, seen]=await Promise.all([getDoc(doc(db,base)),
+      getDocs(collection(db,`${base}/goals`)), getDocs(collection(db,`${base}/time`)), getDocs(collection(db,`${base}/retro`)),
+      IS_ADMIN ? null : getDoc(doc(db,`${base}/seen/${USER_EMAIL}`))]);
     const ed=e.exists()?e.data():{};
+    const fbAt=feedbackMillis(ed);
+    const seenAt=seen&&seen.exists()&&seen.data().at&&seen.data().at.toMillis ? seen.data().at.toMillis() : 0;
     const rs=retro.docs.map(d=>d.data()), mine=rs.find(r=>r.studentEmail===USER_EMAIL)||(IS_ADMIN?rs[0]:null);
-    out[sp.id]={ status:ed.status||"unrated",
+    out[sp.id]={ status:ed.status||"unrated", newFeedback: !IS_ADMIN && fbAt>seenAt,
       submitted:!!mine, mood:mine?mine.mood:null,
       mine:goals.docs.filter(d=>d.data().studentEmail===USER_EMAIL).length,
       goals:goals.size, done:goals.docs.filter(d=>d.data().result==="done"||d.data().completed).length,
@@ -1674,6 +1687,26 @@ async function loadSprintStats(tid){
   const t=TEAMS.find(x=>x.id===tid), el=$("sprint-grid-"+tid), cd=$("countdown-"+tid);
   if(t && el) el.innerHTML=sprintGridHTML(t);
   if(t && cd) cd.innerHTML=dashboardCountdownHTML(t);
+  if(t && studentView()){ renderNav(); }   // sidebar dots for new feedback
+}
+/* "New feedback": the instructor's rating/review stamps entries/{tid}.feedbackAt; the
+   student's entries/{tid}/seen/{email}.at records when they last opened that sprint.
+   Opening a sprint with newer feedback marks it seen and clears the badge. */
+// When the entry's feedback was given. Ratings/reviews saved before feedbackAt existed
+// count as given at time 1, so they show as new until the student first opens the sprint.
+function feedbackMillis(e){
+  if(e.feedbackAt && e.feedbackAt.toMillis) return e.feedbackAt.toMillis();
+  return (e.review || (e.status && e.status!=="unrated")) ? 1 : 0;
+}
+function hasNewFeedback(tid,sid){ return !!(((SPRINT_STATS[tid]||{})[sid]||{}).newFeedback); }
+async function markFeedbackSeen(tid){
+  if(IS_ADMIN || !SPRINT) return;
+  if(!feedbackMillis(ENTRIES[tid]||{}) || ((SPRINT_STATS[tid]||{})[SPRINT.id]||{}).newFeedback===false) return;
+  try{
+    await setDoc(doc(db,`${sprintEntryPath(tid)}/seen/${USER_EMAIL}`), { at:serverTimestamp() });
+    const x=(SPRINT_STATS[tid]||{})[SPRINT.id]; if(x) x.newFeedback=false;
+    renderNav();
+  }catch(e){ console.error("mark seen failed:", e); }
 }
 async function openSprint(tid,sid){
   history.replaceState(null,"","#"+tid+"__sprint");
@@ -1904,8 +1937,10 @@ function wireSprintFields(){
       const val = el.value;
       ENTRIES[tid] = { ...(ENTRIES[tid]||{}), [field]: val };
       try{
+        // A new rating or review is feedback the student hasn't seen yet.
+        const fb = (field==="status" || field==="review") && val ? { feedbackAt: serverTimestamp() } : {};
         await setDoc(doc(db, `${cpath()}/sprints/${SPRINT.id}/entries/${tid}`),
-          { [field]: val, updatedAt: serverTimestamp() }, { merge:true });
+          { [field]: val, ...fb, updatedAt: serverTimestamp() }, { merge:true });
         if(field==="status" && !isPast(SPRINT))
           await setDoc(doc(db, `${cpath()}/teams/${tid}`), { status: val }, { merge:true });
         if(field==="status"){
@@ -2365,6 +2400,7 @@ function show(view){
   (document.getElementById("view-"+view)||document.getElementById("view-dashboard"))?.classList.add("active");
   markNav(view);
   if(view==="overview" && instructorView()) ensureOverview();
+  if(studentView() && view.endsWith("__sprint")) markFeedbackSeen(view.split("__")[0]);
   if(studentView() && document.getElementById("sprint-grid-"+view))
     loadSprintStats(view).catch(e=>console.error("sprint stats:", e));
   window.scrollTo({top:0});

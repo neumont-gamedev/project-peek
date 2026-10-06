@@ -167,6 +167,16 @@ service cloud.firestore {
                 && resource.data.studentEmail == email();
             }
 
+            // When a student last opened this sprint (doc id = their email), so the app can
+            // flag a rating or review newer than that as "New feedback".
+            match /seen/{seenId} {
+              allow read: if isOwner(ownerUid) || isTeamStudent(ownerUid, courseId, teamId);
+              allow delete: if isOwner(ownerUid);
+              allow create, update: if isTeamStudent(ownerUid, courseId, teamId)
+                && seenId == email()
+                && request.resource.data.keys().hasOnly(['at']);
+            }
+
             // End-of-sprint wrap-up, one per student (doc id = their email). Creating it
             // submits the sprint; only the instructor can change or delete (reopen) it.
             match /retro/{retroId} {

@@ -411,8 +411,9 @@ def _schedule_is_due(schedule, now_utc):
 
 
 def _roll_course_sprints(cref, today):
-    """Create the next sprint(s) once the newest has ended, keeping its length, so a
-    course always has a current sprint. Mirrors rollSprints() in the web app."""
+    """Create the next sprint once the newest has ended, keeping its length and target,
+    so a course always has a current sprint. Courses whose last sprint ended more than
+    a sprint-length ago are left alone. Mirrors rollSprints() in the web app."""
     sprints = sorted(((d.id, d.to_dict() or {}) for d in cref.collection("sprints").stream()),
                      key=lambda x: x[1].get("n") or 0)
     if not sprints:
@@ -423,6 +424,8 @@ def _roll_course_sprints(cref, today):
         return 0
     start, end = datetime.fromisoformat(start_s).date(), datetime.fromisoformat(end_s).date()
     length = (end - start).days + 1
+    if (end + timedelta(days=length)).isoformat() < today:
+        return 0   # ended over a sprint-length ago: course is finished, don't backfill
     ids = {sid for sid, _ in sprints}
     n, made = last.get("n") or len(sprints), 0
     while end.isoformat() < today and made < 52:
