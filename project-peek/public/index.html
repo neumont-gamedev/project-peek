@@ -569,11 +569,56 @@
   .card, .side, .brand-title, .sprint-panel, .icon-bar, .account-btn, .account-menu {
     background-image:var(--panel-grad); }
   /* Sprint card tinted by the instructor's rating. After the panel-gradient rule so it layers on top. */
-  .grace-note{ margin-top:12px; padding:10px 12px; border-radius:8px; background:var(--watch-bg);
-    border:1px solid var(--watch); color:var(--ink); font-size:13.5px; }
+  .countdown{ display:flex; align-items:center; gap:14px; margin:14px 0 4px; padding:12px 16px; border-radius:12px;
+    background:var(--surface-2); border:1px solid var(--line); color:var(--ink); font-size:14px; line-height:1.45; }
+  .countdown.urgent{ background:var(--watch-bg); border-color:var(--watch); }
+  .cd-days{ flex:0 0 auto; min-width:44px; height:44px; padding:0 6px; border-radius:10px; display:grid; place-items:center;
+    font-family:var(--font-mono); font-size:22px; font-weight:700; background:var(--field); color:var(--accent-ink); }
+  .countdown.urgent .cd-days{ color:var(--watch); }
+  .cd-todo{ color:var(--ink-soft); font-size:13.5px; }
   .after-end{ margin:10px 0 4px; font-size:13px; color:var(--ink-soft); }
   .after-end.has{ color:var(--ink); }
   .after-end.has b{ color:var(--watch); font-family:var(--font-mono); }
+  .ov-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .ov-wrap{ margin-top:22px; }
+  .ov-table{ min-width:0; width:auto; }
+  .ov-table thead th{ vertical-align:bottom; white-space:nowrap; }
+  .ov-table th.ov-sprint span{ display:block; color:var(--ink); font-size:11.5px; }
+  .ov-table th.ov-sprint small{ display:block; font-family:var(--font-sans); letter-spacing:0; text-transform:none; font-size:11.5px; font-weight:400; }
+  .ov-table th.ov-sprint.current span, .ov-table th.ov-sprint.grace span{ color:var(--accent-ink); }
+  .ov-table tbody tr{ cursor:default; }
+  .ov-table tbody tr:hover{ background:transparent; }
+  .ov-table .ov-name{ position:sticky; left:0; z-index:1; background:var(--surface); min-width:180px; text-align:left;
+    border-right:1px solid var(--line); }
+  .ov-table thead .ov-name{ background:var(--surface-2); }
+  .ov-table tbody .ov-name{ display:table-cell; padding:12px 16px; font-weight:400; }
+  .ov-table tbody .ov-name .tm, .ov-table tbody .ov-name .pj, .ov-total{ display:block; }
+  .ov-total{ font-size:12px; color:var(--ink-faint); margin-top:2px; }
+  .ov-table tbody .ov-name .tm{ font-weight:650; color:var(--ink); }
+  .ov-table tbody .ov-name .pj{ font-size:13px; }
+  .ov-table tbody td.ov-cell{ vertical-align:top; }
+  .ov-table tbody .ov-btn{ min-height:100%; }
+  .ov-cell{ padding:6px !important; min-width:150px; border-left:1px solid var(--line-soft); }
+  .ov-cell.empty{ text-align:center; }
+  .ov-btn{ all:unset; box-sizing:border-box; cursor:pointer; display:flex; flex-direction:column; gap:4px; width:100%;
+    padding:9px 11px; border-radius:9px; border:1px solid transparent; }
+  .ov-btn:hover{ border-color:var(--accent); }
+  .ov-btn:focus-visible{ outline:2px solid var(--accent); }
+  .ov-cell.healthy .ov-btn{ background:var(--healthy-bg); } .ov-cell.watch .ov-btn{ background:var(--watch-bg); }
+  .ov-cell.risk .ov-btn{ background:var(--risk-bg); } .ov-cell.noaccess .ov-btn{ background:var(--noaccess-bg); }
+  .ov-hours{ font-size:13px; color:var(--ink-soft); font-variant-numeric:tabular-nums; }
+  .ov-hours b{ font-family:var(--font-mono); font-size:17px; }
+  .ov-hours.ok b{ color:var(--healthy); } .ov-hours.low b{ color:var(--risk); }
+  .ov-goals{ font-size:13px; color:var(--ink); }
+  .ov-foot{ display:flex; align-items:center; justify-content:space-between; gap:6px; min-height:22px; }
+  .ov-sub{ font-size:11.5px; font-weight:600; white-space:nowrap; }
+  .ov-sub.yes{ color:var(--healthy); } .ov-sub.missed{ color:var(--risk); } .ov-sub.due{ color:var(--watch); } .ov-sub.open{ color:var(--ink-faint); font-weight:400; }
+  .ov-mood{ font-size:18px; line-height:1; }
+  .ov-review{ font-size:11.5px; color:var(--ink-faint); }
+  .ov-legend{ font-size:12.5px; margin-top:12px; }
+  .ov-key{ display:inline-block; width:10px; height:10px; border-radius:3px; margin:0 4px 0 2px; vertical-align:-1px; }
+  .ov-key.healthy{ background:var(--healthy); } .ov-key.watch{ background:var(--watch); }
+  .ov-key.risk{ background:var(--risk); } .ov-key.noaccess{ background:var(--noaccess); }
   .card.sprint-card.healthy{ background-image:linear-gradient(var(--healthy-bg),var(--healthy-bg)), var(--panel-grad); border-color:var(--healthy); }
   .card.sprint-card.watch{ background-image:linear-gradient(var(--watch-bg),var(--watch-bg)), var(--panel-grad); border-color:var(--watch); }
   .card.sprint-card.risk{ background-image:linear-gradient(var(--risk-bg),var(--risk-bg)), var(--panel-grad); border-color:var(--risk); }
@@ -678,7 +723,8 @@ let UID=null, OWNER_UID=null, USER_EMAIL="", IS_ADMIN=false, PREVIEW_STUDENT=fal
 let COURSES=[], COURSE=null, TEAMS=[], ASSIGNED_TEAMS=[], NOTES={}, RANGE=[null,null], ALLDAYS=[];
 let SPRINTS=[], SPRINT=null, ENTRIES={}, GOALS={}, TIME_ENTRIES={}, UNLOCKED=false, DASH_STATUS_FILTER="all";
 let LAST_SYNC=null, SYNC_REPORT=null, SYNC_SCHEDULE={};
-let SPRINT_STATS={}, RETROS={};   // student view: {teamId: {sprintId: {hours, goals, done, status, start, end}}}
+let SPRINT_STATS={}, RETROS={};
+let OVERVIEW=null;   // instructor class overview: {course, loadedAt, cells:{teamId:{sprintId:{…}}}}   // student view: {teamId: {sprintId: {hours, goals, done, status, start, end}}}
 // Local calendar date (not UTC, which flips to tomorrow in the evening in Mountain time).
 const TODAY = (d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`)(new Date());
 function instructorView(){ return IS_ADMIN && !PREVIEW_STUDENT; }
@@ -849,7 +895,7 @@ async function loadCourse(cid){
   OWNER_UID = IS_ADMIN ? UID : COURSE.ownerUid;
   $("courseSel").value = COURSE.id;
   try { localStorage.setItem(courseKey(), COURSE.id); } catch(e){}
-  TEAMS = []; NOTES = {};
+  TEAMS = []; NOTES = {}; OVERVIEW = null;
   if (IS_ADMIN) {
     const tSnap = await getDocs(collection(db, `users/${OWNER_UID}/courses/${cid}/teams`));
     tSnap.forEach(d => TEAMS.push({ id:d.id, ...d.data() }));
@@ -1061,7 +1107,8 @@ function renderNav(){
   const teams=[...TEAMS].sort((a,b)=>(a.team||"").localeCompare(b.team||""));
   nav.innerHTML = `<div class="nav-label">Overview</div>
     <button data-view="dashboard" class="home"><span>▚ Dashboard</span></button>
-    ${instructorView()?`<button data-view="manage" class="home"><span>⚙ Manage ${L().units}</span></button>`:""}
+    ${instructorView()?`<button data-view="overview" class="home"><span>▦ Class overview</span></button>
+    <button data-view="manage" class="home"><span>⚙ Manage ${L().units}</span></button>`:""}
     <div class="nav-label">${L().Units}</div>` +
     teams.map(t=>`<button data-view="${t.id}"><span class="dot ${statusOf(t)}"></span><span class="tname">${esc(t.team)}</span></button>`).join("");
 }
@@ -1091,6 +1138,83 @@ function studentNavHTML(){
   return `<button data-view="${t.id}"><span class="nav-ic">▚</span><span class="tname">Dashboard</span></button>
     <button data-view="${t.id}__summary"><span class="nav-ic">✎</span><span class="tname">Project summary</span></button>
     ${SPRINTS.length?`<div class="nav-label">Sprints</div>${sprints}`:""}`;
+}
+
+/* ---------- class overview (instructor) ----------
+   One row per project, one column per sprint (oldest → newest). Each cell: hours
+   against the sprint's target, goals done, the student's mood, and whether the
+   retrospective is in; the cell is tinted by the instructor's rating. Loaded on
+   demand (4 small reads per project per sprint) and cached until Refresh or a
+   course change. */
+function overviewViewHTML(){
+  return `<div class="view" id="view-overview">
+    <div class="ov-head"><h1>Class overview</h1>
+      <button class="btn secondary" data-ov-refresh>↻ Refresh</button></div>
+    <div id="overview-body">${overviewBodyHTML()}</div></div>`;
+}
+async function ensureOverview(){
+  if(!COURSE || (OVERVIEW && OVERVIEW.course===COURSE.id)) return;
+  const course=COURSE.id, cells={};
+  const body=$("overview-body"); if(body) body.innerHTML=`<p class="muted">Loading the class overview…</p>`;
+  try{
+    await Promise.all(SPRINTS.map(async sp=>{
+      const entries={};
+      (await getDocs(collection(db,`${cpath()}/sprints/${sp.id}/entries`))).forEach(d=>entries[d.id]=d.data());
+      await Promise.all(TEAMS.map(async t=>{
+        const base=`${cpath()}/sprints/${sp.id}/entries/${t.id}`;
+        const [goals,time,retro]=await Promise.all([getDocs(collection(db,`${base}/goals`)),
+          getDocs(collection(db,`${base}/time`)), getDocs(collection(db,`${base}/retro`))]);
+        const rs=retro.docs.map(d=>d.data()), e=entries[t.id]||{};
+        (cells[t.id] ||= {})[sp.id]={
+          hours: time.docs.reduce((n,d)=>n+(Number(d.data().hours)||0),0),
+          goals: goals.size, done: goals.docs.filter(d=>d.data().result==="done"||d.data().completed).length,
+          submitted: rs.length>0, mood: rs.length ? rs[0].mood : null,
+          status: e.status||"unrated", reviewDate: e.reviewDate||"" };
+      }));
+    }));
+    if(!COURSE || COURSE.id!==course) return;   // switched course while loading
+    OVERVIEW={ course, loadedAt:new Date(), cells };
+  }catch(err){ console.error("overview load failed:", err); if(body) body.innerHTML=`<p class="muted">Couldn't load the overview: ${esc(err.message||err)}</p>`; return; }
+  const el=$("overview-body"); if(el) el.innerHTML=overviewBodyHTML();
+}
+function overviewBodyHTML(){
+  if(!SPRINTS.length) return `<p class="muted">No sprints yet.</p>`;
+  if(!TEAMS.length) return `<p class="muted">No ${L().units} yet.</p>`;
+  if(!OVERVIEW || OVERVIEW.course!==COURSE.id) return `<p class="muted">Loading the class overview…</p>`;
+  const fmtH=n=>String(Math.round(n*10)/10);
+  const teams=[...TEAMS].sort((a,b)=>(a.team||"").localeCompare(b.team||""));
+  const head=SPRINTS.map(sp=>{ const ph=sprintPhase(sp);
+    return `<th class="ov-sprint ${ph}"><span>${esc(sp.name||("Sprint "+sp.n))}</span>
+      <small>${sp.start&&sp.end?`${esc(fmtD(sp.start))} – ${esc(fmtD(sp.end))}`:""}${ph==="current"?" · current":ph==="grace"?" · grace day":""}</small>
+      <small>${esc(String(targetOf(sp)))} hr target</small></th>`; }).join("");
+  const rows=teams.map(t=>{
+    const row=OVERVIEW.cells[t.id]||{}, total=SPRINTS.reduce((n,sp)=>n+((row[sp.id]||{}).hours||0),0);
+    return `<tr><th class="ov-name" scope="row"><span class="tm">${esc(t.team)}</span>
+        ${t.project&&t.project!==t.team?`<span class="pj">${esc(t.project)}</span>`:""}
+        <span class="ov-total">${fmtH(total)} hrs total</span></th>
+      ${SPRINTS.map(sp=>{ const c=row[sp.id], ph=sprintPhase(sp);
+        if(!c || ph==="upcoming") return `<td class="ov-cell empty"><span class="muted">—</span></td>`;
+        const target=targetOf(sp), ok=c.hours>=target, m=moodOf(c.mood);
+        const sub=c.submitted?`<span class="ov-sub yes" title="Retrospective submitted">✓ Submitted</span>`
+          : ph==="closed"?`<span class="ov-sub missed" title="Sprint closed without a retrospective">Not submitted</span>`
+          : ph==="grace"?`<span class="ov-sub due" title="Grace day — retrospective still open">Due today</span>`
+          : `<span class="ov-sub open">In progress</span>`;
+        return `<td class="ov-cell ${c.status}"><button class="ov-btn" data-ov-open="${t.id}:${sp.id}" title="Open ${esc(t.team)} · ${esc(sp.name||"")}">
+          <span class="ov-hours ${ok?"ok":"low"}"><b>${fmtH(c.hours)}</b>/${esc(String(target))} h</span>
+          <span class="ov-goals">${c.goals?`${c.done}/${c.goals} goals`:`<span class="muted">no goals</span>`}</span>
+          <span class="ov-foot">${sub}${m?`<span class="ov-mood" title="Felt: ${esc(m.l)}">${m.e}</span>`:""}</span>
+          ${c.reviewDate?`<span class="ov-review">Review ${esc(dowOf(c.reviewDate))} ${esc(fmtD(c.reviewDate))}</span>`:""}
+        </button></td>`; }).join("")}</tr>`;
+  }).join("");
+  return `<div class="tablewrap ov-wrap"><table class="ov-table"><thead><tr><th class="ov-name">${L().Unit}</th>${head}</tr></thead>
+    <tbody>${rows}</tbody></table></div>
+    <p class="muted ov-legend">${["healthy","watch","risk","noaccess"].map(k=>`<span class="ov-key ${k}"></span>${esc(STATUS_LABEL[k])}`).join(" · ")}
+      · Updated ${esc(fmtWhen(OVERVIEW.loadedAt))}</p>`;
+}
+// Open one project's sprint from the overview (instructor).
+async function openTeamSprint(tid,sid){
+  history.replaceState(null,"","#"+tid);
+  if(!SPRINT || SPRINT.id!==sid) await setSprint(sid); else show(tid);
 }
 
 /* ---------- render ---------- */
@@ -1306,8 +1430,8 @@ function sprintCardHTML(t){
   const statuses=["unrated","healthy","watch","risk","noaccess"], st=statusOf(t);
   if(studentView()) return `<div class="card sprint-card ${st}"><div class="notes-head"><h2 style="border:none;margin:0;padding:0">${esc(SPRINT.name||("Sprint "+SPRINT.n))}${winLabel(t.id)?` · ${esc(winLabel(t.id))}`:""}</h2>
       <span class="role-tag">${sprintStage(t.id)}</span></div>
-      ${sprintPhase(SPRINT)==="grace"&&!myRetro(t.id)?`<div class="grace-note">This sprint ended ${esc(dowOf(SPRINT.end))} ${esc(fmtD(SPRINT.end))}.
-        You have until the end of today to log your last hours and submit your retrospective.</div>`:""}
+      ${countdownBannerHTML(SPRINT, { submitted:!!myRetro(t.id), goals:myGoals(t.id).length,
+          hours:(TIME_ENTRIES[t.id]||[]).filter(x=>x.studentEmail===USER_EMAIL).reduce((n,x)=>n+(Number(x.hours)||0),0) })}
       <dl class="kv" style="margin-top:14px"><dt>Review with instructor</dt><dd>${e.reviewDate?`${esc(dowOf(e.reviewDate))} ${esc(fmtD(e.reviewDate))}`:`<span class="muted">Not scheduled yet</span>`}</dd>
       <dt>Instructor rating</dt><dd><span class="pill ${st}"><span class="d"></span>${STATUS_LABEL[st]}</span></dd>
       <dt>Sprint review</dt><dd class="soft">${esc(e.review||"Not reviewed yet.")}</dd></dl></div>${goalsHTML(t)}${timeHTML(t)}${wrapUpHTML(t)}`;
@@ -1407,6 +1531,7 @@ function studentTeamHTML(t){
   const top=topRowHTML(t);
   return `<div class="view" id="view-${t.id}">${top}
     <div id="proj-head-${t.id}">${projectHeadHTML(t)}</div>
+    <div id="countdown-${t.id}">${dashboardCountdownHTML(t)}</div>
     <h2 style="margin-top:30px">Sprints</h2>
     <div id="sprint-grid-${t.id}">${sprintGridHTML(t)}</div>
   </div>
@@ -1482,6 +1607,34 @@ function hoursRingSVG(hours, target){
     <text class="ring-n" x="48" y="45">${label}</text>
     <text class="ring-l" x="48" y="64">of ${HOURS_TARGET} hrs</text></svg>`;
 }
+/* ---------- sprint countdown (student) ----------
+   Days left in the current sprint, with what's still to do. Neutral until the last
+   URGENT_DAYS days, then amber; the grace day gets its own "last day" banner. The
+   retrospective only joins the to-do list once the deadline is close. */
+const URGENT_DAYS=2;
+function daysLeft(sp){ return Math.round((new Date(sp.end+"T00:00:00Z")-new Date(TODAY+"T00:00:00Z"))/86400000); }
+function daysLeftLabel(sp){ const n=daysLeft(sp); return n<=0 ? "Ends today" : n===1 ? "1 day left" : `${n} days left`; }
+// x: {hours, goals, submitted} for this student in sprint sp
+function countdownBannerHTML(sp, x){
+  const ph=sprintPhase(sp);
+  if(!sp || !sp.end || !x || x.submitted || (ph!=="current" && ph!=="grace")) return "";
+  const grace=ph==="grace", urgent=grace || daysLeft(sp)<=URGENT_DAYS, target=targetOf(sp);
+  const todo=[];
+  if(!x.goals) todo.push("add your sprint goals");
+  if(x.hours<target){ const more=Math.round((target-x.hours)*10)/10; todo.push(`log ${more} more hour${more===1?"":"s"} to reach ${target}`); }
+  if(urgent) todo.push("submit your retrospective");
+  const name=esc(sp.name||("Sprint "+sp.n)), ends=`${esc(dowOf(sp.end))} ${esc(fmtD(sp.end))}`;
+  const head=grace ? `<b>${name} · last day to submit</b> — it ended ${ends}`
+                   : `<b>${name} · ${esc(daysLeftLabel(sp))}</b>${daysLeft(sp)>0?` — ends ${ends}`:""}`;
+  return `<div class="countdown${urgent?" urgent":""}"><span class="cd-days">${grace?"!":Math.max(daysLeft(sp),0)}</span>
+    <span>${head}${todo.length?`<br><span class="cd-todo">Still to do: ${todo.join(" · ")}</span>`:""}</span></div>`;
+}
+// Dashboard: banners for the grace-day sprint (if any) and the current one, from SPRINT_STATS.
+function dashboardCountdownHTML(t){
+  const stats=SPRINT_STATS[t.id]; if(!stats) return "";
+  return SPRINTS.filter(sp=>["grace","current"].includes(sprintPhase(sp)))
+    .map(sp=>{ const x=stats[sp.id]; return countdownBannerHTML(sp, x && {...x, goals:x.mine}); }).join("");
+}
 function sprintGridHTML(t){
   if(!SPRINTS.length) return `<p class="muted">Your instructor hasn't started a sprint yet.</p>`;
   const stats=SPRINT_STATS[t.id]||{}, cbd=(t.act&&t.act.ok&&t.act.commits_by_day)||null;
@@ -1490,7 +1643,7 @@ function sprintGridHTML(t){
     const st=(x&&x.status)||"unrated", cur=ph==="current";
     const commits=cbd?Object.values(sliceCbd(cbd,start,end)).reduce((a,b)=>a+b,0):null;
     return `<button class="sprint-panel ${st}" data-sprint-open="${t.id}:${sp.id}">
-      <span class="sp-head"><b>${esc(sp.name||("Sprint "+sp.n))}</b><span class="sp-tag${cur||ph==="grace"?" cur":""}">${x&&x.submitted?"Submitted":{current:"Current",grace:"Last day to submit",upcoming:"Upcoming",closed:"Past"}[ph]}</span></span>
+      <span class="sp-head"><b>${esc(sp.name||("Sprint "+sp.n))}</b><span class="sp-tag${cur||ph==="grace"?" cur":""}">${x&&x.submitted?"Submitted":(ph==="current" && sp.end ? daysLeftLabel(sp) : {current:"Current",grace:"Last day to submit",upcoming:"Upcoming",closed:"Past"}[ph])}</span></span>
       <span class="sp-dates">${start&&end?`${esc(fmtD(start))} – ${esc(fmtD(end))}`:"&nbsp;"}</span>
       <span class="sp-body">${hoursRingSVG(x?x.hours:null, targetOf(sp))}
         <span class="sp-stats">
@@ -1513,12 +1666,14 @@ async function loadSprintStats(tid){
     const rs=retro.docs.map(d=>d.data()), mine=rs.find(r=>r.studentEmail===USER_EMAIL)||(IS_ADMIN?rs[0]:null);
     out[sp.id]={ status:ed.status||"unrated",
       submitted:!!mine, mood:mine?mine.mood:null,
+      mine:goals.docs.filter(d=>d.data().studentEmail===USER_EMAIL).length,
       goals:goals.size, done:goals.docs.filter(d=>d.data().result==="done"||d.data().completed).length,
       hours:time.docs.reduce((n,d)=>n+(Number(d.data().hours)||0),0) };
   }));
   SPRINT_STATS[tid]=out;
-  const t=TEAMS.find(x=>x.id===tid), el=$("sprint-grid-"+tid);
+  const t=TEAMS.find(x=>x.id===tid), el=$("sprint-grid-"+tid), cd=$("countdown-"+tid);
   if(t && el) el.innerHTML=sprintGridHTML(t);
+  if(t && cd) cd.innerHTML=dashboardCountdownHTML(t);
 }
 async function openSprint(tid,sid){
   history.replaceState(null,"","#"+tid+"__sprint");
@@ -1679,7 +1834,7 @@ function render(){
   const main=$("main");
   if(!IS_ADMIN && !TEAMS.length){ main.innerHTML = noProjectHTML(); return; }
   main.innerHTML = (PREVIEW_STUDENT?`<div class="preview-bar"><b>Student preview</b> · Changes here are saved to the live project data.</div>`:"") +
-    (studentView()?"":dashboardHTML()) + TEAMS.map(teamHTML).join("") + (instructorView()?manageHTML():"");
+    (studentView()?"":dashboardHTML()) + TEAMS.map(teamHTML).join("") + (instructorView()?overviewViewHTML()+manageHTML():"");
   const dashboardSprintFilter=$("dashboardSprintFilter"), dashboardStatusFilter=$("dashboardStatusFilter");
   if(dashboardSprintFilter) dashboardSprintFilter.onchange=e=>setSprint(e.target.value);
   if(dashboardStatusFilter) dashboardStatusFilter.onchange=e=>{
@@ -1845,6 +2000,8 @@ async function onMainClick(e){
   if (acct) { const box=acct.closest(".account"), open=!box.classList.contains("open");
     closeAccountMenus(); box.classList.toggle("open",open); acct.setAttribute("aria-expanded",open); return; }
   if (e.target.closest("[data-sign-out]")) { closeAccountMenus(); await signOut(auth); return; }
+  const ov = e.target.closest("[data-ov-open]"); if (ov) { const [tid,sid]=ov.dataset.ovOpen.split(":"); await openTeamSprint(tid,sid); return; }
+  if (e.target.closest("[data-ov-refresh]")) { OVERVIEW=null; await ensureOverview(); return; }
   const sp = e.target.closest("[data-sprint-open]"); if (sp) { const [tid,sid]=sp.dataset.sprintOpen.split(":"); await openSprint(tid,sid); return; }
   const addList=e.target.closest("[data-list-add]"); if(addList){ const [tid,field]=addList.dataset.listAdd.split(":"); await addProjectListItem(tid,field); return; }
   const removeList=e.target.closest("[data-list-remove]"); if(removeList){ const [tid,field,index]=removeList.dataset.listRemove.split(":"); await removeProjectListItem(tid,field,index); return; }
@@ -2207,6 +2364,7 @@ function show(view){
   document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
   (document.getElementById("view-"+view)||document.getElementById("view-dashboard"))?.classList.add("active");
   markNav(view);
+  if(view==="overview" && instructorView()) ensureOverview();
   if(studentView() && document.getElementById("sprint-grid-"+view))
     loadSprintStats(view).catch(e=>console.error("sprint stats:", e));
   window.scrollTo({top:0});
