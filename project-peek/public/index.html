@@ -160,7 +160,6 @@
   .nav button:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
   .nav .nav-ic { width:8px; display:inline-flex; justify-content:center; font-size:12px; color:var(--ink-faint); }
   .nav .dot { width:8px; height:8px; border-radius:50%; flex:0 0 auto; }
-  .nav .home { font-family:var(--font-mono); font-size:13px; }
   .nav .tname { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .dot.healthy{background:var(--healthy);} .dot.watch{background:var(--watch);}
   .dot.risk{background:var(--risk);} .dot.noaccess{background:var(--noaccess);}
@@ -216,7 +215,14 @@
   .icon-circle svg{ width:22px; height:22px; display:block; }
   .icon-circle:hover{ transform:translateY(-1px); box-shadow:0 0 0 2px var(--accent); color:var(--ink); }
   .icon-circle:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
-  .icon-circle.pen{ color:var(--ink); }
+  .icon-circle.pen, .icon-circle.sync, .icon-circle.mode{ color:var(--ink); }
+  .icon-circle.mode.on{ box-shadow:0 0 0 2px var(--accent); color:var(--accent-ink); }
+  .icon-circle.sync{ position:relative; }
+  .icon-circle.sync.warn::after{ content:""; position:absolute; top:5px; right:5px; width:9px; height:9px; border-radius:50%;
+    background:var(--watch); box-shadow:0 0 0 2px var(--surface-2); }
+  .icon-circle.sync.spinning svg{ animation:spin 1s linear infinite; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce){ .icon-circle.sync.spinning svg{ animation:none; } .icon-circle.sync.spinning{ opacity:.6; } }
   .icon-circle.pen.on{ box-shadow:0 0 0 2px var(--accent); color:var(--accent-ink); }
   .icon-circle.off{ cursor:default; opacity:.35; filter:grayscale(1); }
   .icon-circle.off:hover{ transform:none; box-shadow:none; }
@@ -290,8 +296,6 @@
   .mood-big{ font-size:38px; line-height:1; }
   .retro-meta{ font-size:12px; margin:10px 0 0; }
   @media (max-width:720px){ .entry-form.with-student{ grid-template-columns:1fr; } }
-  .preview-bar{ background:var(--watch-bg); border:1px solid var(--watch); color:var(--ink); border-radius:9px;
-    padding:9px 12px; margin-bottom:18px; font-size:12.5px; }
 
   .main { padding:34px clamp(20px,4vw,56px) 80px; min-width:0; }
   .view { display:none; }
@@ -334,6 +338,7 @@
   tbody tr { cursor:pointer; }
   tbody tr:hover { background:var(--surface-2); }
   td .tm { font-weight:640; } td .pj { color:var(--ink-soft); }
+  .dash-hours b{ font-weight:650; } .dash-hours.ok b{ color:var(--healthy); } .dash-hours.low b{ color:var(--risk); }
   td.num { font-family:var(--font-mono); font-variant-numeric:tabular-nums; color:var(--ink-soft); }
 
   .pill { display:inline-flex; align-items:center; gap:6px; font-family:var(--font-mono); font-size:11px;
@@ -644,8 +649,12 @@
   .after-end{ margin:10px 0 4px; font-size:13px; color:var(--ink-soft); }
   .after-end.has{ color:var(--ink); }
   .after-end.has b{ color:var(--watch); font-family:var(--font-mono); }
-  .ov-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
-  .ov-wrap{ margin-top:22px; }
+  .ov-wrap{ margin-top:0; }
+  .page-title{ display:flex; align-items:center; gap:16px; min-width:0; }
+  .page-title h1{ margin:0; font-size:clamp(20px,2.4vw,26px); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .main > .top-row ~ .view > :first-child{ margin-top:0; }   /* instructor pages: first panel lines up with the sidebar */
+  .card.team-head .thead .project{ margin-top:0; }
+  .card.team-head .chips{ margin-bottom:0; }
   .ov-actions{ display:flex; gap:8px; flex-wrap:wrap; }
   .ov-table{ min-width:0; width:auto; }
   .ov-table thead th{ vertical-align:bottom; white-space:nowrap; }
@@ -799,7 +808,7 @@ let LAST_SYNC=null, SYNC_REPORT=null, SYNC_SCHEDULE={};
 let SPRINT_STATS={}, RETROS={};
 let EDITING_TIME="";
 let RETRO_HISTORY={};  // student view: {teamId: [{sprint, retro, goals, entry}]}, oldest first   // "teamId:timeId" while a time entry is open for editing
-let OVERVIEW=null;   // instructor class overview: {course, loadedAt, cells:{teamId:{sprintId:{…}}}}   // student view: {teamId: {sprintId: {hours, goals, done, status, start, end}}}
+let OVERVIEW=null;   // instructor course overview: {course, loadedAt, cells:{teamId:{sprintId:{…}}}}   // student view: {teamId: {sprintId: {hours, goals, done, status, start, end}}}
 // Local calendar date (not UTC, which flips to tomorrow in the evening in Mountain time).
 const TODAY = (d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`)(new Date());
 function instructorView(){ return IS_ADMIN && !PREVIEW_STUDENT; }
@@ -922,8 +931,8 @@ function applyModeChrome(){
   $("projectSwitch").hidden = !studentView();
   $("sprintSel").parentElement.hidden = studentView();
   $("themeBtn").hidden = studentView();
-  $("modeName").hidden = !IS_ADMIN;     // students don't need a role label
-  document.querySelector(".side-foot").hidden = !IS_ADMIN;   // nothing left in it for students
+  $("modeName").hidden = true;   // the top row's title and the ringed preview toggle show the mode; the label would push the sidebar out of line
+  document.querySelector(".side-foot").hidden = true;   // sync, preview, theme and sign-out live in the top row now
   $("who").hidden = !IS_ADMIN;          // real students get the account menu instead
   $("signOutBtn").hidden = !IS_ADMIN;
   $("syncBtn").hidden = !instructorView();
@@ -935,6 +944,7 @@ function applyModeChrome(){
   }
 }
 function renderSyncInfo(){
+  refreshInstructorBar();
   const el = $("syncInfo"); if(!el) return;
   if(!LAST_SYNC){ el.textContent = "Never synced"; return; }
   const n = SYNC_REPORT && SYNC_REPORT.issues ? SYNC_REPORT.issues.length : 0;
@@ -1238,9 +1248,9 @@ function renderNav(){
   if(studentView()){ renderProjectSel(); nav.innerHTML=studentNavHTML(); markNav(location.hash.slice(1)||""); return; }
   const teams=[...TEAMS].sort((a,b)=>(a.team||"").localeCompare(b.team||""));
   nav.innerHTML = `<div class="nav-label">Overview</div>
-    <button data-view="dashboard" class="home"><span>▚ Dashboard</span></button>
-    ${instructorView()?`<button data-view="overview" class="home"><span>▦ Class overview</span></button>
-    <button data-view="manage" class="home"><span>⚙ Manage ${L().units}</span></button>`:""}
+    <button data-view="dashboard"><span class="nav-ic">▚</span><span class="tname">Dashboard</span></button>
+    ${instructorView()?`<button data-view="overview"><span class="nav-ic">▦</span><span class="tname">Course overview</span></button>
+    <button data-view="manage"><span class="nav-ic">⚙</span><span class="tname">Manage ${L().units}</span></button>`:""}
     <div class="nav-label">${L().Units}</div>` +
     teams.map(t=>`<button data-view="${t.id}"><span class="dot ${statusOf(t)}"></span><span class="tname">${esc(t.team)}</span></button>`).join("");
 }
@@ -1272,7 +1282,7 @@ function studentNavHTML(){
     ${SPRINTS.length?`<div class="nav-label">Sprints</div>${sprints}`:""}`;
 }
 
-/* ---------- class overview (instructor) ----------
+/* ---------- course overview (instructor) ----------
    One row per project, one column per sprint (oldest → newest). Each cell: hours
    against the sprint's target, goals done, the student's mood, and whether the
    retrospective is in; the cell is tinted by the instructor's rating. Loaded on
@@ -1280,15 +1290,12 @@ function studentNavHTML(){
    course change. */
 function overviewViewHTML(){
   return `<div class="view" id="view-overview">
-    <div class="ov-head"><h1>Class overview</h1>
-      <span class="ov-actions"><button class="btn secondary" data-ov-export>⬇ Export CSV</button>
-        <button class="btn secondary" data-ov-refresh>↻ Refresh</button></span></div>
     <div id="overview-body">${overviewBodyHTML()}</div></div>`;
 }
 async function ensureOverview(){
   if(!COURSE || (OVERVIEW && OVERVIEW.course===COURSE.id)) return;
   const course=COURSE.id, cells={};
-  const body=$("overview-body"); if(body) body.innerHTML=`<p class="muted">Loading the class overview…</p>`;
+  const body=$("overview-body"); if(body) body.innerHTML=`<p class="muted">Loading the course overview…</p>`;
   try{
     await Promise.all(SPRINTS.map(async sp=>{
       const entries={};
@@ -1316,7 +1323,7 @@ async function ensureOverview(){
 function overviewBodyHTML(){
   if(!SPRINTS.length) return `<p class="muted">No sprints yet.</p>`;
   if(!TEAMS.length) return `<p class="muted">No ${L().units} yet.</p>`;
-  if(!OVERVIEW || OVERVIEW.course!==COURSE.id) return `<p class="muted">Loading the class overview…</p>`;
+  if(!OVERVIEW || OVERVIEW.course!==COURSE.id) return `<p class="muted">Loading the course overview…</p>`;
   const fmtH=n=>String(Math.round(n*10)/10);
   const teams=[...TEAMS].sort((a,b)=>(a.team||"").localeCompare(b.team||""));
   const head=SPRINTS.map(sp=>{ const ph=sprintPhase(sp);
@@ -1395,7 +1402,6 @@ function dashboardHTML(){
   const sprintOptions=[...SPRINTS].reverse().map(sp=>`<option value="${esc(sp.id)}"${SPRINT&&sp.id===SPRINT.id?" selected":""}>${esc(sp.name||("Sprint "+sp.n))}</option>`).join("");
   const statusOptions=["healthy","watch","risk","noaccess","unrated"].map(st=>`<option value="${st}"${DASH_STATUS_FILTER===st?" selected":""}>${STATUS_LABEL[st]}</option>`).join("");
   return `<div class="view active" id="view-dashboard">
-    <h1>Dashboard</h1>
     ${noSprintsHTML()}
     ${syncBannerHTML()}
     <div class="tiles">
@@ -1410,15 +1416,20 @@ function dashboardHTML(){
       <label>Status<select id="dashboardStatusFilter"><option value="all">All statuses</option>${statusOptions}</select></label>
     </div></div>
     <div class="tablewrap"><table>
-      <thead><tr><th>Developer</th><th>Project</th><th>${SPRINT?"Window":""}</th><th>Commits</th><th>Trend (commits/day)</th><th>Status</th></tr></thead>
+      <thead><tr><th>Developer</th><th>Project</th><th>${SPRINT?"Hours":""}</th><th>Commits</th><th>Trend (commits/day)</th><th>Status</th></tr></thead>
       <tbody>${rows.length?rows.map(t=>{ const a=sprintAct(t); return `<tr data-goto="${t.id}">
         <td><span class="tm">${esc(t.team)}</span></td><td class="pj">${esc(t.project)}</td>
-        <td class="sdates">${SPRINT?esc(winLabel(t.id)||"—"):""}</td>
+        <td class="num">${SPRINT?dashHoursHTML(t):""}</td>
         <td class="num">${a&&a.ok?esc(a.total):"—"}</td>
         <td>${a&&a.ok?`<span class="spark">${chartSVG(a.commits_by_day,{spark:true})}</span>`:'<span class="num">—</span>'}</td>
         <td><span class="pill ${statusOf(t)}"><span class="d"></span>${STATUS_LABEL[statusOf(t)]}</span></td></tr>`;}).join(""):`<tr><td colspan="6" class="pj">No developers match this status.</td></tr>`}</tbody>
     </table></div>
   </div>`;
+}
+// Dashboard: hours logged this sprint against its target, red under / green at or above.
+function dashHoursHTML(t){
+  const h=(TIME_ENTRIES[t.id]||[]).reduce((n,x)=>n+(Number(x.hours)||0),0), target=targetOf(SPRINT);
+  return `<span class="dash-hours ${h>=target?"ok":"low"}"><b>${Math.round(h*10)/10}</b> / ${target} h</span>`;
 }
 function contribHTML(a){ return a.contribs.map(x=>`<div class="crow"><div class="top">
   <span class="who">${esc(x.n)}${x.note?` <span class="note">· ${esc(x.note)}</span>`:""}</span>
@@ -1729,6 +1740,8 @@ function studentTeamHTML(t){
 const ICON_GITHUB=`<svg viewBox="0 -3.1 2490.3 2493" aria-hidden="true"><ellipse cx="1245.2" cy="1243.4" fill="#fff" rx="1217.6" ry="1246.5"/><path fill="#5c6bc0" d="m1245.2 1.6c-687.6 0-1245.2 557.4-1245.2 1245.1 0 550.2 356.8 1016.9 851.5 1181.5 62.2 11.5 85.1-27 85.1-59.9 0-29.7-1.2-127.8-1.7-231.8-346.4 75.3-419.5-146.9-419.5-146.9-56.6-143.9-138.3-182.2-138.3-182.2-113-77.3 8.5-75.7 8.5-75.7 125 8.8 190.9 128.3 190.9 128.3 111.1 190.4 291.3 135.3 362.3 103.5 11.2-80.5 43.4-135.4 79.1-166.5-276.6-31.5-567.3-138.3-567.3-615.4 0-135.9 48.6-247 128.3-334.2-12.9-31.3-55.5-157.9 12.1-329.4 0 0 104.6-33.5 342.5 127.6 99.3-27.6 205.8-41.4 311.7-41.9 105.8.5 212.4 14.3 311.9 41.9 237.7-161.1 342.1-127.6 342.1-127.6 67.8 171.5 25.1 298.2 12.2 329.5 79.8 87.2 128.1 198.3 128.1 334.2 0 478.2-291.3 583.6-568.6 614.4 44.7 38.6 84.5 114.4 84.5 230.6 0 166.6-1.4 300.7-1.4 341.7 0 33.1 22.4 72 85.5 59.7 494.5-164.8 850.8-631.4 850.8-1181.4 0-687.7-557.5-1245.1-1245.1-1245.1"/></svg>`;
 const ICON_TRELLO=`<svg viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="72" fill="#1868db"/><rect x="95" y="95" width="125" height="293" rx="20" fill="#fff"/><rect x="292" y="95" width="125" height="176" rx="20" fill="#fff"/></svg>`;
 const ICON_PEN=`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+const ICON_SYNC=`<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 0 1-13.7 5.7M4 12a8 8 0 0 1 13.7-5.7"/><path d="M18 3v4h-4M6 21v-4h4"/></g></svg>`;
+const ICON_CAP=`<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M2.5 9 12 4.5 21.5 9 12 13.5z"/><path d="M6.5 11v4.5c1.5 1.6 3.4 2.4 5.5 2.4s4-.8 5.5-2.4V11M21.5 9v5"/></g></svg>`;
 const ICON_MOON=`<svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>`;
 const ICON_SUN=`<svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></g></svg>`;
 function iconBarHTML(t){
@@ -1741,8 +1754,39 @@ function iconBarHTML(t){
       title="Edit project summary" aria-label="Edit project summary">${ICON_PEN}</button>`:""}
     ${link(t.github,ICON_GITHUB,"Open GitHub repository","No GitHub repo yet. Add it with the ✎ edit button.")}
     ${link(t.trello,ICON_TRELLO,"Open Trello board","No Trello board yet. Add it with the ✎ edit button.")}
-    <button class="icon-circle" data-theme-toggle title="Switch light/dark mode" aria-label="Switch light/dark mode">${ICON_MOON}${ICON_SUN}</button></div>`;
+    ${IS_ADMIN?modeCircleHTML():""}${themeCircleHTML()}</div>`;
 }
+// Instructor-only circles: run the GitHub/Trello sync, and switch to/from the student preview.
+let SYNCING=false;
+function syncCircleHTML(){
+  const n=SYNC_REPORT && SYNC_REPORT.issues ? SYNC_REPORT.issues.length : 0;
+  const tip=SYNCING ? "Syncing GitHub and Trello…"
+    : `Sync GitHub and Trello now · ${LAST_SYNC ? `last sync ${fmtWhen(LAST_SYNC)}` : "never synced"}${n?` · ${n} need${n===1?"s":""} attention`:""}`;
+  return `<button class="icon-circle sync${SYNCING?" spinning":""}${n?" warn":""}" data-sync title="${esc(tip)}" aria-label="${esc(tip)}">${ICON_SYNC}</button>`;
+}
+function modeCircleHTML(){
+  const tip=PREVIEW_STUDENT ? "Return to instructor view" : "Preview as student";
+  return `<button class="icon-circle mode${PREVIEW_STUDENT?" on":""}" data-mode-toggle title="${tip}" aria-label="${tip}">${ICON_CAP}</button>`;
+}
+function themeCircleHTML(){
+  return `<button class="icon-circle" data-theme-toggle title="Switch light/dark mode" aria-label="Switch light/dark mode">${ICON_MOON}${ICON_SUN}</button>`;
+}
+// Instructor pages: one top row above every view — sync, preview toggle, theme, account.
+function instructorTopRowHTML(){
+  return `<div class="top-row"><span class="page-title" id="pageTitle"></span><span class="top-right">
+    <div class="icon-bar">${syncCircleHTML()}${modeCircleHTML()}${themeCircleHTML()}</div>${accountHTML()}</span></div>`;
+}
+// Instructor page title (and, on the overview, its actions) sit in the top row so
+// every page's first panel lines up with the top of the sidebar panel.
+function setPageTitle(view){
+  const el=$("pageTitle"); if(!el || !instructorView()) return;
+  const t=TEAMS.find(x=>x.id===view);
+  const title = view==="overview" ? "Course overview" : view==="manage" ? `Manage ${L().units}` : t ? (t.team||t.project||"") : "Dashboard";
+  el.innerHTML = `<h1>${esc(title)}</h1>` + (view==="overview" ? `<span class="ov-actions">
+    <button class="btn secondary" data-ov-export>⬇ Export CSV</button>
+    <button class="btn secondary" data-ov-refresh>↻ Refresh</button></span>` : "");
+}
+function refreshInstructorBar(){ document.querySelectorAll(".icon-circle[data-sync]").forEach(b=>b.outerHTML=syncCircleHTML()); }
 // Signed-in student's name and email, with a dropdown (sign out).
 function accountHTML(){
   const u=auth.currentUser, name=(u&&u.displayName)||USER_EMAIL.split("@")[0];
@@ -1754,7 +1798,7 @@ function accountHTML(){
     <div class="account-menu" role="menu"><button role="menuitem" data-sign-out>Sign out</button></div></div>`;
 }
 // Top row for student pages without a project yet: links shown inactive.
-function accountRowHTML(){ return IS_ADMIN?"":topRowHTML({id:"none"}); }
+function accountRowHTML(){ return studentView() ? topRowHTML({id:"none"}) : instructorTopRowHTML(); }
 // One row at the top of each student page: optional back link left; icon bar and
 // account menu right.
 function topRowHTML(t,left){
@@ -2036,15 +2080,15 @@ function teamHTML(t){
   if(studentView()) return studentTeamHTML(t);
   const a=sprintAct(t), w=winOf(t.id), st=statusOf(t);
   return `<div class="view" id="view-${t.id}">
-    <span class="eyebrow">${esc(STATUS_LABEL[st])}</span>
-    <div class="thead"><div class="titles"><h1>${esc(t.team)}</h1>
+    <div class="card team-head"><div class="thead"><div class="titles">
       ${t.project?`<div class="project">▸ ${esc(t.project)}</div>`:""}
-      ${t.members?`<div class="members"><b>${Lt(t).who}:</b> ${esc(t.members)}</div>`:""}</div>
-      <span class="pill ${st}" style="margin-top:6px"><span class="d"></span>${STATUS_LABEL[st]}</span></div>
+      ${t.members&&t.members!==t.team?`<div class="members"><b>${Lt(t).who}:</b> ${esc(t.members)}</div>`:""}
+      ${(t.studentEmails||[]).length?`<div class="members">${esc(t.studentEmails.join(", "))}</div>`:""}</div>
+      <span class="pill ${st}"><span class="d"></span>${STATUS_LABEL[st]}</span></div>
     <div class="chips">
       ${t.github?`<a class="chip" href="${esc(t.github)}" target="_blank" rel="noopener"><span class="ic">GH</span>GitHub</a>`:`<span class="chip disabled"><span class="ic">GH</span>No repo yet</span>`}
       ${t.trello?`<a class="chip" href="${esc(t.trello)}" target="_blank" rel="noopener"><span class="ic">TR</span>Trello</a>`:`<span class="chip disabled"><span class="ic">TR</span>No Trello</span>`}
-    </div>
+    </div></div>
     ${projectSummaryHTML(t)}
     ${sprintCardHTML(t)}
     ${githubCardHTML(t)}
@@ -2072,8 +2116,6 @@ function teamHTML(t){
 function manageHTML(){
   const teams=[...TEAMS].sort((a,b)=>(a.team||"").localeCompare(b.team||"")); const l=L();
   return `<div class="view" id="view-manage">
-    <span class="eyebrow">Manage</span>
-    <h1>Manage ${l.units}</h1>
     <div class="mgr-head">
       <div><span class="mgr-lbl">Course</span><div class="mgr-course">${esc(COURSE.code||"")} — ${esc(COURSE.name||"")}</div></div>
       <div class="mgr-head-btns">
@@ -2185,7 +2227,7 @@ function teamFormHTML(t){
 function render(){
   const main=$("main");
   if(!IS_ADMIN && !TEAMS.length){ main.innerHTML = noProjectHTML(); return; }
-  main.innerHTML = (PREVIEW_STUDENT?`<div class="preview-bar"><b>Student preview</b> · Changes here are saved to the live project data.</div>`:"") +
+  main.innerHTML = (instructorView()?instructorTopRowHTML():"") +
     (studentView()?"":dashboardHTML()) + TEAMS.map(teamHTML).join("") + (instructorView()?overviewViewHTML()+manageHTML():"");
   const dashboardSprintFilter=$("dashboardSprintFilter"), dashboardStatusFilter=$("dashboardStatusFilter");
   if(dashboardSprintFilter) dashboardSprintFilter.onchange=e=>setSprint(e.target.value);
@@ -2363,6 +2405,8 @@ async function onMainClick(e){
   const ss = e.target.closest("[data-submit-sprint]"); if (ss) { await submitSprint(ss.dataset.submitSprint); return; }
   const ro = e.target.closest("[data-reopen]"); if (ro) { const [tid,...em]=ro.dataset.reopen.split(":"); await reopenSprint(tid,em.join(":")); return; }
   if (e.target.closest("[data-theme-toggle]")) { $("themeBtn").click(); return; }
+  if (e.target.closest("[data-sync]")) { $("syncBtn").click(); return; }
+  if (e.target.closest("[data-mode-toggle]")) { $("modeToggle").click(); return; }
   const acct = e.target.closest("[data-account-toggle]");
   if (acct) { const box=acct.closest(".account"), open=!box.classList.contains("open");
     closeAccountMenus(); box.classList.toggle("open",open); acct.setAttribute("aria-expanded",open); return; }
@@ -2709,7 +2753,7 @@ function renderNoCourses(){
   $("nav").innerHTML=`<div class="nav-label">Overview</div>`; $("courseSel").innerHTML="";
   SPRINTS=[]; SPRINT=null; ENTRIES={}; renderSprintSel();
   $("main").innerHTML = IS_ADMIN
-    ? `<span class="eyebrow">Getting started</span><h1>Create your first course</h1>
+    ? `${accountRowHTML()}<span class="eyebrow">Getting started</span><h1>Create your first course</h1>
       <p class="lede">Add a course, then add its teams. The daily sync will fill in each team's commit and Trello activity.</p>
       <div style="margin:18px 0"><button class="btn" data-mact="course-add">+ New course</button></div><div id="courseForm" hidden></div>`
     : `${accountRowHTML()}<span class="eyebrow">Student mode</span><h1>No projects assigned</h1>
@@ -2737,6 +2781,7 @@ function show(view){
   document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
   (document.getElementById("view-"+view)||document.getElementById("view-dashboard"))?.classList.add("active");
   markNav(view);
+  setPageTitle(view);
   if(view==="overview" && instructorView()) ensureOverview();
   if(studentView() && view.endsWith("__sprint")) markFeedbackSeen(view.split("__")[0]);
   if(studentView() && view.endsWith("__retros")) loadRetroHistory(view.split("__")[0]);
@@ -2786,7 +2831,7 @@ $("themeBtn").onclick=()=>{ const cur=root.getAttribute("data-theme");
 
 $("syncBtn").onclick = async () => {
   const b=$("syncBtn"); if(b.disabled) return;
-  const label="⟳ Sync now"; b.disabled=true; b.textContent="⟳ Syncing…";
+  const label="⟳ Sync now"; b.disabled=true; b.textContent="⟳ Syncing…"; SYNCING=true; refreshInstructorBar();
   try{
     const res = await httpsCallable(functions, "sync_now", { timeout: 300000 })();
     const d = res.data || {};
@@ -2798,6 +2843,7 @@ $("syncBtn").onclick = async () => {
     renderSyncInfo();
     show("dashboard");
     b.textContent = bad ? `⚠ ${d.ok}/${d.teams} clean` : `✓ Synced ${d.teams}`;
+    SYNCING=false; refreshInstructorBar();
     setTimeout(()=>{ b.textContent=label; b.disabled=false; }, 3000);
   }catch(e){
     console.error("sync_now failed:", e);
@@ -2809,6 +2855,7 @@ $("syncBtn").onclick = async () => {
     else if (/deadline-exceeded/i.test(code)) hint = "\n\nThe sync passed its 5-minute limit. Some teams may have updated; run it again.";
     else if (/not-found/i.test(code))         hint = "\n\nThe Cloud Function isn't deployed. Run: firebase deploy --only functions";
     else if (/internal/i.test(code))          hint = "\n\nThe function errored. Check: firebase functions:log --only sync_now";
+    SYNCING=false; refreshInstructorBar();
     alert("Sync failed: " + (code ? code + " — " : "") + msg + hint);
     b.textContent=label; b.disabled=false;
   }
