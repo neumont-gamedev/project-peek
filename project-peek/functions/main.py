@@ -160,27 +160,40 @@ def _tget(path, extra):
         return json.load(r)
 
 
-def fetch_trello(url):
-    """Return (snapshot|None, reason). `reason` explains skips so the UI can show them."""
+TRELLO_CODE = {}   # reason -> short code for the app; filled as reasons are produced
+
+
+def _treason(code, reason):
+    TRELLO_CODE[reason] = code
+    return None, reason
+
+
+def fetch_trello(url, account=""):
+    """Return (snapshot|None, reason). `reason` explains skips so the UI can show them.
+    Invite links (/invite/b/<id>/...) carry the board id, so they're read like plain
+    board links; once the sync account has joined the board (by opening the invite),
+    they work with no change from the student."""
+    who = account or "the sync account"
     if not (_tkey() and _ttok()):
-        return None, "no Trello credentials configured"
+        return _treason("error", "no Trello credentials configured")
     if not url:
-        return None, "no board link"
-    if "/invite/" in url:
-        return None, "invite link (API can't read - needs the plain /b/<id> URL)"
+        return _treason("none", "no board link")
+    invite = "/invite/" in url
     bid = trello_board_id(url)
     if not bid:
-        return None, "unrecognized board link"
+        return _treason("link", "unrecognized board link - use the board's address (trello.com/b/...)")
     try:
         lists = _tget(f"boards/{bid}/lists", {"cards": "open", "card_fields": "idMembers", "fields": "name"})
     except urllib.error.HTTPError as e:
         if e.code in (401, 403):
-            return None, f"{e.code} - board is private and the account isn't a member"
+            if invite:
+                return _treason("invite", f"{e.code} - invite link: open it once while signed in to Trello as {who} to join the board")
+            return _treason("private", f"{e.code} - board is private and {who} isn't a member")
         if e.code == 404:
-            return None, "404 - board not found"
-        return None, f"HTTP {e.code} {e.reason}"
+            return _treason("link", "404 - board not found - check the link")
+        return _treason("error", f"HTTP {e.code} {e.reason}")
     except Exception as e:
-        return None, f"error: {e}"
+        return _treason("error", f"error: {e}")
     out = [{"name": l.get("name", "?"), "count": len(l.get("cards", [])),
             "stage": trello_list_stage(l.get("name", ""), i)} for i, l in enumerate(lists)]
     result = {"total_cards": sum(x["count"] for x in out), "lists": out}
@@ -258,17 +271,63 @@ def build_act(commits_by_day, contributors, trello=None, contrib_notes=None, obs
             "contribs": contribs, "obs": obs, "trello": trello}
 
 
-def _github_reason(exc):
-    """Human-readable explanation for a failed GitHub fetch."""
+def _github_reason(exc, account=""):
+    """(code, human-readable reason) for a failed GitHub fetch. `account` is the GitHub
+    login the sync reads as, so the message says exactly who to share a private repo with."""
+    who = account or "the sync account"
     if isinstance(exc, urllib.error.HTTPError):
         if exc.code == 404:
-            return "404 - repo not found, renamed, or private (no token configured)"
+            return "private", f"404 - repo not found, or private and not shared with {who}"
+        if exc.code == 409:
+            return "empty", "409 - repo is empty (nothing pushed yet)"
         if exc.code == 403:
-            return "403 - API rate limit reached (60/hour unauthenticated) or access denied"
+            return "error", "403 - API rate limit reached or access denied"
         if exc.code == 401:
-            return "401 - not authorized"
-        return f"HTTP {exc.code} {exc.reason}"
-    return f"error: {exc}"
+            return "token", GH_TOKEN_BAD
+        return "error", f"HTTP {exc.code} {exc.reason}"
+    return "error", f"error: {exc}"
+
+
+def sync_accounts():
+    """The GitHub login and Trello username the sync reads as. Students must share
+    private repos/boards with these, so they're saved and shown to them."""
+    out = {"github": "", "trello": ""}
+    tok = _ghtok()
+    if tok:
+        try:
+            out["github"] = gh_get(GITHUB_API + "user").get("login", "") or ""
+        except Exception:
+            pass
+    if _tkey() and _ttok():
+        try:
+            out["trello"] = _tget("members/me", {"fields": "username"}).get("username", "") or ""
+        except Exception:
+            pass
+    return out
+
+
+GH_TOKEN_BAD = "GitHub token expired or invalid - renew GITHUB_TOKEN"
+
+
+def github_token_status():
+    """Check the GitHub token once before a sync, so a dead token is reported as one
+    clear problem instead of failing every repo with a 401. Returns
+    {"ok", "reason", "expires"}; "expires" is GitHub's expiry for the token, if any."""
+    tok = _ghtok()
+    if not tok:
+        return {"ok": False, "reason": "GITHUB_TOKEN is not set - private repos can't be read", "expires": ""}
+    headers = {"User-Agent": "project-peek", "Accept": "application/vnd.github+json",
+               "Authorization": f"Bearer {tok}"}
+    try:
+        with urllib.request.urlopen(_gh_request(GITHUB_API + "rate_limit", headers), timeout=30) as r:
+            return {"ok": True, "reason": "",
+                    "expires": r.headers.get("github-authentication-token-expiration", "") or ""}
+    except urllib.error.HTTPError as e:
+        if e.code == 401:
+            return {"ok": False, "reason": GH_TOKEN_BAD, "expires": ""}
+        return {"ok": True, "reason": f"token check returned HTTP {e.code}", "expires": ""}
+    except Exception as e:   # network hiccup: don't block the sync on the check itself
+        return {"ok": True, "reason": f"token check failed: {e}", "expires": ""}
 
 
 def _sync_uid(db, uid):
@@ -279,6 +338,8 @@ def _sync_uid(db, uid):
     courses = teams = 0
     issues = []          # only the entries that need attention
     results = []         # every team, for a full report
+    gh_token = github_token_status()
+    accounts = sync_accounts()
 
     for c in db.collection(f"users/{uid}/courses").stream():
         courses += 1
@@ -290,28 +351,30 @@ def _sync_uid(db, uid):
             github = d.get("github", "") or ""; trello = d.get("trello", "") or ""
             old_act = d.get("act", {}) or {}; contrib_notes = d.get("contrib_notes", {}) or {}
 
-            gh_status = "ok"
+            gh_status, gh_code = "ok", "ok"
             cbd, contributors, bda = {}, [], {}
             if not github:
-                gh_status = "no repo link"
+                gh_status, gh_code = "no repo link", "none"
+            elif gh_token["reason"] == GH_TOKEN_BAD:
+                gh_status, gh_code = GH_TOKEN_BAD, "token"   # skip the call; every repo would 401
             else:
                 try:
                     cbd, contributors, bda = fetch_commits(slug_from_github(github))
                     if not cbd:
-                        gh_status = "no commits found"
+                        gh_status, gh_code = "no commits found", "empty"
                 except Exception as e:
-                    gh_status = _github_reason(e)
+                    gh_code, gh_status = _github_reason(e, accounts["github"])
 
-            tr_status = "ok"
+            tr_status, tr_code = "ok", "ok"
             trello_snap = old_act.get("trello")
             if not trello:
-                tr_status = "no board link"
+                tr_status, tr_code = "no board link", "none"
             else:
-                snap, reason = fetch_trello(trello)
+                snap, reason = fetch_trello(trello, accounts["trello"])
                 if snap:
                     snap["date"] = today; trello_snap = {"date": today, **snap}
                 else:
-                    tr_status = reason
+                    tr_status, tr_code = reason, TRELLO_CODE.get(reason, "error")
 
             # Preserve prior commit data rather than zeroing a team we couldn't reach.
             stale = False
@@ -323,7 +386,12 @@ def _sync_uid(db, uid):
                 if cbd:
                     act["synced"] = now_iso   # commit data genuinely refreshed just now
 
-            cref.collection("teams").document(tdoc.id).set({"act": act}, merge=True)
+            # syncStatus lets the student see why their repo/board couldn't be read, and
+            # which account to share it with.
+            cref.collection("teams").document(tdoc.id).set({"act": act, "syncStatus": {
+                "github": gh_status, "githubCode": gh_code, "trello": tr_status, "trelloCode": tr_code,
+                "githubAccount": accounts["github"], "trelloAccount": accounts["trello"],
+                "at": gcf.SERVER_TIMESTAMP}}, merge=True)
             teams += 1
 
             entry = {"course": code, "team": name, "id": tdoc.id,
@@ -334,9 +402,14 @@ def _sync_uid(db, uid):
             if gh_status != "ok" or tr_status not in ("ok", "no board link"):
                 issues.append(entry)
 
-    db.document(f"users/{uid}").set({"lastSync": gcf.SERVER_TIMESTAMP}, merge=True)
+    # The token check is saved with the user so the app can warn on every visit,
+    # not only right after a manual sync.
+    db.document(f"users/{uid}").set({"lastSync": gcf.SERVER_TIMESTAMP,
+        "githubToken": {**gh_token, "checkedAt": gcf.SERVER_TIMESTAMP},
+        "syncAccounts": accounts}, merge=True)
     return {"courses": courses, "teams": teams,
             "ok": teams - len(issues), "issues": issues, "results": results,
+            "githubToken": gh_token,
             "syncedAt": datetime.now(timezone.utc).isoformat(timespec="seconds")}
 
 
@@ -488,12 +561,13 @@ def scheduled_sync(event: scheduler_fn.ScheduledEvent) -> None:
         }}, merge=True)
         try:
             result = _sync_uid(db, user_doc.id)
+            tok = result.get("githubToken") or {}
             schedule_ref.set({"syncSchedule": {
                 **schedule,
                 "lastRunDate": local_date,
                 "lastCompletedAt": gcf.SERVER_TIMESTAMP,
-                "lastStatus": "ok",
-                "lastError": "",
+                "lastStatus": "ok" if tok.get("ok", True) else "warning",
+                "lastError": "" if tok.get("ok", True) else tok.get("reason", ""),
                 "lastTeams": result.get("teams", 0),
                 "lastIssues": len(result.get("issues", [])),
             }}, merge=True)

@@ -220,6 +220,11 @@
   .icon-circle.sync{ position:relative; }
   .icon-circle.sync.warn::after{ content:""; position:absolute; top:5px; right:5px; width:9px; height:9px; border-radius:50%;
     background:var(--watch); box-shadow:0 0 0 2px var(--surface-2); }
+  .icon-circle.sync.bad::after{ background:var(--risk); }
+  .syncbar.bad{ border-color:var(--risk); background:var(--risk-bg); }
+  .syncbar.bad .ico{ color:var(--risk); }
+  .syncbar code{ font-family:var(--font-mono); font-size:12.5px; background:var(--field); padding:1px 6px; border-radius:5px; }
+  .sched-warn{ color:var(--watch) !important; }
   .icon-circle.sync.spinning svg{ animation:spin 1s linear infinite; }
   @keyframes spin{ to{ transform:rotate(360deg); } }
   @media (prefers-reduced-motion: reduce){ .icon-circle.sync.spinning svg{ animation:none; } .icon-circle.sync.spinning{ opacity:.6; } }
@@ -633,6 +638,11 @@
   .rh-goal-list li{ display:flex; justify-content:space-between; align-items:center; gap:12px; padding:7px 0;
     border-top:1px solid var(--line-soft); font-size:14px; }
   .rh-kv{ margin-top:6px; }
+  .sync-notice{ display:flex; gap:14px; margin:14px 0 4px; padding:12px 16px; border-radius:12px;
+    background:var(--risk-bg); border:1px solid var(--risk); color:var(--ink); font-size:14px; line-height:1.5; }
+  .sync-notice ul{ margin:6px 0 0; padding-left:18px; } .sync-notice li+li{ margin-top:4px; }
+  .sn-ico{ flex:0 0 auto; width:28px; height:28px; border-radius:50%; display:grid; place-items:center;
+    background:var(--risk); color:#fff; font-weight:800; }
   .countdown{ display:flex; align-items:center; gap:14px; margin:14px 0 4px; padding:12px 16px; border-radius:12px;
     background:var(--surface-2); border:1px solid var(--line); color:var(--ink); font-size:14px; line-height:1.45; }
   .countdown.urgent{ background:var(--watch-bg); border-color:var(--watch); }
@@ -804,7 +814,7 @@ function Lt(t){  // per-entry labels: each project can be team or solo
 let UID=null, OWNER_UID=null, USER_EMAIL="", IS_ADMIN=false, PREVIEW_STUDENT=false;
 let COURSES=[], COURSE=null, TEAMS=[], ASSIGNED_TEAMS=[], NOTES={}, RANGE=[null,null], ALLDAYS=[];
 let SPRINTS=[], SPRINT=null, ENTRIES={}, GOALS={}, TIME_ENTRIES={}, UNLOCKED=false, DASH_STATUS_FILTER="all";
-let LAST_SYNC=null, SYNC_REPORT=null, SYNC_SCHEDULE={};
+let LAST_SYNC=null, SYNC_REPORT=null, SYNC_SCHEDULE={}, GH_TOKEN=null, SYNC_ACCOUNTS={};   // GH_TOKEN: last saved GitHub token check
 let SPRINT_STATS={}, RETROS={};
 let EDITING_TIME="";
 let RETRO_HISTORY={};  // student view: {teamId: [{sprint, retro, goals, entry}]}, oldest first   // "teamId:timeId" while a time entry is open for editing
@@ -958,8 +968,34 @@ async function loadLastSync(){
     const ts = userData.lastSync;
     LAST_SYNC = ts && ts.toDate ? ts.toDate() : null;
     SYNC_SCHEDULE = userData.syncSchedule || {};
+    GH_TOKEN = userData.githubToken || null;
+    SYNC_ACCOUNTS = userData.syncAccounts || {};
   }catch(e){ console.error("lastSync read failed:", e); LAST_SYNC = null; }
   renderSyncInfo();
+}
+/* GitHub token health, from the check saved by the last sync (manual or scheduled).
+   A dead token turns every repo's fetch into a 401 and the sync keeps old numbers,
+   so it gets its own banner on every visit rather than hiding in per-project lines. */
+const TOKEN_WARN_DAYS=14;
+function tokenProblem(){
+  if(!GH_TOKEN) return null;
+  if(GH_TOKEN.ok===false) return { level:"bad", text:GH_TOKEN.reason||"GitHub token expired or invalid" };
+  const exp=GH_TOKEN.expires ? new Date(String(GH_TOKEN.expires).replace(" UTC","Z").replace(" ","T")) : null;
+  if(exp && !isNaN(exp)){
+    const days=Math.ceil((exp-Date.now())/86400000);
+    if(days<=0) return { level:"bad", text:"The GitHub token has expired" };
+    if(days<=TOKEN_WARN_DAYS) return { level:"warn", text:`The GitHub token expires in ${days} day${days===1?"":"s"} (${exp.toLocaleDateString([], {month:"short", day:"numeric", year:"numeric"})})` };
+  }
+  return null;
+}
+function tokenBannerHTML(){
+  const p=tokenProblem(); if(!p) return "";
+  return `<div class="syncbar ${p.level==="bad"?"bad":"warn"}"><span class="ico">${p.level==="bad"?"✕":"⚠"}</span><div class="body">
+    <h3>${esc(p.text)}</h3>
+    <p class="muted">${p.level==="bad" ? "Commit numbers can't update until it's renewed. They show the last good values." : "Renew it before then so syncing keeps working."}
+      Create a new classic token with the <b>repo</b> scope on GitHub, then run <code>firebase functions:secrets:set GITHUB_TOKEN</code>
+      in the project folder and answer <b>Yes</b> to redeploy.</p>
+  </div></div>`;
 }
 // Banner on the dashboard listing exactly what did not sync cleanly.
 function syncBannerHTML(){
@@ -971,6 +1007,8 @@ function syncBannerHTML(){
       <p class="muted">All ${SYNC_REPORT.teams} ${L().units} refreshed from GitHub and Trello.</p>
     </div><button class="dismiss" data-mact="sync-dismiss" title="Dismiss">×</button></div>`;
   }
+  const tokenDead=iss.length && iss.every(i=>/GitHub token expired or invalid/.test(i.github||""));
+  if(tokenDead) return "";   // tokenBannerHTML already explains it, once
   return `<div class="syncbar warn"><span class="ico">⚠</span><div class="body">
     <h3>${iss.length} of ${SYNC_REPORT.teams} did not sync cleanly</h3>
     <p class="muted">Their numbers below are the last good values, not fresh ones.</p>
@@ -1003,13 +1041,14 @@ async function loadWorkspace(){
       getDocs(query(collectionGroup(db, "teams"), where("studentEmails", "array-contains", USER_EMAIL)))]);
     assigned.forEach(d => ASSIGNED_TEAMS.push({ id:d.id, ...d.data() }));
     const seen = new Set();
-    const addCourse = (ownerUid, courseId, code, name, type) => {
+    const addCourse = (ownerUid, courseId, code, name, type, extra) => {
       const key = `${ownerUid}:${courseId}`;
       if (!ownerUid || !courseId || seen.has(key)) return;
       seen.add(key);
-      COURSES.push({ id:courseId, ownerUid, code:code||courseId, name:name||code||courseId, type:type||"team" });
+      COURSES.push({ id:courseId, ownerUid, code:code||courseId, name:name||code||courseId, type:type||"team", ...(extra||{}) });
     };
-    enrolled.forEach(d => { const e=d.data(); addCourse(e.ownerUid, e.courseId, e.courseCode, e.courseName, e.courseType); });
+    enrolled.forEach(d => { const e=d.data(); addCourse(e.ownerUid, e.courseId, e.courseCode, e.courseName, e.courseType,
+      { syncGithub:e.syncGithub||"", syncTrello:e.syncTrello||"" }); });
     ASSIGNED_TEAMS.forEach(t => addCourse(t.ownerUid, t.courseId, t.courseCode, t.courseName, t.courseType));
   }
   COURSES.sort((a,b)=> (a.name||a.id).localeCompare(b.name||b.id));
@@ -1403,6 +1442,7 @@ function dashboardHTML(){
   const statusOptions=["healthy","watch","risk","noaccess","unrated"].map(st=>`<option value="${st}"${DASH_STATUS_FILTER===st?" selected":""}>${STATUS_LABEL[st]}</option>`).join("");
   return `<div class="view active" id="view-dashboard">
     ${noSprintsHTML()}
+    ${tokenBannerHTML()}
     ${syncBannerHTML()}
     <div class="tiles">
       <div class="tile risk"><div class="n">${c.risk}</div><div class="l">${STATUS_LABEL.risk}</div></div>
@@ -1466,9 +1506,9 @@ function projectSummaryHTML(t){
       <input id="link-project-${t.id}" data-setup="${t.id}:project" value="${esc(t.project||"")}" placeholder="e.g. Hero's Blacksmith"></section>
     <section class="summary-section"><label class="nlbl" for="link-github-${t.id}">GitHub repository</label>
       <input id="link-github-${t.id}" data-setup="${t.id}:github" value="${esc(t.github||"")}" placeholder="https://github.com/owner/repo">
-      <p class="setup-note">Changing this re-points the commit history your instructor sees.</p></section>
+      <p class="setup-note">Changing this re-points the commit history your instructor sees.</p>${githubHintHTML(t)}</section>
     <section class="summary-section"><label class="nlbl" for="link-trello-${t.id}">Trello board <span class="muted">(optional)</span></label>
-      <input id="link-trello-${t.id}" data-setup="${t.id}:trello" value="${esc(t.trello||"")}" placeholder="https://trello.com/b/xxxx"></section></div>`;
+      <input id="link-trello-${t.id}" data-setup="${t.id}:trello" value="${esc(t.trello||"")}" placeholder="https://trello.com/b/xxxx">${trelloHintHTML(t)}</section></div>`;
 }
 /* ---------- sprint flow (student) ----------
    Not started → (add a goal) → In progress → (submit wrap-up) → Submitted.
@@ -1659,9 +1699,9 @@ function setupHTML(t){
       ${itemListEditor(t,"tech","Technology","Add the technologies used by the project.",p.tech)}
       <section class="summary-section"><label class="nlbl" for="setup-github-${t.id}">GitHub repository</label>
         <input id="setup-github-${t.id}" data-setup="${t.id}:github" value="${esc(t.github||"")}" placeholder="https://github.com/owner/repo">
-        <p class="setup-note">Your commit activity is read from this repo, so it has to be the one you actually push to.</p></section>
+        <p class="setup-note">Your commit activity is read from this repo, so it has to be the one you actually push to.</p>${githubHintHTML(t)}</section>
       <section class="summary-section"><label class="nlbl" for="setup-trello-${t.id}">Trello board <span class="muted">(optional)</span></label>
-        <input id="setup-trello-${t.id}" data-setup="${t.id}:trello" value="${esc(t.trello||"")}" placeholder="https://trello.com/b/xxxx"></section>
+        <input id="setup-trello-${t.id}" data-setup="${t.id}:trello" value="${esc(t.trello||"")}" placeholder="https://trello.com/b/xxxx">${trelloHintHTML(t)}</section>
       <div class="panel-actions"><button class="btn" data-mact="setup-done" data-tid="${t.id}">Finish setup</button></div>
       <p class="muted" id="setupErr-${t.id}" style="color:var(--risk);margin-top:10px"></p>
     </div></div>`;
@@ -1721,6 +1761,7 @@ function studentTeamHTML(t){
   const top=topRowHTML(t);
   return `<div class="view" id="view-${t.id}">${top}
     <div id="proj-head-${t.id}">${projectHeadHTML(t)}</div>
+    ${syncNoticeHTML(t)}
     <div id="countdown-${t.id}">${dashboardCountdownHTML(t)}</div>
     <h2 style="margin-top:30px">Sprints</h2>
     <div id="sprint-grid-${t.id}">${sprintGridHTML(t)}</div>
@@ -1759,10 +1800,10 @@ function iconBarHTML(t){
 // Instructor-only circles: run the GitHub/Trello sync, and switch to/from the student preview.
 let SYNCING=false;
 function syncCircleHTML(){
-  const n=SYNC_REPORT && SYNC_REPORT.issues ? SYNC_REPORT.issues.length : 0;
+  const n=SYNC_REPORT && SYNC_REPORT.issues ? SYNC_REPORT.issues.length : 0, tp=tokenProblem();
   const tip=SYNCING ? "Syncing GitHub and Trello…"
-    : `Sync GitHub and Trello now · ${LAST_SYNC ? `last sync ${fmtWhen(LAST_SYNC)}` : "never synced"}${n?` · ${n} need${n===1?"s":""} attention`:""}`;
-  return `<button class="icon-circle sync${SYNCING?" spinning":""}${n?" warn":""}" data-sync title="${esc(tip)}" aria-label="${esc(tip)}">${ICON_SYNC}</button>`;
+    : `Sync GitHub and Trello now · ${LAST_SYNC ? `last sync ${fmtWhen(LAST_SYNC)}` : "never synced"}${n?` · ${n} need${n===1?"s":""} attention`:""}${tp?` · ${tp.text}`:""}`;
+  return `<button class="icon-circle sync${SYNCING?" spinning":""}${n||tp?" warn":""}${tp&&tp.level==="bad"?" bad":""}" data-sync title="${esc(tip)}" aria-label="${esc(tip)}">${ICON_SYNC}</button>`;
 }
 function modeCircleHTML(){
   const tip=PREVIEW_STUDENT ? "Return to instructor view" : "Preview as student";
@@ -1804,6 +1845,37 @@ function accountRowHTML(){ return studentView() ? topRowHTML({id:"none"}) : inst
 function topRowHTML(t,left){
   return `<div class="top-row"><span>${left||""}</span><span class="top-right">
     <span id="icon-bar-${t.id}" class="icon-bar-slot">${iconBarHTML(t)}</span>${accountHTML()}</span></div>`;
+}
+/* Access help. The sync reads GitHub and Trello as the instructor's accounts, so a
+   private repo or board has to be shared with them. Names come from the last sync
+   (via the course enrollment, or the project's own sync status). */
+function shareAccounts(t){
+  const st=(t&&t.syncStatus)||{};
+  return { github:(COURSE&&COURSE.syncGithub)||st.githubAccount||SYNC_ACCOUNTS.github||"",
+           trello:(COURSE&&COURSE.syncTrello)||st.trelloAccount||SYNC_ACCOUNTS.trello||"" };
+}
+function githubHintHTML(t){
+  const a=shareAccounts(t).github;
+  return `<p class="setup-note">If the repo is private, add <b>${esc(a||"your instructor's GitHub account")}</b> as a collaborator
+    (repo <b>Settings → Collaborators → Add people</b>) so your commits can be read.</p>`;
+}
+function trelloHintHTML(t){
+  const a=shareAccounts(t).trello;
+  return `<p class="setup-note">Paste the board's address (<b>trello.com/b/…</b>). If the board is private, add
+    <b>${esc(a||"your instructor's Trello account")}</b> as a member (<b>Share</b> on the board).</p>`;
+}
+// Student dashboard: what the last sync couldn't read, and how to fix it.
+function syncNoticeHTML(t){
+  const st=t.syncStatus; if(!st) return "";
+  const a=shareAccounts(t), items=[];
+  if(st.githubCode==="private") items.push(`<b>GitHub:</b> your repo couldn't be read. If it's private, add <b>${esc(a.github||"your instructor's GitHub account")}</b>
+    as a collaborator (repo Settings → Collaborators → Add people). Also check the link with the ✎ button.`);
+  else if(st.githubCode==="empty") items.push(`<b>GitHub:</b> your repo has no commits yet. Push your first commit.`);
+  if(st.trelloCode==="private") items.push(`<b>Trello:</b> your board is private. Add <b>${esc(a.trello||"your instructor's Trello account")}</b> as a member (Share on the board).`);
+  else if(st.trelloCode==="link") items.push(`<b>Trello:</b> that link didn't work. Use the board's address (trello.com/b/…) with the ✎ button.`);
+  if(!items.length) return "";
+  return `<div class="sync-notice"><span class="sn-ico">!</span><div><b>Your instructor can't see all of your work yet.</b>
+    <ul>${items.map(x=>`<li>${x}</li>`).join("")}</ul></div></div>`;
 }
 // Title and overview on a student's project home. Kept separate so edits made
 // on the summary page can refresh it in place (see refreshProjectHead).
@@ -2148,7 +2220,8 @@ function schedulePanelHTML(){
   const zones=[zone,"America/Denver","America/Los_Angeles","America/Chicago","America/New_York","America/Phoenix"]
     .filter((x,i,a)=>x&&a.indexOf(x)===i);
   const completed=s.lastCompletedAt&&s.lastCompletedAt.toDate?s.lastCompletedAt.toDate():null;
-  const last=completed?`Last scheduled run ${fmtWhen(completed)} · ${s.lastStatus==="ok"?`${s.lastTeams||0} projects synced`:s.lastStatus||"unknown"}`:"No scheduled run yet";
+  const issues=s.lastIssues ? ` · ${s.lastIssues} need${s.lastIssues===1?"s":""} attention` : "";
+  const last=completed?`Last scheduled run ${fmtWhen(completed)} · ${s.lastStatus==="ok"||s.lastStatus==="warning"?`${s.lastTeams||0} projects synced${issues}`:s.lastStatus||"unknown"}`:"No scheduled run yet";
   const dayLabel=selected.includes("daily")?"Every day":days.filter(([v])=>selected.includes(v)).map(([,n])=>n.slice(0,3)).join(", ")||"Choose days";
   return `<div class="card"><h2>Automatic Sync</h2><div class="sgrid">
     <label>Enabled<select id="schedule_enabled"><option value="true"${s.enabled?" selected":""}>On</option><option value="false"${!s.enabled?" selected":""}>Off</option></select></label>
@@ -2158,7 +2231,7 @@ function schedulePanelHTML(){
     <label>Time<input id="schedule_time" type="time" value="${esc(time)}"></label>
     <label>Timezone<select id="schedule_timezone">${zones.map(z=>`<option value="${esc(z)}"${z===zone?" selected":""}>${esc(z.replace(/_/g," "))}</option>`).join("")}</select></label>
   </div>
-  <p class="muted" style="margin:12px 0 0">${esc(last)}${s.lastError?` · ${esc(s.lastError)}`:""}</p>
+  <p class="muted${s.lastError||s.lastIssues?" sched-warn":""}" style="margin:12px 0 0">${esc(last)}${s.lastError?` · ${esc(s.lastError)}`:""}</p>
   <div class="panel-actions"><button class="btn" data-mact="schedule-save">Save schedule</button></div></div>`;
 }
 function sprintsPanelHTML(){
@@ -2504,7 +2577,9 @@ async function syncEnrollments(){
   if(!IS_ADMIN || !COURSE) return;
   const base=`${cpath()}/enrollments`;
   const want={courseId:COURSE.id, ownerUid:UID, courseCode:COURSE.code||COURSE.id,
-    courseName:COURSE.name||COURSE.code||COURSE.id, courseType:COURSE.type||"team"};
+    courseName:COURSE.name||COURSE.code||COURSE.id, courseType:COURSE.type||"team",
+    // accounts students must share private repos/boards with (from the last sync)
+    syncGithub:SYNC_ACCOUNTS.github||"", syncTrello:SYNC_ACCOUNTS.trello||""};
   const have={}; (await getDocs(collection(db,base))).forEach(d=>have[d.id]=d.data());
   const emails=new Set(roster()), ops=[];
   emails.forEach(em=>{
@@ -2836,6 +2911,7 @@ $("syncBtn").onclick = async () => {
     const res = await httpsCallable(functions, "sync_now", { timeout: 300000 })();
     const d = res.data || {};
     SYNC_REPORT = d;
+    if (d.githubToken) GH_TOKEN = d.githubToken;
     LAST_SYNC = d.syncedAt ? new Date(d.syncedAt) : new Date();
     const bad = (d.issues || []).length;
     // Reload so the table shows the new numbers, then surface the report.
