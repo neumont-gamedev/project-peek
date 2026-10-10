@@ -98,12 +98,20 @@ service cloud.firestore {
                    'setupComplete', 'createdAt', 'updatedAt']));
           // Students set up their own project: title, description, and the repo/board
           // links. Membership (studentEmails) stays instructor-written, so a student
-          // can never add themselves to another project.
+          // can never add themselves to another project. On a solo project the student
+          // can also fix their display name (team and members, kept identical).
           allow update: if isOwner(ownerUid)
             || (isTeamStudent(ownerUid, courseId, teamId)
-              && request.resource.data.diff(resource.data).affectedKeys()
-                .hasOnly(['studentProject', 'project', 'github', 'trello',
-                          'setupComplete', 'updatedAt']));
+              && (request.resource.data.diff(resource.data).affectedKeys()
+                    .hasOnly(['studentProject', 'project', 'github', 'trello',
+                              'setupComplete', 'updatedAt'])
+                || (resource.data.get('type', 'team') == 'solo'
+                  && request.resource.data.diff(resource.data).affectedKeys()
+                    .hasOnly(['team', 'members', 'updatedAt'])
+                  && request.resource.data.team is string
+                  && request.resource.data.team.size() > 0
+                  && request.resource.data.team.size() <= 80
+                  && request.resource.data.members == request.resource.data.team)));
         }
 
         match /enrollments/{enrollmentId} {
@@ -178,7 +186,8 @@ service cloud.firestore {
             }
 
             // End-of-sprint wrap-up, one per student (doc id = their email). Creating it
-            // submits the sprint; only the instructor can change or delete (reopen) it.
+            // submits the sprint; only the instructor can change or delete (reopen) it. Mood 1
+            // (Rough) is retired; older wrap-ups may still hold it.
             match /retro/{retroId} {
               allow read: if isOwner(ownerUid) || isTeamStudent(ownerUid, courseId, teamId);
               allow write: if isOwner(ownerUid);
@@ -187,7 +196,7 @@ service cloud.firestore {
                 && retroId == email()
                 && request.resource.data.studentEmail == email()
                 && request.resource.data.mood is int
-                && request.resource.data.mood >= 1 && request.resource.data.mood <= 5
+                && request.resource.data.mood >= 2 && request.resource.data.mood <= 5
                 && request.resource.data.wentWell is string && request.resource.data.wentWell.size() <= 4000
                 && request.resource.data.improve is string && request.resource.data.improve.size() <= 4000
                 && request.resource.data.keys().hasOnly(['studentEmail', 'mood', 'wentWell',
