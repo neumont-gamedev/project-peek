@@ -383,7 +383,11 @@ def _sync_uid(db, uid):
 
             gh_status, gh_code = "ok", "ok"
             cbd, contributors, bda = {}, [], {}
-            if not github:
+            if d.get("noRepo"):
+                # Instructor marked the project as not using source control (e.g. hardware or
+                # server work): skip GitHub without reporting it as a problem.
+                gh_status, gh_code = "not used", "skip"
+            elif not github:
                 gh_status, gh_code = "no repo link", "none"
             elif gh_token["reason"] == GH_TOKEN_BAD:
                 gh_status, gh_code = GH_TOKEN_BAD, "token"   # skip the call; every repo would 401
@@ -429,7 +433,7 @@ def _sync_uid(db, uid):
                      "commits": act.get("total", 0) if act.get("ok") else 0,
                      "stale": stale}
             results.append(entry)
-            if gh_status != "ok" or tr_status not in ("ok", "no board link"):
+            if gh_code not in ("ok", "skip") or tr_status not in ("ok", "no board link"):
                 issues.append(entry)
 
     # The token check is saved with the user so the app can warn on every visit,

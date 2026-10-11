@@ -234,6 +234,12 @@
   .syncbar.bad{ border-color:var(--risk); background:var(--risk-bg); }
   .syncbar.bad .ico{ color:var(--risk); }
   .syncbar code{ font-family:var(--font-mono); font-size:var(--fs-sm); background:var(--field); padding:1px 6px; border-radius:5px; }
+  /* Automatic sync summary: one row of label-over-value items. */
+  .sched-sum{ display:flex; flex-wrap:wrap; gap:14px 40px; margin:14px 0 0; }
+  .sched-sum dt{ font-size:var(--fs-sm); color:var(--ink-faint); margin-bottom:3px; }
+  .sched-sum dd{ margin:0; font-size:var(--fs-md); font-weight:600; color:var(--ink); display:flex; align-items:center; gap:7px; }
+  .sched-sum dd .d{ width:8px; height:8px; border-radius:50%; background:currentColor; }
+  .sched-sum dd.on{ color:var(--healthy); } .sched-sum dd.off{ color:var(--risk); }
   .sched-warn{ color:var(--watch) !important; }
   .icon-circle.sync.spinning svg{ animation:spin 1s linear infinite; }
   @keyframes spin{ to{ transform:rotate(360deg); } }
@@ -542,7 +548,6 @@
     padding:11px 2px; border-bottom:1px solid var(--line-soft); }
   .srow .sn{ font-weight:600; font-size:var(--fs-md); }
   .panel-actions{ display:flex; justify-content:flex-end; margin-top:14px; }
-  .form-panel{ border-top:1px solid var(--line-soft); padding-top:18px; margin:16px 0; }
   .multi-select{ position:relative; }
   .multi-select summary{ list-style:none; cursor:pointer; font-family:var(--font-sans); font-size:var(--fs-md); font-weight:400; color:var(--ink);
     background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:8px 30px 8px 10px; position:relative; }
@@ -878,6 +883,7 @@ let SPRINTS=[], SPRINT=null, ENTRIES={}, GOALS={}, TIME_ENTRIES={}, UNLOCKED=fal
 let DASH_SORT=(()=>{ try{ const v=JSON.parse(localStorage.getItem("peek:dashSort")||"null");
   if(v && ["name","project","hours","commits","status","mood"].includes(v.key) && (v.dir===1||v.dir===-1)) return v; }catch(e){}
   return {key:"status",dir:1}; })();
+let SCHEDULE_EDITING=false;   // Automatic sync panel: summary until Edit is pressed
 let LAST_SYNC=null, SYNC_REPORT=null, SYNC_SCHEDULE={}, GH_TOKEN=null, SYNC_ACCOUNTS={};   // GH_TOKEN: last saved GitHub token check
 let SPRINT_STATS={}, RETROS={};
 // Instructor project page: teams whose summary panel / add-hours form is open. Kept across re-renders.
@@ -1497,7 +1503,7 @@ async function exportOverviewCSV(){
   const lines=[cols.map(cell).join(",")];
   const teams=[...TEAMS].sort((a,b)=>(a.team||"").localeCompare(b.team||""));
   for(const t of teams){
-    const cbd=(t.act&&t.act.ok&&t.act.commits_by_day)||null;
+    const cbd=(usesRepo(t)&&t.act&&t.act.ok&&t.act.commits_by_day)||null;
     for(const sp of SPRINTS){
       if(sprintPhase(sp)==="upcoming") continue;
       const c=(OVERVIEW.cells[t.id]||{})[sp.id]; if(!c) continue;
@@ -1554,7 +1560,7 @@ function dashboardHTML(){
         <td><span class="tm">${esc(t.team)}</span></td><td class="pj">${esc(t.project)}</td>
         <td><span class="pill ${statusOf(t)}"><span class="d"></span>${STATUS_LABEL[statusOf(t)]}</span></td>
         <td class="num">${SPRINT?dashHoursHTML(t):""}</td>
-        <td class="num">${a&&a.ok?esc(a.total):"—"}</td>
+        <td class="num">${!usesRepo(t)?`<span title="No source control">n/a</span>`:a&&a.ok?esc(a.total):"—"}</td>
         <td>${dashMoodHTML(t)}</td></tr>`;}).join(""):`<tr><td colspan="6" class="pj">No developers match this status.</td></tr>`}</tbody>
     </table></div>
   </div>`;
@@ -1636,9 +1642,9 @@ function projectSummaryHTML(t){
       <textarea data-project="${t.id}:concept">${esc(p.concept)}</textarea></section>
     ${itemListEditor(t,"features","Key features","The main features the project will deliver.",p.features)}
     ${itemListEditor(t,"tech","Technology","The languages, frameworks, and tools the project will use.",p.tech)}
-    <section class="summary-section"><label class="nlbl summary-heading" for="link-github-${t.id}">GitHub repository</label>
+    ${usesRepo(t)?`<section class="summary-section"><label class="nlbl summary-heading" for="link-github-${t.id}">GitHub repository</label>
       <input id="link-github-${t.id}" data-setup="${t.id}:github" value="${esc(t.github||"")}" placeholder="https://github.com/owner/repo">
-      <p class="setup-note">Changing this re-points the commit history your instructor sees.</p>${githubHintHTML(t)}</section>
+      <p class="setup-note">Changing this re-points the commit history your instructor sees.</p>${githubHintHTML(t)}</section>`:""}
     <section class="summary-section"><label class="nlbl summary-heading" for="link-trello-${t.id}">Trello board <span class="muted">(optional)</span></label>
       <input id="link-trello-${t.id}" data-setup="${t.id}:trello" value="${esc(t.trello||"")}" placeholder="https://trello.com/b/xxxx">${trelloHintHTML(t)}</section></div>`;
 }
@@ -1826,7 +1832,7 @@ async function setGoalResult(tid,gid,result){
 // Instructor: commits made after the sprint's end date, so a review held a few days
 // later can separate deadline work from what came after.
 function afterEndHTML(t){
-  if(!SPRINT || !SPRINT.end || !isPast(SPRINT)) return "";
+  if(!SPRINT || !SPRINT.end || !isPast(SPRINT) || !usesRepo(t)) return "";
   const cbd=(t.act&&t.act.ok&&t.act.commits_by_day)||{};
   const n=Object.keys(cbd).filter(d=>d>SPRINT.end).reduce((a,d)=>a+cbd[d],0);
   return `<div class="after-end${n?" has":""}">${n?`<b>${n}</b> commit${n===1?"":"s"} since this sprint ended (${esc(fmtD(SPRINT.end))})`
@@ -1874,9 +1880,9 @@ function setupHTML(t){
         <textarea id="setup-concept-${t.id}" data-project="${t.id}:concept" placeholder="2–3 sentences on what the project is.">${esc(p.concept)}</textarea></section>
       ${itemListEditor(t,"features","Key features","The main features the project will deliver.",p.features)}
       ${itemListEditor(t,"tech","Technology","The languages, frameworks, and tools the project will use.",p.tech)}
-      <section class="summary-section"><label class="nlbl" for="setup-github-${t.id}">GitHub repository</label>
+      ${usesRepo(t)?`<section class="summary-section"><label class="nlbl" for="setup-github-${t.id}">GitHub repository</label>
         <input id="setup-github-${t.id}" data-setup="${t.id}:github" value="${esc(t.github||"")}" placeholder="https://github.com/owner/repo">
-        <p class="setup-note">Your commit activity is read from this repo, so it has to be the one you actually push to.</p>${githubHintHTML(t)}</section>
+        <p class="setup-note">Your commit activity is read from this repo, so it has to be the one you actually push to.</p>${githubHintHTML(t)}</section>`:""}
       <section class="summary-section"><label class="nlbl" for="setup-trello-${t.id}">Trello board <span class="muted">(optional)</span></label>
         <input id="setup-trello-${t.id}" data-setup="${t.id}:trello" value="${esc(t.trello||"")}" placeholder="https://trello.com/b/xxxx">${trelloHintHTML(t)}</section>
       <div class="panel-actions"><button class="btn" data-mact="setup-done" data-tid="${t.id}">Finish setup</button></div>
@@ -1913,6 +1919,7 @@ async function createOwnProject(){
   }catch(e){ console.error(e); if(err) err.textContent = e.code+" — "+e.message; }
 }
 function githubCardHTML(t){
+  if(!usesRepo(t)) return "";
   const a=sprintAct(t), w=winOf(t.id);
   return `<div class="card"><h2>GitHub activity${SPRINT?` · ${esc(SPRINT.name||("Sprint "+SPRINT.n))}`:""}${a.synced?` · synced ${esc(fmtWhen(new Date(a.synced)))}`:""}</h2>
       ${a.ok?`<div class="metrics"><div class="metric"><div class="n">${esc(a.total)}</div><div class="l">commits</div></div>
@@ -1970,7 +1977,7 @@ function iconBarHTML(t){
   return `<div class="icon-bar">
     ${summary?`<button class="icon-circle pen${(location.hash.slice(1)===t.id+"__summary")?" on":""}" data-goto="${t.id}__summary" data-summary
       title="Edit project summary" aria-label="Edit project summary">${ICON_PEN}</button>`:""}
-    ${link(t.github,ICON_GITHUB,"Open GitHub repository","No GitHub repo yet. Add it with the ✎ edit button.")}
+    ${usesRepo(t)?link(t.github,ICON_GITHUB,"Open GitHub repository","No GitHub repo yet. Add it with the ✎ edit button."):""}
     ${link(t.trello,ICON_TRELLO,"Open Trello board","No Trello board yet. Add it with the ✎ edit button.")}
     ${IS_ADMIN?modeCircleHTML():""}${themeCircleHTML()}</div>`;
 }
@@ -2045,9 +2052,10 @@ function trelloHintHTML(t){
 function syncNoticeHTML(t){
   const st=t.syncStatus; if(!st) return "";
   const a=shareAccounts(t), items=[];
-  if(st.githubCode==="private") items.push(`<b>GitHub:</b> your repo couldn't be read. If it's private, add <b>${esc(a.github||"your instructor's GitHub account")}</b>
+  const gh=usesRepo(t) ? st.githubCode : "";   // no repo expected: say nothing about GitHub
+  if(gh==="private") items.push(`<b>GitHub:</b> your repo couldn't be read. If it's private, add <b>${esc(a.github||"your instructor's GitHub account")}</b>
     as a collaborator (repo Settings → Collaborators → Add people). Also check the link with the ✎ button.`);
-  else if(st.githubCode==="empty") items.push(`<b>GitHub:</b> your repo has no commits yet. Push your first commit.`);
+  else if(gh==="empty") items.push(`<b>GitHub:</b> your repo has no commits yet. Push your first commit.`);
   if(st.trelloCode==="private") items.push(`<b>Trello:</b> your board is private. Add <b>${esc(a.trello||"your instructor's Trello account")}</b> as a member (Share on the board).`);
   else if(st.trelloCode==="link") items.push(`<b>Trello:</b> that link didn't work. Use the board's address (trello.com/b/…) with the ✎ button.`);
   if(!items.length) return "";
@@ -2198,7 +2206,7 @@ function sprintGridHTML(t){
       <span class="sp-body">${hoursRingSVG(x?x.hours:null, targetOf(sp))}
         <span class="sp-stats">
           <span><b>${x?`${x.done}/${x.goals}`:"…"}</b>goals done</span>
-          <span><b>${commits==null?"—":commits}</b>commits</span></span></span>
+          ${usesRepo(t)?`<span><b>${commits==null?"—":commits}</b>commits</span>`:""}</span></span>
       <span class="sp-foot"><span class="sp-foot-l"><span class="pill ${st}"><span class="d"></span>${STATUS_LABEL[st]}</span>
         ${x&&x.newFeedback?`<span class="sp-new">New feedback</span>`:""}</span>
         ${x&&moodOf(x.mood)?`<span class="sp-mood" title="Felt: ${esc(moodOf(x.mood).l)}">${moodOf(x.mood).e}</span>`:""}</span>
@@ -2264,7 +2272,8 @@ function teamHTML(t){
       ${(t.studentEmails||[]).length?`<div class="members">${esc(t.studentEmails.join(", "))}</div>`:""}</div>
       <span class="pill ${st}"><span class="d"></span>${STATUS_LABEL[st]}</span></div>
     <div class="chips">
-      ${t.github?`<a class="chip" href="${esc(t.github)}" target="_blank" rel="noopener"><span class="ic">GH</span>GitHub</a>`:`<span class="chip disabled"><span class="ic">GH</span>No repo yet</span>`}
+      ${!usesRepo(t)?`<span class="chip disabled" title="Set in Edit project"><span class="ic">GH</span>No source control</span>`
+        :t.github?`<a class="chip" href="${esc(t.github)}" target="_blank" rel="noopener"><span class="ic">GH</span>GitHub</a>`:`<span class="chip disabled"><span class="ic">GH</span>No repo yet</span>`}
       ${t.trello?`<a class="chip" href="${esc(t.trello)}" target="_blank" rel="noopener"><span class="ic">TR</span>Trello</a>`:`<span class="chip disabled"><span class="ic">TR</span>No Trello</span>`}
       <button class="chip chip-btn${SHOW_SUMMARY.has(t.id)?" on":""}" data-summary-toggle="${t.id}" aria-expanded="${SHOW_SUMMARY.has(t.id)}"
         aria-controls="psum-${t.id}"><span class="ic">${SHOW_SUMMARY.has(t.id)?"▴":"▾"}</span>Project summary</button>
@@ -2306,8 +2315,8 @@ function manageHTML(){
     </div>
     <div id="courseForm" hidden></div>
     ${rosterPanelHTML()}
+    <div id="teamForm" hidden></div>
     <div class="card"><h2>${l.Units}</h2>
-      <div id="teamForm" hidden></div>
       <div class="mgr">${teams.map(t=>`<div class="mrow">
         <span class="pill ${statusOf(t)}"><span class="d"></span>${STATUS_LABEL[statusOf(t)]}</span>
         <span class="mname">${esc(t.team)}</span>
@@ -2318,7 +2327,7 @@ function manageHTML(){
       <div class="panel-actions"><button class="btn" data-mact="add">+ Add ${l.unit}</button></div>
     </div>
     ${sprintsPanelHTML()}
-    ${schedulePanelHTML()}
+    <div id="schedulePanel">${schedulePanelHTML()}</div>
   </div>`;
 }
 function schedulePanelHTML(){
@@ -2331,6 +2340,18 @@ function schedulePanelHTML(){
   const issues=s.lastIssues ? ` · ${s.lastIssues} need${s.lastIssues===1?"s":""} attention` : "";
   const last=completed?`Last scheduled run ${fmtWhen(completed)} · ${s.lastStatus==="ok"||s.lastStatus==="warning"?`${s.lastTeams||0} projects synced${issues}`:s.lastStatus||"unknown"}`:"No scheduled run yet";
   const dayLabel=selected.includes("daily")?"Every day":days.filter(([v])=>selected.includes(v)).map(([,n])=>n.slice(0,3)).join(", ")||"Choose days";
+  const lastLine=`<p class="muted${s.lastError||s.lastIssues?" sched-warn":""}" style="margin:12px 0 0">${esc(last)}${s.lastError?` · ${esc(s.lastError)}`:""}</p>`;
+  if(!SCHEDULE_EDITING){
+    const [hh,mm]=time.split(":").map(Number), clock=`${(hh%12)||12}:${String(mm).padStart(2,"0")} ${hh<12?"AM":"PM"}`;
+    return `<div class="card"><div class="notes-head"><h2>Automatic sync</h2>
+        <button class="linkbtn" data-mact="schedule-edit">Edit</button></div>
+      <dl class="sched-sum">
+        <div><dt>Status</dt><dd class="${s.enabled?"on":"off"}"><span class="d"></span>${s.enabled?"On":"Off"}</dd></div>
+        <div><dt>Days</dt><dd>${esc(dayLabel)}</dd></div>
+        <div><dt>Time</dt><dd>${esc(clock)}</dd></div>
+        <div><dt>Timezone</dt><dd>${esc(zone.replace(/_/g," "))}</dd></div></dl>
+      ${lastLine}</div>`;
+  }
   return `<div class="card"><h2>Automatic sync</h2><div class="sgrid">
     <label>Enabled<select id="schedule_enabled"><option value="true"${s.enabled?" selected":""}>On</option><option value="false"${!s.enabled?" selected":""}>Off</option></select></label>
     <label>Days<details class="multi-select" id="schedule_days"><summary id="schedule_days_label">${esc(dayLabel)}</summary><div class="multi-options">
@@ -2339,27 +2360,28 @@ function schedulePanelHTML(){
     <label>Time<input id="schedule_time" type="time" value="${esc(time)}"></label>
     <label>Timezone<select id="schedule_timezone">${zones.map(z=>`<option value="${esc(z)}"${z===zone?" selected":""}>${esc(z.replace(/_/g," "))}</option>`).join("")}</select></label>
   </div>
-  <p class="muted${s.lastError||s.lastIssues?" sched-warn":""}" style="margin:12px 0 0">${esc(last)}${s.lastError?` · ${esc(s.lastError)}`:""}</p>
-  <div class="panel-actions"><button class="btn" data-mact="schedule-save">Save schedule</button></div></div>`;
+  ${lastLine}
+  <div class="panel-actions"><button class="btn" data-mact="schedule-save">Save schedule</button>
+    <button class="btn secondary" data-mact="schedule-cancel">Cancel</button></div></div>`;
 }
 function sprintsPanelHTML(){
   const act=lastSprint();   // only the newest sprint can be edited or removed
-  return `<div class="card"><h2>Sprints</h2>
+  return `<div id="sprintForm" hidden></div>
+    <div class="card"><h2>Sprints</h2>
     <div>${SPRINTS.length?[...SPRINTS].reverse().map(sp=>`<div class="srow">
       <span class="badge ${isPast(sp)?"past":""}">${{current:"current",grace:"last day",upcoming:"upcoming",closed:"past"}[sprintPhase(sp)]}</span>
       <span class="sn">${esc(sp.name||("Sprint "+sp.n))}</span>
       <span class="sdates">${esc(fmtD(sp.start))} – ${esc(fmtD(sp.end))} · ${esc(String(targetOf(sp)))} hrs</span>
-      <span>${sp.id===(act&&act.id)?`<button class="linkbtn" data-mact="sprint-edit" data-sid="${sp.id}">Edit dates</button>
+      <span>${sp.id===(act&&act.id)?`<button class="linkbtn" data-mact="sprint-edit" data-sid="${sp.id}">Edit</button>
         <button class="linkbtn danger" data-mact="sprint-remove" data-sid="${sp.id}">Remove</button>`:""}</span>
     </div>`).join(""):`<p class="muted">No sprints yet.</p>`}</div>
-    <div id="sprintForm" hidden></div>
     <div class="panel-actions"><button class="btn" data-mact="sprint-add">+ New sprint</button></div></div>`;
 }
 function sprintFormHTML(sp){
   const n = sp ? sp.n : (SPRINTS.length ? Math.max(...SPRINTS.map(x=>x.n||0))+1 : 1);
   const prev = sp ? null : lastSprint();
   const v = sp || { name:"Sprint "+n, start: prev&&prev.end ? nextDay(prev.end) : "", end:"" };
-  return `<div class="form-panel"><h2>${sp?"Edit sprint":"New sprint"}</h2>
+  return `<div class="card"><h2>${sp?"Edit sprint":"New sprint"}</h2>
     <div class="sgrid">
       <label>Name<input id="sp_name" value="${esc(v.name||"")}" placeholder="Sprint ${n}"></label>
       <label>&nbsp;</label>
@@ -2386,13 +2408,15 @@ function noSprintsHTML(){
 function teamFormHTML(t){
   const v = t || {team:"",project:"",members:"",studentEmails:[],github:"",trello:"",status:"unrated",objectives:"",type:""};
   const defType = v.type || ((COURSE && COURSE.type === "solo") ? "solo" : "team");
-  return `<div class="form-panel"><h2>${t?"Edit":"Add"} ${L().unit}</h2>
+  return `<div class="card"><h2>${t?"Edit":"Add"} ${L().unit}</h2>
     <div class="form">
       <label>Name<input id="f_team" value="${esc(v.team)}" placeholder="team or project name"></label>
       <label>Type<select id="f_type"><option value="team"${defType==="team"?" selected":""}>Team</option><option value="solo"${defType==="solo"?" selected":""}>Solo</option></select></label>
       <label>Project title (optional)<input id="f_project" value="${esc(v.project)}" placeholder="e.g. Hero's Blacksmith"></label>
       <label>Member(s)<input id="f_members" value="${esc(v.members)}" placeholder="names, comma-separated"></label>
       <label>GitHub URL<input id="f_github" value="${esc(v.github)}" placeholder="https://github.com/owner/repo"></label>
+      <label>Source control<select id="f_repo"><option value="github">GitHub</option>
+        <option value="none"${v.noRepo?" selected":""}>None (hardware / server project)</option></select></label>
       <label>Trello URL<input id="f_trello" value="${esc(v.trello)}" placeholder="https://trello.com/b/xxxx (optional)"></label>
     </div>
     <label class="nlbl" style="margin-top:14px">Assigned students</label>
@@ -2473,7 +2497,7 @@ async function finishSetup(tid){
   const miss=[];
   if(!t.project) miss.push("a project title");
   if(!p.concept) miss.push("an overview");
-  if(!t.github)  miss.push("a GitHub repository");
+  if(!t.github && usesRepo(t)) miss.push("a GitHub repository");
   if(miss.length){ if(err) err.textContent = "Still needed: " + miss.join(", ") + "."; return; }
   try{
     await setDoc(doc(db,`${cpath()}/teams/${tid}`), {setupComplete:true, updatedAt:serverTimestamp()}, {merge:true});
@@ -2545,6 +2569,12 @@ async function removeProjectListItem(tid,field,index){
   const current=projectInfo(TEAMS.find(t=>t.id===tid)||{});
   await saveStudentProject(tid,{[field]:current[field].filter((_,i)=>i!==Number(index))});
   render(); stay(tid);
+}
+// Redraw just the Automatic sync panel, so switching between summary and form leaves the
+// page where it is (a full render + show() would jump back to the top).
+function refreshSchedulePanel(){
+  const el=$("schedulePanel"); if(!el){ render(); show("manage"); return; }
+  el.innerHTML=schedulePanelHTML(); wireScheduleDays();
 }
 function wireScheduleDays(){
   const box=$("schedule_days"), label=$("schedule_days_label"); if(!box||!label) return;
@@ -2641,6 +2671,7 @@ async function onMainClick(e){
   // course actions
   // sprint actions
   else if (act === "schedule-save") await saveSchedule();
+  else if (act === "schedule-edit" || act === "schedule-cancel"){ SCHEDULE_EDITING = act === "schedule-edit"; refreshSchedulePanel(); }
   else if (act === "roster-add")    await addToRoster();
   else if (act === "roster-remove") await removeFromRoster(m.dataset.email);
   else if (act === "setup-done")    await finishSetup(m.dataset.tid);
@@ -2692,8 +2723,12 @@ function teamOfEmail(em){ return TEAMS.find(t=>(t.studentEmails||[]).includes(em
 function isSetUp(t){
   if(t.setupComplete===true) return true;
   if(t.setupComplete===false) return false;
-  return !!(t.github && projectInfo(t).concept);
+  return !!((t.github || !usesRepo(t)) && projectInfo(t).concept);
 }
+/* A project the instructor marked as not using source control (hardware or server work).
+   Only the instructor's edit form names the setting; for the student, GitHub just isn't
+   asked for or shown. The rules keep students from writing noRepo. */
+function usesRepo(t){ return !(t && t.noRepo); }
 async function saveRoster(emails){
   const next=[...new Set(emails)].sort();
   await setDoc(doc(db,cpath()), {studentEmails:next}, {merge:true});
@@ -2780,6 +2815,7 @@ async function saveTeam(tid){
   const studentEmails=[...document.querySelectorAll(".f_student:checked")].map(x=>x.value);
   const data = { team:fval("f_team"), project:fval("f_project"), members:fval("f_members"),
                  studentEmails, github:fval("f_github"), trello:fval("f_trello"), type:fval("f_type")||"team",
+                 noRepo:fval("f_repo")==="none",
                  ownerUid:UID, courseId:COURSE.id, courseCode:COURSE.code||COURSE.id,
                  courseName:COURSE.name||COURSE.code||COURSE.id, courseType:COURSE.type||"team" };
   if (!data.team){ $("formErr").textContent = "Name is required."; return; }
@@ -2816,8 +2852,8 @@ async function saveSchedule(){
     const next={...SYNC_SCHEDULE,enabled,weekdays,time,timezone,updatedAt:serverTimestamp()};
     delete next.weekday;
     await setDoc(doc(db,`users/${UID}`),{syncSchedule:next},{merge:true});
-    SYNC_SCHEDULE={...next,updatedAt:null};
-    render(); show("manage");
+    SYNC_SCHEDULE={...next,updatedAt:null}; SCHEDULE_EDITING=false;
+    refreshSchedulePanel();
   }catch(e){ console.error(e); alert("Couldn't save the schedule: "+(e.message||e)); }
 }
 
