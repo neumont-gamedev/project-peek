@@ -113,30 +113,60 @@ def slug_from_github(url):
     return s[:-4] if s.endswith(".git") else s
 
 
+# Commits are bucketed by the calendar day they were made in the course's timezone, not
+# UTC: an 8 pm Mountain commit is that day's work, not the next day's.
+COMMIT_TZ = ZoneInfo("America/Denver")
+MAX_BRANCHES = 30
+
+
+def _local_day(iso):
+    try:
+        return datetime.fromisoformat(iso.replace("Z", "+00:00")).astimezone(COMMIT_TZ).strftime("%Y-%m-%d")
+    except ValueError:
+        return iso[:10]
+
+
 def fetch_commits(slug):
     # by_day_author is what lets the app split contributions per sprint: the sprint window
     # is a date range, and a date -> author -> count map slices to it. The whole history is
     # re-read on every sync, so this backfills for existing repos on the next run.
+    # Every branch is read (students often push to feature branches), and commits are
+    # de-duplicated by sha so work that has been merged is only counted once.
     by_day, authors = Counter(), Counter()
     by_day_author = defaultdict(Counter)
-    page = 1
-    while page <= 6:
-        batch = gh_get(f"https://api.github.com/repos/{slug}/commits?per_page=100&page={page}")
-        if not batch:
-            break
-        for c in batch:
-            commit = c.get("commit", {}) or {}
-            a = commit.get("author", {}) or {}
-            login = (c.get("author") or {}).get("login")
-            who = login or a.get("name", "unknown")
-            authors[who] += 1
-            date = (a.get("date") or "")[:10]
-            if date:
-                by_day[date] += 1
-                by_day_author[date][who] += 1
-        if len(batch) < 100:
-            break
-        page += 1
+    others = []
+    try:
+        default = (gh_get(f"https://api.github.com/repos/{slug}") or {}).get("default_branch")
+        others = [b["name"] for b in gh_get(f"https://api.github.com/repos/{slug}/branches?per_page=100") or []
+                  if b.get("name") != default]
+    except urllib.error.HTTPError:
+        pass
+    refs = [None] + others[:MAX_BRANCHES]   # None = the default branch, always read first
+    seen = set()
+    for ref in refs:
+        branch = f"&sha={urllib.parse.quote(ref, safe='')}" if ref else ""
+        page = 1
+        while page <= 6:
+            batch = gh_get(f"https://api.github.com/repos/{slug}/commits?per_page=100&page={page}{branch}")
+            if not batch:
+                break
+            for c in batch:
+                sha = c.get("sha")
+                if sha in seen:
+                    continue
+                seen.add(sha)
+                commit = c.get("commit", {}) or {}
+                a = commit.get("author", {}) or {}
+                login = (c.get("author") or {}).get("login")
+                who = login or a.get("name", "unknown")
+                authors[who] += 1
+                date = _local_day(a.get("date") or "")
+                if date:
+                    by_day[date] += 1
+                    by_day_author[date][who] += 1
+            if len(batch) < 100:
+                break
+            page += 1
     return (dict(by_day),
             [{"n": n, "c": c} for n, c in authors.most_common()],
             {d: dict(v) for d, v in by_day_author.items()})

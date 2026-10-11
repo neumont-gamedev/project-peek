@@ -23,6 +23,26 @@ service cloud.firestore {
       return isStaff() && request.auth.uid == ownerUid;
     }
 
+    // Retrospective action items: up to three short strings, and the follow-up on the
+    // previous sprint's actions, each {a: action text, r: yes | partly | no}. Rules have
+    // no loops, so each of the three possible slots is checked by index.
+    function okAction(l, i) {
+      return l.size() <= i || (l[i] is string && l[i].size() > 0 && l[i].size() <= 300);
+    }
+
+    function okFollow(l, i) {
+      return l.size() <= i || (l[i] is map && l[i].keys().hasOnly(['a', 'r'])
+        && l[i].a is string && l[i].a.size() <= 300 && l[i].r in ['yes', 'partly', 'no']);
+    }
+
+    function okActions(l) {
+      return l is list && l.size() <= 3 && okAction(l, 0) && okAction(l, 1) && okAction(l, 2);
+    }
+
+    function okFollowUp(l) {
+      return l is list && l.size() <= 3 && okFollow(l, 0) && okFollow(l, 1) && okFollow(l, 2);
+    }
+
     function coursePath(ownerUid, courseId) {
       return /databases/$(database)/documents/users/$(ownerUid)/courses/$(courseId);
     }
@@ -187,7 +207,8 @@ service cloud.firestore {
 
             // End-of-sprint wrap-up, one per student (doc id = their email). Creating it
             // submits the sprint; only the instructor can change or delete (reopen) it. Mood 1
-            // (Rough) is retired; older wrap-ups may still hold it.
+            // (Rough) is retired; older wrap-ups may still hold it. actions and followUp are
+            // optional so wrap-ups from before they existed (and stale clients) stay valid.
             match /retro/{retroId} {
               allow read: if isOwner(ownerUid) || isTeamStudent(ownerUid, courseId, teamId);
               allow write: if isOwner(ownerUid);
@@ -199,8 +220,10 @@ service cloud.firestore {
                 && request.resource.data.mood >= 2 && request.resource.data.mood <= 5
                 && request.resource.data.wentWell is string && request.resource.data.wentWell.size() <= 4000
                 && request.resource.data.improve is string && request.resource.data.improve.size() <= 4000
+                && okActions(request.resource.data.get('actions', []))
+                && okFollowUp(request.resource.data.get('followUp', []))
                 && request.resource.data.keys().hasOnly(['studentEmail', 'mood', 'wentWell',
-                     'improve', 'submittedAt']);
+                     'improve', 'actions', 'followUp', 'submittedAt']);
             }
           }
         }

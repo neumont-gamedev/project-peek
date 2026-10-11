@@ -297,6 +297,10 @@
   .seg span{ display:block; padding:5px 10px; font-size:var(--fs-sm); color:var(--ink-soft); border-left:1px solid var(--line); }
   .seg label:first-child span{ border-left:0; }
   .seg input:checked + span{ background:var(--accent-soft); color:var(--ink); font-weight:600; }
+  /* Goal results and action follow-ups use the usual green / amber / red once picked. */
+  .seg input[value=done]:checked + span, .seg input[value=yes]:checked + span{ background:var(--healthy-bg); color:var(--healthy); }
+  .seg input[value=partial]:checked + span, .seg input[value=partly]:checked + span{ background:var(--watch-bg); color:var(--watch); }
+  .seg input[value=notdone]:checked + span, .seg input[value=no]:checked + span{ background:var(--risk-bg); color:var(--risk); }
   .seg input:focus-visible + span{ outline:2px solid var(--accent); outline-offset:-2px; }
   .mood-picker{ display:flex; gap:8px; flex-wrap:wrap; }
   .mood-picker label{ cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:3px;
@@ -308,6 +312,9 @@
   .mood-picker label:has(input:checked) .mood-face{ filter:none; opacity:1; transform:scale(1.12); }
   .mood-picker label:has(input:focus-visible){ outline:2px solid var(--accent); outline-offset:1px; }
   .retro{ margin-bottom:10px; }
+  .act-list{ margin:0; padding-left:18px; display:flex; flex-direction:column; gap:6px; font-size:var(--fs-md); }
+  .act-list .result{ margin-right:4px; }
+  .act-who{ margin:8px 0 4px; }
   .retro-mood{ display:flex; align-items:center; gap:12px; margin-bottom:12px; font-size:var(--fs-md); }
   .mood-big{ font-size:38px; line-height:1; }
   .retro-meta{ font-size:var(--fs-sm); margin:10px 0 0; }
@@ -386,6 +393,9 @@
   .chip:hover{ border-color:var(--accent); color:var(--accent-ink); }
   .chip .ic{ font-family:var(--font-mono); font-size:var(--fs-xs); color:var(--ink-faint); letter-spacing:.06em; }
   .chip.disabled{ opacity:.55; pointer-events:none; }
+  .chip.on{ border-color:var(--accent); background:var(--accent-soft); }
+  .card-total-wrap{ display:flex; align-items:center; gap:6px; }
+  .icon-btn.edit.on{ color:var(--accent-ink); background:var(--accent-soft); }
 
   /* sync reporting */
   .syncbar { display:flex; align-items:flex-start; gap:12px; margin:18px 0 0; padding:14px 16px;
@@ -420,6 +430,20 @@
   .axis-base{ stroke:var(--line); stroke-width:1; }
   .today-line{ stroke:var(--watch); stroke-width:1; stroke-dasharray:2 3; opacity:.8; }
   .axis-label{ fill:var(--ink-faint); font-family:var(--font-mono); font-size:9px; }
+  /* Sprint commit chart: a column per day, bars like the Retrospectives hours bars. */
+  .dc-wrap{ overflow-x:auto; margin:2px 0 20px; }
+  .dchart{ display:grid; grid-template-columns:repeat(var(--n), minmax(34px,1fr)); min-width:calc(var(--n) * 34px); }
+  .dc-col{ height:160px; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:6px;
+    border-bottom:1px solid var(--line); }
+  .dc-col.today{ background:color-mix(in srgb, var(--accent) 7%, transparent); border-radius:8px 8px 0 0; }
+  .dc-val{ font-size:var(--fs-sm); font-weight:600; color:var(--ink); font-variant-numeric:tabular-nums; }
+  .dc-bar{ width:min(46px, 70%); border-radius:6px 6px 0 0; background:var(--healthy); }
+  .dc-bar.stub{ height:3px; background:var(--line); border-radius:2px; }
+  .dc-col.ahead .dc-bar{ opacity:.5; }
+  .dc-day{ display:flex; flex-direction:column; align-items:center; padding-top:6px; font-size:var(--fs-xs);
+    color:var(--ink-faint); white-space:nowrap; }
+  .dc-day b{ font-weight:600; color:var(--ink-soft); }
+  .dc-day.today b, .dc-day.today span{ color:var(--accent-ink); }
   .contribs { display:flex; flex-direction:column; gap:9px; margin-bottom:18px; }
   .crow .top{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; font-size:var(--fs-sm); margin-bottom:5px; }
   .crow .who{ font-family:var(--font-mono); } .crow .who .note{ color:var(--ink-faint); font-family:var(--font-sans); font-size:var(--fs-sm); }
@@ -468,11 +492,11 @@
   textarea:focus{ outline:2px solid var(--accent); outline-offset:0; border-color:transparent; }
   textarea::placeholder{ color:var(--ink-faint); }
   /* Plain text fields inside sections (project title, repo and board links) match the textareas. */
-  .summary-section > input:not([type=checkbox]):not([type=radio]){ display:block; width:100%; max-width:520px;
+  .summary-section > input:not([type=checkbox]):not([type=radio]), .wrap-form > input{ display:block; width:100%; max-width:520px;
     font-family:var(--font-sans); font-size:var(--fs-md); color:var(--ink); background:var(--field);
     border:1px solid var(--line); border-radius:8px; padding:10px 12px; }
-  .summary-section > input:focus{ outline:2px solid var(--accent); outline-offset:0; border-color:transparent; }
-  .summary-section > input::placeholder{ color:var(--ink-faint); }
+  .summary-section > input:focus, .wrap-form > input:focus{ outline:2px solid var(--accent); outline-offset:0; border-color:transparent; }
+  .summary-section > input::placeholder, .wrap-form > input::placeholder{ color:var(--ink-faint); }
   .btn.secondary { background:transparent; color:var(--ink-soft); border:1px solid var(--line); }
   .btn.secondary:hover { background:var(--surface-2); color:var(--ink); }
   .mgr-head { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:14px;
@@ -615,15 +639,17 @@
   .card, .side, .brand-title, .sprint-panel, .icon-bar, .account-btn, .account-menu {
     background-image:var(--panel-grad); }
   /* Sprint card tinted by the instructor's rating. After the panel-gradient rule so it layers on top. */
-  /* Retrospectives grid: one column per sprint, rows for status, hours and mood. */
-  .rg-wrap{ overflow-x:auto; border:1px solid var(--line); border-radius:14px; background:var(--surface); }
-  .rg{ display:grid; grid-template-columns:200px repeat(var(--n), minmax(118px,1fr)); }
-  .rg-c{ position:relative; display:flex; align-items:center; justify-content:center; padding:18px 8px; min-width:0; }
+  /* Retrospectives grid: one column per sprint, rows for status, hours and mood. Framed and
+     headed like the instructor's course overview table, with fixed-width sprint columns so a
+     short course doesn't stretch them across the page. */
+  .rg-wrap{ overflow-x:auto; border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow); background:var(--surface); }
+  .rg{ display:grid; grid-template-columns:200px repeat(var(--n), 170px); width:max-content; }
+  .rg-c{ position:relative; display:flex; align-items:center; justify-content:center; padding:14px 10px; min-width:0; }
   .rg-c:not(.rg-h){ border-top:1px solid var(--line-soft); }
   .rg-c:not(.rg-lbl){ border-left:1px solid var(--line-soft); }
-  .rg-c.cur{ background:color-mix(in srgb, var(--accent) 7%, transparent); }
+  .rg-lbl + .rg-c{ border-left:0; }
   .rg-lbl{ position:sticky; left:0; z-index:2; flex-direction:column; align-items:flex-start; justify-content:flex-start;
-    gap:8px; padding:22px 24px; background:var(--surface); }
+    gap:8px; padding:18px 20px; background:var(--surface); border-right:1px solid var(--line); }
   .rg-lbl b{ font-size:var(--fs-h2); font-weight:700; color:var(--ink); }
   .rg-legend{ display:flex; flex-direction:column; gap:4px; font-size:var(--fs-sm); color:var(--ink-soft); }
   .rg-legend span{ display:flex; align-items:center; gap:7px; }
@@ -632,16 +658,24 @@
   .rg-key.risk{ background:var(--risk); } .rg-key.noaccess{ background:var(--noaccess); }
   .rg-key.target{ width:14px; height:0; border-radius:0; border-top:2px dashed var(--accent); }
   .rg-emo{ font-style:normal; font-size:var(--fs-md); line-height:1; }
-  .rg-h{ flex-direction:column; gap:5px; padding:22px 8px 18px; font-size:var(--fs-md); font-weight:600; color:var(--ink); }
-  .rg-h.cur{ color:var(--accent-ink); box-shadow:inset 0 3px 0 var(--accent); }
-  .rg-h.up{ color:var(--ink-faint); font-weight:400; }
-  .rg-lbl.rg-h{ justify-content:center; }
+  .rg-h{ flex-direction:column; align-items:flex-start; justify-content:flex-end; gap:2px; padding:12px 16px;
+    background:var(--surface-2); }
+  .rg-sp{ font-family:var(--font-mono); font-size:var(--fs-xs); font-weight:600; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--ink); margin-bottom:4px; }
+  .rg-h small{ font-size:var(--fs-sm); color:var(--ink-faint); white-space:nowrap; }
+  .rg-h.cur .rg-sp{ color:var(--accent-ink); }
+  .rg-h.up .rg-sp{ color:var(--ink-faint); }
+  .rg-lbl.rg-h{ justify-content:flex-end; background:var(--surface-2); }
   .rg-corner{ font-family:var(--font-mono); font-size:var(--fs-xs); font-weight:600; letter-spacing:.1em;
     text-transform:uppercase; color:var(--ink-soft); }
-  .rg-badge{ padding:1px 8px; border-radius:999px; background:var(--accent); color:var(--accent-contrast);
-    font-family:var(--font-mono); font-size:var(--fs-xs); font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
-  .rg-tile{ width:100%; max-width:130px; height:50px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+  .rg-tile{ width:100%; height:50px; border-radius:10px; display:flex; align-items:center; justify-content:center;
     gap:8px; font-size:var(--fs-md); text-align:center; }
+  .rg-tile.goals{ flex-direction:column; align-items:stretch; gap:7px; padding:0 4px; }
+  .rg-gn{ font-size:var(--fs-md); color:var(--ink-soft); text-align:center; }
+  .rg-gn b{ font-family:var(--font-mono); font-size:var(--fs-h2); color:var(--ink); }
+  .rg-gbar{ display:flex; gap:2px; height:8px; border-radius:4px; overflow:hidden; }
+  .rg-gbar .done{ background:var(--healthy); } .rg-gbar .partial{ background:var(--watch); }
+  .rg-gbar .notdone{ background:var(--risk); } .rg-gbar .open{ background:var(--line); }
   .rg-tile.tall{ height:100px; flex-direction:column; gap:6px; }
   .rg-tile.empty{ background:var(--surface-2); }
   .rg-tile.none{ border:1px dashed var(--line); color:var(--ink-soft); }
@@ -651,8 +685,7 @@
   .rg-tile.st.watch{ color:var(--watch); background:var(--watch-bg); border:1px solid color-mix(in srgb, var(--watch) 45%, transparent); }
   .rg-tile.st.risk{ color:var(--risk); background:var(--risk-bg); border:1px solid color-mix(in srgb, var(--risk) 45%, transparent); }
   .rg-tile.st.noaccess{ color:var(--noaccess); background:var(--noaccess-bg); border:1px solid color-mix(in srgb, var(--noaccess) 45%, transparent); }
-  .rg-tile.mood{ background:var(--accent-soft); border:1px solid color-mix(in srgb, var(--accent) 65%, transparent);
-    color:var(--ink); font-weight:600; }
+  .rg-tile.mood{ color:var(--ink); font-weight:600; }
   .rg-emoji{ font-size:30px; line-height:1; }
   .rg-hours{ padding-top:24px; padding-bottom:22px; }
   .rg-plot{ position:relative; width:100%; height:160px; display:flex; flex-direction:column; justify-content:flex-end;
@@ -663,7 +696,7 @@
   .rg-bar{ width:46px; border-radius:6px 6px 0 0; }
   .rg-bar.ok{ background:var(--healthy); } .rg-bar.low{ background:var(--risk); }
   .rg-bar.stub{ height:3px; background:var(--line); border-radius:2px; }
-  @media (max-width:720px){ .rg{ grid-template-columns:132px repeat(var(--n), minmax(108px,1fr)); } .rg-lbl{ padding:18px 14px; } }
+  @media (max-width:720px){ .rg{ grid-template-columns:132px repeat(var(--n), 150px); } .rg-lbl{ padding:16px 14px; } }
   .sync-notice{ display:flex; gap:14px; margin:14px 0 4px; padding:12px 16px; border-radius:12px;
     background:var(--risk-bg); border:1px solid var(--risk); color:var(--ink); font-size:var(--fs-md); line-height:1.5; }
   .sync-notice ul{ margin:6px 0 0; padding-left:18px; } .sync-notice li+li{ margin-top:4px; }
@@ -847,6 +880,10 @@ let DASH_SORT=(()=>{ try{ const v=JSON.parse(localStorage.getItem("peek:dashSort
   return {key:"status",dir:1}; })();
 let LAST_SYNC=null, SYNC_REPORT=null, SYNC_SCHEDULE={}, GH_TOKEN=null, SYNC_ACCOUNTS={};   // GH_TOKEN: last saved GitHub token check
 let SPRINT_STATS={}, RETROS={};
+// Instructor project page: teams whose summary panel / add-hours form is open. Kept across re-renders.
+const SHOW_SUMMARY=new Set(), TIME_FORM_OPEN=new Set();
+let PREV_ACTIONS={};
+let PREV_TEAM_ACTIONS={};  // instructor view: {teamId: [{email, actions}]} from the previous sprint's retrospectives  // student view: {teamId: [action text]} from their previous sprint's retrospective
 let EDITING_TIME="";
 let RETRO_HISTORY={};  // student view: {teamId: [{sprint, retro, goals, entry}]}, oldest first   // "teamId:timeId" while a time entry is open for editing
 let OVERVIEW=null;   // instructor course overview: {course, loadedAt, cells:{teamId:{sprintId:{…}}}}   // student view: {teamId: {sprintId: {hours, goals, done, status, start, end}}}
@@ -1220,8 +1257,20 @@ async function rollSprints(){
   }
 }
 async function loadEntries(){
-  ENTRIES={}; GOALS={}; TIME_ENTRIES={}; RETROS={}; EDITING_TIME="";
+  ENTRIES={}; GOALS={}; TIME_ENTRIES={}; RETROS={}; PREV_ACTIONS={}; PREV_TEAM_ACTIONS={}; EDITING_TIME="";
   if(!SPRINT) return;
+  const prev=prevSprint();
+  if(prev && IS_ADMIN) await Promise.all(TEAMS.map(async t=>{
+    const snap=await getDocs(collection(db,`${cpath()}/sprints/${prev.id}/entries/${t.id}/retro`)).catch(()=>null);
+    const rows=snap ? snap.docs.map(d=>d.data()).map(r=>({ email:r.studentEmail||"",
+      actions:(Array.isArray(r.actions)?r.actions:[]).filter(x=>typeof x==="string" && x) })).filter(r=>r.actions.length) : [];
+    if(rows.length) PREV_TEAM_ACTIONS[t.id]=rows;
+  }));
+  if(prev && studentView()) await Promise.all(TEAMS.map(async t=>{
+    const s=await getDoc(doc(db,`${cpath()}/sprints/${prev.id}/entries/${t.id}/retro/${USER_EMAIL}`)).catch(()=>null);
+    const a=s&&s.exists() ? s.data().actions : null;
+    if(Array.isArray(a)) PREV_ACTIONS[t.id]=a.filter(x=>typeof x==="string" && x);
+  }));
   if(IS_ADMIN){
     const snap = await getDocs(collection(db, `${cpath()}/sprints/${SPRINT.id}/entries`));
     snap.forEach(d => ENTRIES[d.id] = d.data());
@@ -1250,7 +1299,7 @@ function renderSprintSel(){
   if(!SPRINTS.length){ sel.innerHTML=`<option>No sprints yet</option>`; sel.disabled=true; return; }
   sel.disabled=false;
   sel.innerHTML = [...SPRINTS].reverse().map(sp=>{
-    const tag = {current:" (current)", grace:" (grace day)", upcoming:" (upcoming)", closed:" (past)"}[sprintPhase(sp)];
+    const tag = {current:" (current)", grace:" (last day)", upcoming:" (upcoming)", closed:" (past)"}[sprintPhase(sp)];
     return `<option value="${esc(sp.id)}">${esc(sp.name||("Sprint "+sp.n))}${tag}</option>`;
   }).join("");
   if(SPRINT) sel.value = SPRINT.id;
@@ -1299,6 +1348,17 @@ function chartSVG(cbd,{spark=false,band=null}={}){
     extra+=`<text class="axis-label" x="${padX}" y="${h-4}">${ALLDAYS[0]}</text>`;
     extra+=`<text class="axis-label" x="${padX+innerW}" y="${h-4}" text-anchor="end">${ALLDAYS[ALLDAYS.length-1]}</text>`; }
   return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img" aria-label="commits per day">${extra}${bars}</svg>`;
+}
+/* One bar per day of the sprint window, styled like the Retrospectives hours bars. Every
+   day gets a column whether or not anything was committed; days still ahead are faded. */
+const DC_BAR=130;   // px height of the tallest bar
+function dayBarsHTML(cbd,start,end){
+  const days=eachDay(start,end), max=Math.max(1,...days.map(d=>cbd[d]||0));
+  const cols=days.map(d=>{ const v=cbd[d]||0, ahead=d>TODAY;
+    return `<div class="dc-col${d===TODAY?" today":""}${ahead?" ahead":""}" title="${esc(dowOf(d)+" "+fmtD(d))}: ${v} commit${v===1?"":"s"}">
+      ${ahead?"":`<span class="dc-val">${v||""}</span>`}<span class="dc-bar${v?"":" stub"}"${v?` style="height:${Math.max(Math.round(v/max*DC_BAR),4)}px"`:""}></span></div>`; }).join("");
+  const labels=days.map(d=>`<div class="dc-day${d===TODAY?" today":""}"><b>${dowOf(d)}</b><span>${fmtD(d)}</span></div>`).join("");
+  return `<div class="dc-wrap"><div class="dchart" style="--n:${days.length}">${cols}${labels}</div></div>`;
 }
 function peak(cbd){ return Math.max(0, ...Object.values(cbd||{})); }
 function rateStats(cbd){
@@ -1382,6 +1442,7 @@ async function ensureOverview(){
           notdone: goals.docs.filter(d=>d.data().result==="notdone").length,
           submitted: rs.length>0, mood: rs.length ? rs[0].mood : null,
           wentWell: rs.length ? rs[0].wentWell||"" : "", improve: rs.length ? rs[0].improve||"" : "",
+          actions: rs.length ? rs[0].actions||[] : [], followUp: rs.length ? rs[0].followUp||[] : [],
           status: e.status||"unrated", review: e.review||"", reviewDate: e.reviewDate||"" };
       }));
     }));
@@ -1398,7 +1459,7 @@ function overviewBodyHTML(){
   const teams=[...TEAMS].sort((a,b)=>(a.team||"").localeCompare(b.team||""));
   const head=SPRINTS.map(sp=>{ const ph=sprintPhase(sp);
     return `<th class="ov-sprint ${ph}"><span>${esc(sp.name||("Sprint "+sp.n))}</span>
-      <small>${sp.start&&sp.end?`${esc(fmtD(sp.start))} – ${esc(fmtD(sp.end))}`:""}${ph==="current"?" · current":ph==="grace"?" · grace day":""}</small>
+      <small>${sp.start&&sp.end?`${esc(fmtD(sp.start))} – ${esc(fmtD(sp.end))}`:""}${ph==="current"?" · current":ph==="grace"?" · last day":""}</small>
       <small>${esc(String(targetOf(sp)))} hr target</small></th>`; }).join("");
   const rows=teams.map(t=>{
     const row=OVERVIEW.cells[t.id]||{}, total=SPRINTS.reduce((n,sp)=>n+((row[sp.id]||{}).hours||0),0);
@@ -1410,7 +1471,7 @@ function overviewBodyHTML(){
         const target=targetOf(sp), ok=c.hours>=target, m=moodOf(c.mood);
         const sub=c.submitted?`<span class="ov-sub yes" title="Retrospective submitted">✓ Submitted</span>`
           : ph==="closed"?`<span class="ov-sub missed" title="Sprint closed without a retrospective">Not submitted</span>`
-          : ph==="grace"?`<span class="ov-sub due" title="Grace day — retrospective still open">Due today</span>`
+          : ph==="grace"?`<span class="ov-sub due" title="Last day — retrospective still open">Due today</span>`
           : `<span class="ov-sub open">In progress</span>`;
         return `<td class="ov-cell ${c.status}"><button class="ov-btn" data-ov-open="${t.id}:${sp.id}" title="Open ${esc(t.team)} · ${esc(sp.name||"")}">
           <span class="ov-hours ${ok?"ok":"low"}"><b>${fmtH(c.hours)}</b>/${esc(String(target))} h</span>
@@ -1431,7 +1492,7 @@ async function exportOverviewCSV(){
   if(!OVERVIEW || OVERVIEW.course!==COURSE.id){ alert("The overview hasn't loaded yet. Try again in a moment."); return; }
   const cols=["Course","Student","Email","Project","Sprint","Start","End","Target hours","Hours logged","Met target",
     "Goals","Goals done","Goals partly done","Goals not done","Retrospective submitted","Mood (1-5)","Mood",
-    "What went well","Could be improved","Rating","Review","Review date","Commits in sprint","Commits after sprint end"];
+    "What went well","Could be improved","Actions for next sprint","Follow-up on last sprint's actions","Rating","Review","Review date","Commits in sprint","Commits after sprint end"];
   const cell=v=>{ const t=v==null?"":String(v); return /[",\n\r]/.test(t) ? `"${t.replace(/"/g,'""')}"` : t; };
   const lines=[cols.map(cell).join(",")];
   const teams=[...TEAMS].sort((a,b)=>(a.team||"").localeCompare(b.team||""));
@@ -1446,7 +1507,8 @@ async function exportOverviewCSV(){
       lines.push([COURSE.code||COURSE.id, t.team||"", (t.studentEmails||[]).join("; "), t.project||"",
         sp.name||("Sprint "+sp.n), sp.start||"", sp.end||"", target, Math.round(c.hours*100)/100, c.hours>=target?"Yes":"No",
         c.goals, c.done, c.partial, c.notdone, c.submitted?"Yes":"No", c.mood||"", m?m.l:"",
-        c.wentWell, c.improve, c.status==="unrated"?"":STATUS_LABEL[c.status], c.review, c.reviewDate,
+        c.wentWell, c.improve, (c.actions||[]).join("; "),
+        (c.followUp||[]).map(f=>`${FOLLOW[f.r]||f.r}: ${f.a}`).join("; "), c.status==="unrated"?"":STATUS_LABEL[c.status], c.review, c.reviewDate,
         inSprint, after].map(cell).join(","));
     }
   }
@@ -1587,6 +1649,31 @@ function projectSummaryHTML(t){
 // Rough (1) is retired: no longer offered, but kept so past retrospectives still show it.
 const MOODS=[{v:1,e:"😞",l:"Rough",retired:true},{v:2,e:"😕",l:"Not great"},{v:3,e:"😐",l:"Okay"},{v:4,e:"🙂",l:"Good"},{v:5,e:"😄",l:"Great"}];
 const RESULTS={done:"Done",partial:"Partly done",notdone:"Not done"};
+/* Retrospective actions: each wrap-up lists 1-3 things to do differently next sprint, and the
+   next wrap-up marks how each went. The follow-up is stored on the new wrap-up (with the
+   action text copied in) because a submitted wrap-up is locked for the student. */
+const MAX_ACTIONS=3;
+const FOLLOW={yes:"Yes",partly:"Partly",no:"No"}, FOLLOW_CLASS={yes:"done",partly:"partial",no:"notdone"};
+function prevSprint(){ const i=SPRINTS.indexOf(SPRINT); return i>0 ? SPRINTS[i-1] : null; }
+function prevActions(tid){ return PREV_ACTIONS[tid]||[]; }
+function followPill(r){ return FOLLOW[r]?`<span class="result ${FOLLOW_CLASS[r]}">${FOLLOW[r]}</span>`:""; }
+// Instructor sprint panel: what each student committed to at the end of last sprint,
+// to bring up in this sprint's review.
+function teamActionsHTML(t){
+  const rows=PREV_TEAM_ACTIONS[t.id]||[], prev=prevSprint();
+  if(!rows.length) return "";
+  const many=rows.length>1;
+  return `<label class="nlbl">Student actions from ${esc(prev.name||("Sprint "+prev.n))}</label>
+    ${rows.map(r=>`${many?`<div class="muted act-who">${esc(r.email)}</div>`:""}
+      <ul class="act-list">${r.actions.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`).join("")}`;
+}
+function prevActionsHTML(t){
+  const a=prevActions(t.id), prev=prevSprint();
+  if(!studentView() || !a.length || myRetro(t.id) || frozen()) return "";
+  return `<div class="card"><h2>Your actions from ${esc(prev.name||("Sprint "+prev.n))}</h2>
+    <ul class="act-list">${a.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
+    <p class="muted">You'll mark how each one went when you submit this sprint.</p></div>`;
+}
 function moodOf(v){ return MOODS.find(m=>m.v===Number(v)); }
 function myGoals(tid){ return (GOALS[tid]||[]).filter(g=>g.studentEmail===USER_EMAIL); }
 function myRetro(tid){ return (RETROS[tid]||[]).find(r=>r.studentEmail===USER_EMAIL); }
@@ -1620,11 +1707,12 @@ function goalsHTML(t){
 function timeHTML(t){
   const rows=TIME_ENTRIES[t.id]||[], total=rows.reduce((n,x)=>n+(Number(x.hours)||0),0), edit=canEdit(t.id);
   const students=t.studentEmails||[];
+  const staffAdd=instructorView() && !frozen() && students.length>0, open=TIME_FORM_OPEN.has(t.id);
   let form="";
   if(edit && !myGoals(t.id).length)
     form=`<div class="locked-note">🔒 Add at least one sprint goal to start logging time.</div>`;
-  else if(edit || (instructorView() && !frozen() && students.length))
-    form=`<section class="summary-section"><label class="nlbl summary-heading"><span title="Record the time spent working on the project.">Log time</span></label>
+  else if(edit || staffAdd)
+    form=`<section class="summary-section"${staffAdd?` id="timeform-${t.id}"${open?"":" hidden"}`:""}><label class="nlbl summary-heading"><span title="Record the time spent working on the project.">Log time</span></label>
       <div class="entry-form${instructorView()?" with-student":""}">
       ${instructorView()?`<label>Student<select id="time-student-${t.id}">${students.map(em=>`<option value="${esc(em)}">${esc(em)}</option>`).join("")}</select></label>`:""}
       <label>Date<input id="time-date-${t.id}" type="date" value="${TODAY}"></label>
@@ -1632,7 +1720,9 @@ function timeHTML(t){
       <label>Work completed<input id="time-note-${t.id}"></label>
       <button class="add-btn" data-time-add="${t.id}">+ Add</button></div></section>`;
   return `<div class="card structured-card"><div class="notes-head"><h2>Time worked</h2>
-    <span class="card-total">${total.toFixed(1).replace(/\.0$/,"")} hours total</span></div>
+    <span class="card-total-wrap"><span class="card-total">${total.toFixed(1).replace(/\.0$/,"")} hours total</span>
+      ${staffAdd?`<button class="icon-btn edit${open?" on":""}" data-time-form="${t.id}" aria-expanded="${open}" aria-controls="timeform-${t.id}"
+        title="Add hours" aria-label="Add hours">✎</button>`:""}</span></div>
     <section class="summary-section">
     ${rows.length?`<div class="time-list">${rows.map(x=>{
       const key=`${t.id}:${x.id}`, mine=(edit&&x.studentEmail===USER_EMAIL)||(instructorView()&&!frozen());
@@ -1654,7 +1744,11 @@ function retroViewHTML(r){
   return `<div class="retro">
     <div class="retro-mood">${m?`<span class="mood-big" aria-hidden="true">${m.e}</span><span><b>${esc(m.l)}</b><br><span class="muted">How the sprint felt</span></span>`:""}</div>
     <dl class="kv"><dt>What went well</dt><dd class="soft">${esc(r.wentWell)||"—"}</dd>
-      <dt>Could be improved</dt><dd class="soft">${esc(r.improve)||"—"}</dd></dl>
+      <dt>Could be improved</dt><dd class="soft">${esc(r.improve)||"—"}</dd>
+      ${(r.followUp||[]).length?`<dt>Last sprint's actions</dt><dd><ul class="act-list">${r.followUp.map(f=>
+        `<li>${followPill(f.r)} <span class="soft">${esc(f.a)}</span></li>`).join("")}</ul></dd>`:""}
+      <dt>Actions for next sprint</dt><dd>${(r.actions||[]).length?`<ul class="act-list">${r.actions.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`
+        :`<span class="muted">None recorded</span>`}</dd></dl>
     <p class="muted retro-meta">${esc(r.studentEmail||"")}${when?` · submitted ${esc(when)}`:""}</p></div>`;
 }
 function wrapUpHTML(t){
@@ -1673,15 +1767,23 @@ function wrapUpHTML(t){
     <p class="muted" style="margin:0 0 12px">At the end of the sprint, mark how each goal went and reflect on the sprint. Submitting locks it.</p>
     <button class="btn" data-wrap-open="${t.id}">Submit sprint…</button>
     <div class="wrap-form" id="wrap-form-${t.id}" hidden>
-      <label class="nlbl">How did each goal go?</label>
+      <label class="nlbl">Confirm how each goal went</label>
+      <p class="muted" style="margin:0">Pre-filled from your sprint goals. Change anything that's different now.</p>
       ${goals.map(g=>`<div class="wrap-goal"><span>${esc(g.text)}</span><span class="seg">${Object.keys(RESULTS).map(k=>
         `<label><input type="radio" name="res-${g.id}" value="${k}"${g.result===k?" checked":""}><span>${RESULTS[k]}</span></label>`).join("")}</span></div>`).join("")}
+      ${prevActions(t.id).length?`<label class="nlbl">Did you follow through on last sprint's actions?</label>
+      ${prevActions(t.id).map((a,i)=>`<div class="wrap-goal"><span>${esc(a)}</span><span class="seg">${Object.keys(FOLLOW).map(k=>
+        `<label><input type="radio" name="fu-${t.id}-${i}" value="${k}"><span>${FOLLOW[k]}</span></label>`).join("")}</span></div>`).join("")}`:""}
       <label class="nlbl">How did the sprint feel?</label>
       <div class="mood-picker" role="radiogroup">${MOODS.filter(m=>!m.retired).map(m=>`<label title="${m.l}"><input type="radio" name="mood-${t.id}" value="${m.v}"><span class="mood-face">${m.e}</span><span class="mood-l">${m.l}</span></label>`).join("")}</div>
       <label class="nlbl" for="well-${t.id}">What went well?</label>
       <textarea id="well-${t.id}" placeholder="What worked this sprint?"></textarea>
       <label class="nlbl" for="improve-${t.id}">What could be improved?</label>
       <textarea id="improve-${t.id}" placeholder="What would you change next sprint?"></textarea>
+      <label class="nlbl" for="act-${t.id}-0">Actions for next sprint</label>
+      <p class="muted" style="margin:0">One to three specific things you'll do differently. You'll check in on them when you submit next sprint.</p>
+      ${Array.from({length:MAX_ACTIONS},(_,i)=>`<input id="act-${t.id}-${i}" maxlength="300" aria-label="Action ${i+1}"
+        placeholder="${i?"Another action (optional)":"e.g. Commit at least every other day"}">`).join("")}
       <div class="panel-actions"><button class="btn" data-submit-sprint="${t.id}">Submit sprint</button>
         <button class="btn secondary" data-wrap-open="${t.id}">Cancel</button></div>
       <p class="muted err" id="wrapErr-${t.id}"></p>
@@ -1692,18 +1794,23 @@ async function submitSprint(tid){
   const results=goals.map(g=>({g, v:(document.querySelector(`input[name="res-${g.id}"]:checked`)||{}).value}));
   const mood=Number((document.querySelector(`input[name="mood-${tid}"]:checked`)||{}).value||0);
   const wentWell=fval("well-"+tid), improve=fval("improve-"+tid);
+  const actions=Array.from({length:MAX_ACTIONS},(_,i)=>fval(`act-${tid}-${i}`)).filter(Boolean);
+  const followUp=prevActions(tid).slice(0,MAX_ACTIONS).map((a,i)=>({a:a.slice(0,300),
+    r:(document.querySelector(`input[name="fu-${tid}-${i}"]:checked`)||{}).value}));
   const miss=[];
   if(results.some(x=>!x.v)) miss.push("a result for every goal");
   if(!mood) miss.push("how the sprint felt");
   if(!wentWell) miss.push("what went well");
   if(!improve) miss.push("what could be improved");
+  if(followUp.some(x=>!x.r)) miss.push("how each of last sprint's actions went");
+  if(!actions.length) miss.push("at least one action for next sprint");
   if(miss.length){ if(err) err.textContent="Still needed: "+miss.join(", ")+"."; return; }
   try{
     // Goal results first: once the wrap-up exists the rules lock the goals.
     await Promise.all(results.filter(x=>x.g.result!==x.v).map(x=>
       setDoc(doc(db,`${sprintEntryPath(tid)}/goals/${x.g.id}`), {result:x.v, updatedAt:serverTimestamp()}, {merge:true})));
     await setDoc(doc(db,`${sprintEntryPath(tid)}/retro/${USER_EMAIL}`),
-      {studentEmail:USER_EMAIL, mood, wentWell, improve, submittedAt:serverTimestamp()});
+      {studentEmail:USER_EMAIL, mood, wentWell, improve, actions, followUp, submittedAt:serverTimestamp()});
     await loadEntries(); render(); stay(tid);
   }catch(e){ console.error(e); if(err) err.textContent=e.code+" — "+e.message; }
 }
@@ -1735,7 +1842,7 @@ function sprintCardHTML(t){
           hours:(TIME_ENTRIES[t.id]||[]).filter(x=>x.studentEmail===USER_EMAIL).reduce((n,x)=>n+(Number(x.hours)||0),0) })}
       <dl class="kv" style="margin-top:14px">${winLabel(t.id)?`<dt>Dates</dt><dd>${esc(winLabel(t.id))}</dd>`:""}<dt>Review with instructor</dt><dd>${e.reviewDate?`${esc(dowOf(e.reviewDate))} ${esc(fmtD(e.reviewDate))}`:`<span class="muted">Not scheduled yet</span>`}</dd>
       <dt>Instructor rating</dt><dd><span class="pill ${st}"><span class="d"></span>${STATUS_LABEL[st]}</span></dd>
-      <dt>Sprint review</dt><dd class="soft">${esc(e.review||"Not reviewed yet.")}</dd></dl></div>${goalsHTML(t)}${timeHTML(t)}${wrapUpHTML(t)}`;
+      <dt>Sprint review</dt><dd class="soft">${esc(e.review||"Not reviewed yet.")}</dd></dl></div>${prevActionsHTML(t)}${goalsHTML(t)}${timeHTML(t)}${wrapUpHTML(t)}`;
   return `<div class="card sprint-card ${st}">
     <div class="notes-head"><h2>${esc(SPRINT.name||("Sprint "+SPRINT.n))}${winLabel(t.id)?` · ${esc(winLabel(t.id))}`:""}</h2>
       <span class="saved" id="saved-${t.id}">saved ✓</span></div>
@@ -1748,9 +1855,10 @@ function sprintCardHTML(t){
       <label>Scrum Master<input data-sp="${t.id}:sm" value="${esc(e.sm||"")}" placeholder="name"${ro}></label>`}
       <label>Sprint rating<select data-sp="${t.id}:status"${ro}>${statuses.map(x=>`<option value="${x}"${x===st?" selected":""}>${STATUS_LABEL[x]}</option>`).join("")}</select></label>
     </div>
+    ${teamActionsHTML(t)}
     <label class="nlbl" for="rev-${t.id}">Sprint review</label>
     <textarea id="rev-${t.id}" data-sp="${t.id}:review" placeholder="What did they demo? Progress vs. sprint goal, blockers, action items…"${ro}>${esc(e.review||"")}</textarea>
-  </div>${goalsHTML(t)}${timeHTML(t)}${wrapUpHTML(t)}`;
+  </div>${wrapUpHTML(t)}${goalsHTML(t)}${timeHTML(t)}`;
 }
 // A student lands here until the project is set up; afterwards they get the normal
 // project page. The instructor always sees the real page, set up or not.
@@ -1813,8 +1921,11 @@ function githubCardHTML(t){
         ${(()=>{const rs=rateStats(a.commits_by_day); if(!rs) return "";
           const recent = isPast(SPRINT) ? "" : ` · <b>${rs.last14}</b> in the last 14 days`;
           return `<div class="tby"><span class="tby-lbl">Rate</span> ≈ ${rs.perWeek} commits/week over ${rs.spanDays} days${recent}</div>`;})()}
-        <div class="chart-cap"><span>commits per day${SPRINT?" · shaded band is this sprint's window":""}</span><span>peak ${peak(a.commits_by_day)}/day · span ${esc(a.span)}</span></div>
-        <div class="chart">${chartSVG(a.commits_by_day,{band:[w.start,w.end]})}</div>
+        ${w.start&&w.end
+          ? `<div class="chart-cap"><span>commits per day · ${esc(winLabel(t.id))}</span><span>peak ${peak(a.commits_by_day)}/day</span></div>
+             ${dayBarsHTML(a.commits_by_day,w.start,w.end)}`
+          : `<div class="chart-cap"><span>commits per day</span><span>peak ${peak(a.commits_by_day)}/day · span ${esc(a.span)}</span></div>
+             <div class="chart">${chartSVG(a.commits_by_day)}</div>`}
         ${a.contribs_all_time&&SPRINT?`<p class="muted" style="margin:12px 0 0">Contributor split is all-time — run <b>Sync now</b> to break it down per sprint.</p>`:""}
         <div class="contribs">${contribHTML(a)}</div><p class="obs">${esc(a.obs)}</p>`
       :`<div class="noaccess-box"><span class="ic">🔒</span><span>${esc(a.obs)}</span></div>`}</div>`;
@@ -1982,10 +2093,14 @@ function hoursRingSVG(hours, target){
 async function loadRetroHistory(tid){
   const rows=await Promise.all(SPRINTS.map(async sp=>{
     const base=`${cpath()}/sprints/${sp.id}/entries/${tid}`;
-    const [e, retro, time]=await Promise.all([getDoc(doc(db,base)),
-      getDocs(collection(db,`${base}/retro`)), getDocs(collection(db,`${base}/time`))]);
+    const [e, retro, time, goals]=await Promise.all([getDoc(doc(db,base)),
+      getDocs(collection(db,`${base}/retro`)), getDocs(collection(db,`${base}/time`)), getDocs(collection(db,`${base}/goals`))]);
     const rs=retro.docs.map(d=>d.data());
+    const gs=goals.docs.map(d=>d.data()).filter(g=>IS_ADMIN || g.studentEmail===USER_EMAIL);
+    const res=g=>g.result || (g.completed?"done":"");
     return { sprint:sp, entry:e.exists()?e.data():{},
+      goals:{ total:gs.length, done:gs.filter(g=>res(g)==="done").length,
+        partial:gs.filter(g=>res(g)==="partial").length, notdone:gs.filter(g=>res(g)==="notdone").length },
       hours: time.docs.map(d=>d.data()).filter(x=>IS_ADMIN || x.studentEmail===USER_EMAIL)
         .reduce((n,x)=>n+(Number(x.hours)||0),0),
       retro: rs.find(r=>r.studentEmail===USER_EMAIL) || (IS_ADMIN ? rs[0] : null) || null };
@@ -2005,12 +2120,22 @@ function retroHistoryHTML(tid){
   const targets=rows.map(r=>targetOf(r.sprint)), last=rows.length-1;
   const max=Math.max(...rows.map((r,i)=>live(i)?r.hours||0:0), ...targets, 1)*1.15, px=v=>Math.round(v/max*RG_BAR);
   const cell=(i,extra,body)=>`<div class="rg-c${cur(i)?" cur":""}${live(i)?"":" up"}${extra}">${body}</div>`;
-  const head=rows.map((r,i)=>cell(i," rg-h",`<span>${esc(r.sprint.name||("Sprint "+r.sprint.n))}</span>`
-    +(cur(i)?`<span class="rg-badge">${ph[i]==="grace"?"Last day":"Current"}</span>`:""))).join("");
+  const head=rows.map((r,i)=>{ const sp=r.sprint;
+    return cell(i," rg-h",`<span class="rg-sp">${esc(sp.name||("Sprint "+sp.n))}</span>
+      <small>${sp.start&&sp.end?`${esc(fmtD(sp.start))} – ${esc(fmtD(sp.end))}`:""}${ph[i]==="current"?" · current":ph[i]==="grace"?" · last day":""}</small>
+      <small>${esc(String(targets[i]))} hr target</small>`); }).join("");
   const status=rows.map((r,i)=>{ const st=r.entry.status||"unrated";
     return cell(i,"", !live(i) ? `<div class="rg-tile empty"></div>`
       : st==="unrated" ? `<div class="rg-tile none">Not reported</div>`
       : `<div class="rg-tile st ${st}"><span class="d"></span>${esc(STATUS_LABEL[st])}</div>`); }).join("");
+  // Goals: how many were done, with a bar split Done / Partly / Not done (grey = not marked yet).
+  const goals=rows.map((r,i)=>{ const g=r.goals||{total:0};
+    if(!live(i)) return cell(i,"",`<div class="rg-tile empty"></div>`);
+    if(!g.total) return cell(i,"",`<div class="rg-tile none">No goals</div>`);
+    const seg=(n,c)=>n?`<span class="${c}" style="flex:${n}"></span>`:"", open=g.total-g.done-g.partial-g.notdone;
+    return cell(i,"",`<div class="rg-tile goals" title="${g.done} done · ${g.partial} partly done · ${g.notdone} not done${open?` · ${open} not marked`:""}">
+      <span class="rg-gn"><b>${g.done}</b>/${g.total} done</span>
+      <span class="rg-gbar">${seg(g.done,"done")}${seg(g.partial,"partial")}${seg(g.notdone,"notdone")}${seg(open,"open")}</span></div>`); }).join("");
   const hours=rows.map((r,i)=>{ const t=targets[i], h=Math.round((r.hours||0)*10)/10;
     return cell(i," rg-hours",`<div class="rg-plot"><span class="rg-target" style="bottom:${px(t)}px"></span>`
       +(i===last?`<span class="rg-tlabel" style="bottom:${px(t)+4}px">${t} h</span>`:"")
@@ -2023,12 +2148,13 @@ function retroHistoryHTML(tid){
   const key=(c,l)=>`<span><i class="rg-key ${c}"></i>${esc(l)}</span>`;
   const label=(title,legend)=>`<div class="rg-c rg-lbl"><b>${title}</b><div class="rg-legend">${legend}</div></div>`;
   const sameTarget=targets.every(x=>x===targets[0]);
-  return `<div class="card"><div class="rg-wrap"><div class="rg" style="--n:${rows.length}">
+  return `<div class="rg-wrap"><div class="rg" style="--n:${rows.length}">
     <div class="rg-c rg-lbl rg-h"><span class="rg-corner">Sprint</span></div>${head}
     ${label("Status",["healthy","watch","risk","noaccess"].map(k=>key(k,STATUS_LABEL[k])).join(""))}${status}
+    ${label("Goals",key("healthy","Done")+key("watch","Partly done")+key("risk","Not done"))}${goals}
     ${label("Hours",key("target",sameTarget?`Target (${targets[0]} h)`:"Target")+key("healthy","Met")+key("risk","Under"))}${hours}
     ${label("Mood",MOODS.filter(m=>!m.retired).reverse().map(m=>`<span><i class="rg-emo" aria-hidden="true">${m.e}</i>${esc(m.l)}</span>`).join(""))}${mood}
-  </div></div></div>`;
+  </div></div>`;
 }
 
 /* ---------- sprint countdown (student) ----------
@@ -2140,8 +2266,10 @@ function teamHTML(t){
     <div class="chips">
       ${t.github?`<a class="chip" href="${esc(t.github)}" target="_blank" rel="noopener"><span class="ic">GH</span>GitHub</a>`:`<span class="chip disabled"><span class="ic">GH</span>No repo yet</span>`}
       ${t.trello?`<a class="chip" href="${esc(t.trello)}" target="_blank" rel="noopener"><span class="ic">TR</span>Trello</a>`:`<span class="chip disabled"><span class="ic">TR</span>No Trello</span>`}
+      <button class="chip chip-btn${SHOW_SUMMARY.has(t.id)?" on":""}" data-summary-toggle="${t.id}" aria-expanded="${SHOW_SUMMARY.has(t.id)}"
+        aria-controls="psum-${t.id}"><span class="ic">${SHOW_SUMMARY.has(t.id)?"▴":"▾"}</span>Project summary</button>
     </div></div>
-    ${projectSummaryHTML(t)}
+    <div id="psum-${t.id}"${SHOW_SUMMARY.has(t.id)?"":" hidden"}>${projectSummaryHTML(t)}</div>
     ${sprintCardHTML(t)}
     ${githubCardHTML(t)}
     ${a.trello?`<div class="card"><h2>Trello board · as of ${esc(a.trello.date||"")}</h2>
@@ -2218,7 +2346,7 @@ function sprintsPanelHTML(){
   const act=lastSprint();   // only the newest sprint can be edited or removed
   return `<div class="card"><h2>Sprints</h2>
     <div>${SPRINTS.length?[...SPRINTS].reverse().map(sp=>`<div class="srow">
-      <span class="badge ${isPast(sp)?"past":""}">${{current:"current",grace:"grace day",upcoming:"upcoming",closed:"past"}[sprintPhase(sp)]}</span>
+      <span class="badge ${isPast(sp)?"past":""}">${{current:"current",grace:"last day",upcoming:"upcoming",closed:"past"}[sprintPhase(sp)]}</span>
       <span class="sn">${esc(sp.name||("Sprint "+sp.n))}</span>
       <span class="sdates">${esc(fmtD(sp.start))} – ${esc(fmtD(sp.end))} · ${esc(String(targetOf(sp)))} hrs</span>
       <span>${sp.id===(act&&act.id)?`<button class="linkbtn" data-mact="sprint-edit" data-sid="${sp.id}">Edit dates</button>
@@ -2488,6 +2616,14 @@ async function onMainClick(e){
   const removeList=e.target.closest("[data-list-remove]"); if(removeList){ const [tid,field,index]=removeList.dataset.listRemove.split(":"); await removeProjectListItem(tid,field,index); return; }
   const addGoalBtn=e.target.closest("[data-goal-add]"); if(addGoalBtn){ await addGoal(addGoalBtn.dataset.goalAdd); return; }
   const removeGoalBtn=e.target.closest("[data-goal-remove]"); if(removeGoalBtn){ const [tid,gid]=removeGoalBtn.dataset.goalRemove.split(":"); await removeGoal(tid,gid); return; }
+  const sumBtn=e.target.closest("[data-summary-toggle]"); if(sumBtn){ const tid=sumBtn.dataset.summaryToggle, on=!SHOW_SUMMARY.has(tid);
+    on ? SHOW_SUMMARY.add(tid) : SHOW_SUMMARY.delete(tid);
+    const box=$("psum-"+tid); if(box) box.hidden=!on;
+    sumBtn.classList.toggle("on",on); sumBtn.setAttribute("aria-expanded",on); sumBtn.querySelector(".ic").textContent=on?"▴":"▾"; return; }
+  const tfBtn=e.target.closest("[data-time-form]"); if(tfBtn){ const tid=tfBtn.dataset.timeForm, on=!TIME_FORM_OPEN.has(tid);
+    on ? TIME_FORM_OPEN.add(tid) : TIME_FORM_OPEN.delete(tid);
+    const f=$("timeform-"+tid); if(f){ f.hidden=!on; if(on) f.querySelector("select, input")?.focus(); }
+    tfBtn.classList.toggle("on",on); tfBtn.setAttribute("aria-expanded",on); return; }
   const addTimeBtn=e.target.closest("[data-time-add]"); if(addTimeBtn){ await addTime(addTimeBtn.dataset.timeAdd); return; }
   const editTimeBtn=e.target.closest("[data-time-edit]"); if(editTimeBtn){ openTimeEdit(editTimeBtn.dataset.timeEdit); return; }
   const saveTimeBtn=e.target.closest("[data-time-save]"); if(saveTimeBtn){ const [tid,timeId]=saveTimeBtn.dataset.timeSave.split(":"); await saveTimeEdit(tid,timeId); return; }
