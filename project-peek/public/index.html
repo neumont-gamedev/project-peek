@@ -1771,7 +1771,7 @@ function wrapUpHTML(t){
   if(!canEdit(t.id) || !goals.length) return "";
   return `<div class="card" id="wrap-${t.id}"><h2>Sprint retrospective</h2>
     <p class="muted" style="margin:0 0 12px">At the end of the sprint, mark how each goal went and reflect on the sprint. Submitting locks it.</p>
-    <button class="btn" data-wrap-open="${t.id}">Submit sprint…</button>
+    <button class="btn" id="wrap-open-${t.id}" data-wrap-open="${t.id}">Submit Retrospective…</button>
     <div class="wrap-form" id="wrap-form-${t.id}" hidden>
       <label class="nlbl">Confirm how each goal went</label>
       <p class="muted" style="margin:0">Pre-filled from your sprint goals. Change anything that's different now.</p>
@@ -1780,17 +1780,17 @@ function wrapUpHTML(t){
       ${prevActions(t.id).length?`<label class="nlbl">Did you follow through on last sprint's actions?</label>
       ${prevActions(t.id).map((a,i)=>`<div class="wrap-goal"><span>${esc(a)}</span><span class="seg">${Object.keys(FOLLOW).map(k=>
         `<label><input type="radio" name="fu-${t.id}-${i}" value="${k}"><span>${FOLLOW[k]}</span></label>`).join("")}</span></div>`).join("")}`:""}
-      <label class="nlbl">How did the sprint feel?</label>
-      <div class="mood-picker" role="radiogroup">${MOODS.filter(m=>!m.retired).map(m=>`<label title="${m.l}"><input type="radio" name="mood-${t.id}" value="${m.v}"><span class="mood-face">${m.e}</span><span class="mood-l">${m.l}</span></label>`).join("")}</div>
       <label class="nlbl" for="well-${t.id}">What went well?</label>
       <textarea id="well-${t.id}" placeholder="What worked this sprint?"></textarea>
       <label class="nlbl" for="improve-${t.id}">What could be improved?</label>
       <textarea id="improve-${t.id}" placeholder="What would you change next sprint?"></textarea>
+      <label class="nlbl">How did the sprint feel?</label>
+      <div class="mood-picker" role="radiogroup">${MOODS.filter(m=>!m.retired).map(m=>`<label title="${m.l}"><input type="radio" name="mood-${t.id}" value="${m.v}"><span class="mood-face">${m.e}</span><span class="mood-l">${m.l}</span></label>`).join("")}</div>
       <label class="nlbl" for="act-${t.id}-0">Actions for next sprint</label>
       <p class="muted" style="margin:0">One to three specific things you'll do differently. You'll check in on them when you submit next sprint.</p>
       ${Array.from({length:MAX_ACTIONS},(_,i)=>`<input id="act-${t.id}-${i}" maxlength="300" aria-label="Action ${i+1}"
         placeholder="${i?"Another action (optional)":"e.g. Commit at least every other day"}">`).join("")}
-      <div class="panel-actions"><button class="btn" data-submit-sprint="${t.id}">Submit sprint</button>
+      <div class="panel-actions"><button class="btn" data-submit-sprint="${t.id}">Submit Retrospective</button>
         <button class="btn secondary" data-wrap-open="${t.id}">Cancel</button></div>
       <p class="muted err" id="wrapErr-${t.id}"></p>
     </div></div>`;
@@ -1805,10 +1805,10 @@ async function submitSprint(tid){
     r:(document.querySelector(`input[name="fu-${tid}-${i}"]:checked`)||{}).value}));
   const miss=[];
   if(results.some(x=>!x.v)) miss.push("a result for every goal");
-  if(!mood) miss.push("how the sprint felt");
+  if(followUp.some(x=>!x.r)) miss.push("how each of last sprint's actions went");
   if(!wentWell) miss.push("what went well");
   if(!improve) miss.push("what could be improved");
-  if(followUp.some(x=>!x.r)) miss.push("how each of last sprint's actions went");
+  if(!mood) miss.push("how the sprint felt");
   if(!actions.length) miss.push("at least one action for next sprint");
   if(miss.length){ if(err) err.textContent="Still needed: "+miss.join(", ")+"."; return; }
   try{
@@ -2627,7 +2627,9 @@ async function removeTime(tid,timeId){
 }
 async function onMainClick(e){
   const g = e.target.closest("[data-goto]"); if (g) { show(g.dataset.goto); return; }
-  const wo = e.target.closest("[data-wrap-open]"); if (wo) { const f=$("wrap-form-"+wo.dataset.wrapOpen); if(f){ f.hidden=!f.hidden; if(!f.hidden) f.scrollIntoView({behavior:"smooth",block:"start"}); } return; }
+  // Opening the retrospective form hides its opener; the form's own Submit / Cancel sit at the bottom.
+  const wo = e.target.closest("[data-wrap-open]"); if (wo) { const tid=wo.dataset.wrapOpen, f=$("wrap-form-"+tid), ob=$("wrap-open-"+tid);
+    if(f){ f.hidden=!f.hidden; if(ob) ob.hidden=!f.hidden; if(!f.hidden) f.scrollIntoView({behavior:"smooth",block:"start"}); } return; }
   const ss = e.target.closest("[data-submit-sprint]"); if (ss) { await submitSprint(ss.dataset.submitSprint); return; }
   const ro = e.target.closest("[data-reopen]"); if (ro) { const [tid,...em]=ro.dataset.reopen.split(":"); await reopenSprint(tid,em.join(":")); return; }
   if (e.target.closest("[data-theme-toggle]")) { $("themeBtn").click(); return; }
