@@ -184,16 +184,24 @@
   .sprint-panel{ all:unset; box-sizing:border-box; cursor:pointer; display:flex; flex-direction:column; gap:10px;
     background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:19px 20px 18px;
     box-shadow:var(--shadow); position:relative; overflow:hidden; transition:transform .12s, border-color .12s; }
-  .sprint-panel::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--unrated); }
-  .sprint-panel.healthy::before{background:var(--healthy);} .sprint-panel.watch::before{background:var(--watch);}
-  .sprint-panel.risk::before{background:var(--risk);} .sprint-panel.noaccess::before{background:var(--noaccess);}
+  /* Status bar across the top, flush with the card edges (cancels the card padding). */
+  .sp-bar{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin:-19px -20px 2px; padding:11px 20px;
+    background:var(--surface-2); color:var(--ink-soft); border-bottom:1px solid var(--line); }
+  .sp-bar b{ font-family:var(--font-mono); font-size:var(--fs-sm); font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
+  .sp-bar-st{ display:inline-flex; align-items:center; gap:7px; font-size:var(--fs-md); font-weight:600; }
+  .sp-bar-st .d{ width:8px; height:8px; border-radius:50%; background:currentColor; }
+  .sprint-panel.healthy .sp-bar, .sprint-panel.watch .sp-bar, .sprint-panel.risk .sp-bar, .sprint-panel.noaccess .sp-bar{
+    color:var(--brand-black); border-bottom-color:transparent; }
+  .sprint-panel.healthy .sp-bar{ background:var(--healthy); } .sprint-panel.watch .sp-bar{ background:var(--watch); }
+  .sprint-panel.risk .sp-bar{ background:var(--risk); } .sprint-panel.noaccess .sp-bar{ background:var(--noaccess); }
   .sprint-panel:hover{ border-color:var(--accent); transform:translateY(-1px); }
   .sprint-panel:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
   .sprint-panel .pill{ align-self:flex-start; }
-  .sp-head{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; font-size:var(--fs-h2); color:var(--ink); }
   .sp-tag{ font-family:var(--font-mono); font-size:var(--fs-xs); letter-spacing:.1em; text-transform:uppercase; color:var(--ink-faint); }
-  .sp-tag.cur{ color:var(--accent-ink); }
-  .sp-dates{ font-size:var(--fs-md); color:var(--ink-soft); }
+  .sp-badge{ padding:2px 9px; border-radius:999px; background:var(--accent); color:var(--accent-contrast);
+    font-family:var(--font-mono); font-size:var(--fs-xs); font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
+  .sp-dates{ display:flex; justify-content:space-between; align-items:center; gap:10px; min-height:28px;
+    font-size:var(--fs-md); color:var(--ink-soft); }
   .sp-body{ display:flex; align-items:center; gap:20px; margin:5px 0; }
   .sp-stats{ display:flex; flex-direction:column; gap:10px; font-size:var(--fs-md); color:var(--ink-soft); white-space:nowrap; }
   .hours-ring{ width:120px; height:120px; flex:0 0 120px; }
@@ -280,6 +288,9 @@
   .locked-note{ margin-top:12px; padding:10px 12px; border:1px dashed var(--line); border-radius:9px;
     font-size:var(--fs-sm); color:var(--ink-soft); background:var(--surface-2); }
   .goal-row .goal-mark{ width:18px; text-align:center; color:var(--ink-faint); }
+  .goal-tag{ display:inline-block; margin-right:8px; padding:1px 7px; border-radius:99px; vertical-align:1px;
+    background:var(--accent-soft); color:var(--accent-ink); font-family:var(--font-mono); font-size:var(--fs-xs);
+    font-weight:700; letter-spacing:.06em; text-transform:uppercase; text-decoration:none; }
   .goal-row.done .goal-mark{ color:var(--healthy); font-weight:700; }
   .goal-end{ display:flex; align-items:center; gap:8px; }
   .result{ font-size:var(--fs-sm); font-weight:600; padding:3px 8px; border-radius:99px; white-space:nowrap;
@@ -648,7 +659,7 @@
      headed like the instructor's course overview table, with fixed-width sprint columns so a
      short course doesn't stretch them across the page. */
   .rg-wrap{ overflow-x:auto; border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow); background:var(--surface); }
-  .rg{ display:grid; grid-template-columns:200px repeat(var(--n), 170px); width:max-content; }
+  .rg{ display:grid; grid-template-columns:200px repeat(var(--n), 170px) 230px; width:max-content; }
   .rg-c{ position:relative; display:flex; align-items:center; justify-content:center; padding:14px 10px; min-width:0; }
   .rg-c:not(.rg-h){ border-top:1px solid var(--line-soft); }
   .rg-c:not(.rg-lbl){ border-left:1px solid var(--line-soft); }
@@ -673,6 +684,25 @@
   .rg-lbl.rg-h{ justify-content:flex-end; background:var(--surface-2); }
   .rg-corner{ font-family:var(--font-mono); font-size:var(--fs-xs); font-weight:600; letter-spacing:.1em;
     text-transform:uppercase; color:var(--ink-soft); }
+  /* Summary column: pinned to the right edge while the sprints scroll, like the labels on the left. */
+  .rg-sum{ position:sticky; right:0; z-index:2; background:var(--surface); border-left:1px solid var(--line) !important; padding:14px 18px; }
+  .rg-sum.rg-h{ background:var(--surface-2); }
+  .rs-box{ width:100%; display:flex; flex-direction:column; align-items:center; gap:4px; text-align:center; }
+  .rs-box small{ font-size:var(--fs-sm); color:var(--ink-faint); }
+  .rs-big{ font-family:var(--font-mono); font-size:var(--fs-num); font-weight:600; color:var(--ink); line-height:1.1; }
+  .rs-gap{ margin-top:12px; }
+  .rs-big.ok{ color:var(--healthy); } .rs-big.low{ color:var(--risk); }
+  .rs-bar{ display:flex; gap:2px; width:100%; height:8px; border-radius:4px; overflow:hidden; margin:4px 0 2px; }
+  .rs-bar .healthy, .rs-bar .done{ background:var(--healthy); } .rs-bar .watch, .rs-bar .partial{ background:var(--watch); }
+  .rs-bar .risk, .rs-bar .notdone{ background:var(--risk); } .rs-bar .noaccess{ background:var(--noaccess); }
+  .rs-bar .open{ background:var(--line); }
+  .rs-counts{ display:flex; flex-wrap:wrap; justify-content:center; gap:2px 12px; font-size:var(--fs-sm); color:var(--ink-soft); }
+  .rs-counts span{ display:inline-flex; align-items:center; gap:5px; } .rs-counts b{ color:var(--ink); }
+  .rs-mood{ display:block; overflow:visible; }
+  .rs-face{ font-size:13px; }
+  .rs-grid{ stroke:var(--line-soft); stroke-width:1; }
+  .rs-line{ fill:none; stroke:var(--accent-ink); stroke-width:2; stroke-linejoin:round; stroke-linecap:round; }
+  .rs-dot{ fill:var(--accent); stroke:var(--surface); stroke-width:2; }
   .rg-tile{ width:100%; height:50px; border-radius:10px; display:flex; align-items:center; justify-content:center;
     gap:8px; font-size:var(--fs-md); text-align:center; }
   .rg-tile.goals{ flex-direction:column; align-items:stretch; gap:7px; padding:0 4px; }
@@ -701,7 +731,7 @@
   .rg-bar{ width:46px; border-radius:6px 6px 0 0; }
   .rg-bar.ok{ background:var(--healthy); } .rg-bar.low{ background:var(--risk); }
   .rg-bar.stub{ height:3px; background:var(--line); border-radius:2px; }
-  @media (max-width:720px){ .rg{ grid-template-columns:132px repeat(var(--n), 150px); } .rg-lbl{ padding:16px 14px; } }
+  @media (max-width:720px){ .rg{ grid-template-columns:132px repeat(var(--n), 150px) 220px; } .rg-lbl{ padding:16px 14px; } .rg-sum{ position:static; } }
   .sync-notice{ display:flex; gap:14px; margin:14px 0 4px; padding:12px 16px; border-radius:12px;
     background:var(--risk-bg); border:1px solid var(--risk); color:var(--ink); font-size:var(--fs-md); line-height:1.5; }
   .sync-notice ul{ margin:6px 0 0; padding-left:18px; } .sync-notice li+li{ margin-top:4px; }
@@ -1689,6 +1719,10 @@ function sprintStage(tid){
   if(frozen()) return "Closed";
   return myGoals(tid).length ? "In progress" : "Not started";
 }
+/* Each student's first goal (oldest) is their main sprint goal: the one result the sprint is
+   about. Later goals are optional extras. If it's removed, the next one becomes the main goal. */
+function isMainGoal(tid,g){ const first=(GOALS[tid]||[]).find(x=>x.studentEmail===g.studentEmail); return !!first && first.id===g.id; }
+function mainTag(tid,g){ return isMainGoal(tid,g) ? `<span class="goal-tag">Main goal</span>` : ""; }
 function resultPill(r){ return r?`<span class="result ${r}">${RESULTS[r]}</span>`:""; }
 function goalsHTML(t){
   const goals=GOALS[t.id]||[], edit=canEdit(t.id);
@@ -1698,17 +1732,20 @@ function goalsHTML(t){
         <option value="">—</option>${Object.keys(RESULTS).map(k=>`<option value="${k}"${g.result===k?" selected":""}>${RESULTS[k]}</option>`).join("")}</select>`
     : resultPill(g.result);
   return `<div class="card structured-card" id="goals-${t.id}"><div class="notes-head"><h2>Sprint goals</h2></div>
-    ${edit&&!goals.length?`<div class="callout"><b>Enter your sprint goals to get started.</b>
-      What do you plan to finish this sprint? Time logging unlocks once you've added at least one goal.</div>`:""}
+    ${edit&&!myGoals(t.id).length?`<div class="callout"><b>Start with your main sprint goal.</b>
+      The one result this sprint is about. You can add smaller goals after it. Time logging unlocks once it's added.</div>`:""}
     <section class="summary-section">
     ${goals.length?`<div class="goal-list">${goals.map(g=>`<div class="goal-row ${g.result==="done"||g.completed?"done":""}">
       <span class="goal-mark">${g.result==="done"||g.completed?"✓":"•"}</span>
-      <span class="goal-text">${esc(g.text)}</span>
+      <span class="goal-text">${mainTag(t.id,g)}${esc(g.text)}</span>
       <span class="goal-end">${resultCtl(g)}${edit&&g.studentEmail===USER_EMAIL&&!g.completed?`<button class="icon-btn remove" data-goal-remove="${t.id}:${g.id}" title="Remove goal" aria-label="Remove goal">×</button>`:""}</span></div>`).join("")}</div>`
       :(edit?"":`<p class="muted">No sprint goals entered.</p>`)}</section>
-    ${edit?`<section class="summary-section"><label class="nlbl summary-heading" for="goal-new-${t.id}"><span title="Add a specific result to complete during this sprint.">Add a sprint goal</span></label>
-      <div class="entry-form goal-form"><label>Goal<input id="goal-new-${t.id}" placeholder="e.g. Player can save and load a game"></label>
-      <button class="add-btn" data-goal-add="${t.id}">+ Add</button></div></section>`:""}</div>`;
+    ${edit?(()=>{ const first=!myGoals(t.id).length;
+      return `<section class="summary-section"><label class="nlbl summary-heading" for="goal-new-${t.id}">${first
+        ?`<span title="The one result this sprint is about.">Main sprint goal</span>`
+        :`<span title="A smaller result that supports your main goal.">Add another goal <span class="muted">(optional)</span></span>`}</label>
+      <div class="entry-form goal-form"><label>Goal<input id="goal-new-${t.id}" placeholder="${first?"e.g. Player can save and load a game":"A smaller goal that supports the main one"}"></label>
+      <button class="add-btn" data-goal-add="${t.id}">+ Add</button></div></section>`; })():""}</div>`;
 }
 function timeHTML(t){
   const rows=TIME_ENTRIES[t.id]||[], total=rows.reduce((n,x)=>n+(Number(x.hours)||0),0), edit=canEdit(t.id);
@@ -1716,7 +1753,7 @@ function timeHTML(t){
   const staffAdd=instructorView() && !frozen() && students.length>0, open=TIME_FORM_OPEN.has(t.id);
   let form="";
   if(edit && !myGoals(t.id).length)
-    form=`<div class="locked-note">🔒 Add at least one sprint goal to start logging time.</div>`;
+    form=`<div class="locked-note">🔒 Add your main sprint goal to start logging time.</div>`;
   else if(edit || staffAdd)
     form=`<section class="summary-section"${staffAdd?` id="timeform-${t.id}"${open?"":" hidden"}`:""}><label class="nlbl summary-heading"><span title="Record the time spent working on the project.">Log time</span></label>
       <div class="entry-form${instructorView()?" with-student":""}">
@@ -1775,7 +1812,7 @@ function wrapUpHTML(t){
     <div class="wrap-form" id="wrap-form-${t.id}" hidden>
       <label class="nlbl">Confirm how each goal went</label>
       <p class="muted" style="margin:0">Pre-filled from your sprint goals. Change anything that's different now.</p>
-      ${goals.map(g=>`<div class="wrap-goal"><span>${esc(g.text)}</span><span class="seg">${Object.keys(RESULTS).map(k=>
+      ${goals.map(g=>`<div class="wrap-goal"><span>${mainTag(t.id,g)}${esc(g.text)}</span><span class="seg">${Object.keys(RESULTS).map(k=>
         `<label><input type="radio" name="res-${g.id}" value="${k}"${g.result===k?" checked":""}><span>${RESULTS[k]}</span></label>`).join("")}</span></div>`).join("")}
       ${prevActions(t.id).length?`<label class="nlbl">Did you follow through on last sprint's actions?</label>
       ${prevActions(t.id).map((a,i)=>`<div class="wrap-goal"><span>${esc(a)}</span><span class="seg">${Object.keys(FOLLOW).map(k=>
@@ -2120,6 +2157,54 @@ async function loadRetroHistory(tid){
 // Mood tiles run Not great → Great; a retired Rough (1) shows as Not great.
 function chartMood(v){ const n=Number(v); return n ? Math.max(n,2) : null; }
 const RG_BAR=130;   // px height a bar reaches at the top of the hours scale
+/* Summary column: one cell per row covering every sprint that has started.
+   Goals still unmarked in an open sprint don't count against the rate. The hours
+   average and entered vs required only count sprints that have ended, so a sprint in
+   progress doesn't read as short. */
+function retroSummaryCells(rows, ph){
+  const liveRows=rows.filter((r,i)=>ph[i]!=="upcoming"), open=i=>ph[i]==="current"||ph[i]==="grace";
+  const sum=(body,extra="")=>`<div class="rg-c rg-sum${extra}">${body}</div>`;
+  const none=t=>`<span class="muted">${t}</span>`;
+  const seg=(n,c)=>n?`<span class="${c}" style="flex:${n}"></span>`:"";
+  // Status: how many sprints got each rating.
+  const sc={}; liveRows.forEach(r=>{ const st=r.entry.status||"unrated"; sc[st]=(sc[st]||0)+1; });
+  const ranks=["healthy","watch","risk","noaccess"].filter(k=>sc[k]);
+  const status=ranks.length ? `<div class="rs-box"><span class="rs-bar">${ranks.map(k=>seg(sc[k],k)).join("")}</span>
+      <span class="rs-counts">${ranks.map(k=>`<span><i class="rg-key ${k}"></i><b>${sc[k]}</b> ${esc(STATUS_LABEL[k])}</span>`).join("")}</span>
+      ${sc.unrated?`<small>${sc.unrated} not rated yet</small>`:""}</div>` : none("No ratings yet");
+  // Goals: overall completion rate and the Done / Partly / Not done split.
+  let gd=0, gp=0, gn=0, gu=0, counted=0;
+  rows.forEach((r,i)=>{ if(ph[i]==="upcoming") return; const g=r.goals||{total:0,done:0,partial:0,notdone:0};
+    const marked=g.done+g.partial+g.notdone, unmarked=g.total-marked;
+    gd+=g.done; gp+=g.partial; gn+=g.notdone; gu+=unmarked; counted+=open(i) ? marked : g.total; });
+  const goals=gd+gp+gn+gu ? `<div class="rs-box"><span class="rs-big">${counted?Math.round(100*gd/counted):0}%</span><small>goals done</small>
+      <span class="rs-bar">${seg(gd,"done")}${seg(gp,"partial")}${seg(gn,"notdone")}${seg(gu,"open")}</span>
+      <small>${gd} done · ${gp} partly · ${gn} not done</small></div>` : none("No goals yet");
+  // Hours: average per week, then hours entered over hours required.
+  const done=rows.filter((r,i)=>ph[i]==="grace"||ph[i]==="closed");
+  const entered=done.reduce((n,r)=>n+(r.hours||0),0), required=done.reduce((n,r)=>n+targetOf(r.sprint),0);
+  const fmtH=v=>String(Math.round(v*10)/10);
+  const hours=`<div class="rs-box"><span class="rs-big">${done.length?fmtH(entered/done.length)+" h":"—"}</span><small>avg per sprint</small>
+      ${done.length ? `<span class="rs-big rs-gap ${entered>=required?"ok":"low"}">${fmtH(entered)} / ${fmtH(required)} h</span>
+      <small>Total project hours</small>
+      <small>required through ${esc((x=>x.name||("Sprint "+x.n))(done[done.length-1].sprint))}</small>`
+        : `<span class="rs-big rs-gap muted">—</span><small>no finished sprints yet</small>`}</div>`;
+  return { head:`<div class="rg-c rg-sum rg-h"><span class="rg-sp">Summary</span><small>${liveRows.length} sprint${liveRows.length===1?"":"s"} so far</small></div>`,
+    status:sum(status), goals:sum(goals), hours:sum(hours," rg-hours"), mood:sum(moodTrendSVG(liveRows)) };
+}
+// Mood per sprint as a line, faces on the vertical scale; a sprint with no check-in leaves a gap.
+function moodTrendSVG(rows){
+  const pts=rows.map(r=>r.retro?chartMood(r.retro.mood):null);
+  if(!pts.some(Boolean)) return `<span class="muted">No check-ins yet</span>`;
+  const w=190, h=100, left=26, right=8, top=10, bot=10, n=pts.length;
+  const x=i=>n===1 ? (left+w-right)/2 : left+i*(w-left-right)/(n-1), y=v=>top+(5-v)*(h-top-bot)/3;
+  let path="", pen=false;
+  pts.forEach((v,i)=>{ if(!v){ pen=false; return; } path+=`${pen?"L":"M"}${x(i).toFixed(1)},${y(v).toFixed(1)} `; pen=true; });
+  const faces=MOODS.filter(m=>!m.retired).map(m=>`<text x="0" y="${y(m.v)+5}" class="rs-face">${m.e}</text>
+    <line x1="${left}" y1="${y(m.v)}" x2="${w-right}" y2="${y(m.v)}" class="rs-grid"/>`).join("");
+  const dots=pts.map((v,i)=>v?`<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="4" class="rs-dot"><title>${esc(rows[i].sprint.name||("Sprint "+rows[i].sprint.n))}: ${esc(moodOf(v).l)}</title></circle>`:"").join("");
+  return `<svg class="rs-mood" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img" aria-label="Mood by sprint">${faces}<path d="${path}" class="rs-line"/>${dots}</svg>`;
+}
 function retroHistoryHTML(tid){
   const rows=RETRO_HISTORY[tid];
   if(!rows) return `<div class="card"><p class="muted">Loading your retrospectives…</p></div>`;
@@ -2155,13 +2240,13 @@ function retroHistoryHTML(tid){
       : `<div class="rg-tile tall none">${cur(i)?"Not yet":"No check-in"}</div>`); }).join("");
   const key=(c,l)=>`<span><i class="rg-key ${c}"></i>${esc(l)}</span>`;
   const label=(title,legend)=>`<div class="rg-c rg-lbl"><b>${title}</b><div class="rg-legend">${legend}</div></div>`;
-  const sameTarget=targets.every(x=>x===targets[0]);
+  const sameTarget=targets.every(x=>x===targets[0]), sm=retroSummaryCells(rows, ph);
   return `<div class="rg-wrap"><div class="rg" style="--n:${rows.length}">
-    <div class="rg-c rg-lbl rg-h"><span class="rg-corner">Sprint</span></div>${head}
-    ${label("Status",["healthy","watch","risk","noaccess"].map(k=>key(k,STATUS_LABEL[k])).join(""))}${status}
-    ${label("Goals",key("healthy","Done")+key("watch","Partly done")+key("risk","Not done"))}${goals}
-    ${label("Hours",key("target",sameTarget?`Target (${targets[0]} h)`:"Target")+key("healthy","Met")+key("risk","Under"))}${hours}
-    ${label("Mood",MOODS.filter(m=>!m.retired).reverse().map(m=>`<span><i class="rg-emo" aria-hidden="true">${m.e}</i>${esc(m.l)}</span>`).join(""))}${mood}
+    <div class="rg-c rg-lbl rg-h"><span class="rg-corner">Sprint</span></div>${head}${sm.head}
+    ${label("Status",["healthy","watch","risk","noaccess"].map(k=>key(k,STATUS_LABEL[k])).join(""))}${status}${sm.status}
+    ${label("Goals",key("healthy","Done")+key("watch","Partly done")+key("risk","Not done"))}${goals}${sm.goals}
+    ${label("Hours",key("target",sameTarget?`Target (${targets[0]} h)`:"Target")+key("healthy","Met")+key("risk","Under"))}${hours}${sm.hours}
+    ${label("Mood",MOODS.filter(m=>!m.retired).reverse().map(m=>`<span><i class="rg-emo" aria-hidden="true">${m.e}</i>${esc(m.l)}</span>`).join(""))}${mood}${sm.mood}
   </div></div>`;
 }
 
@@ -2178,7 +2263,7 @@ function countdownBannerHTML(sp, x){
   if(!sp || !sp.end || !x || x.submitted || (ph!=="current" && ph!=="grace")) return "";
   const grace=ph==="grace", urgent=grace || daysLeft(sp)<=URGENT_DAYS, target=targetOf(sp);
   const todo=[];
-  if(!x.goals) todo.push("add your sprint goals");
+  if(!x.goals) todo.push("add your main sprint goal");
   if(x.hours<target){ const more=Math.round((target-x.hours)*10)/10; todo.push(`log ${more} more hour${more===1?"":"s"} to reach ${target}`); }
   if(urgent) todo.push("submit your retrospective");
   const name=esc(sp.name||("Sprint "+sp.n)), ends=`${esc(dowOf(sp.end))} ${esc(fmtD(sp.end))}`;
@@ -2200,17 +2285,24 @@ function sprintGridHTML(t){
     const x=stats[sp.id], start=sp.start||"", end=sp.end||"", ph=sprintPhase(sp);
     const st=(x&&x.status)||"unrated", cur=ph==="current";
     const commits=cbd?Object.values(sliceCbd(cbd,start,end)).reduce((a,b)=>a+b,0):null;
+    // A bar across the top in the rating's colour carries the sprint name and status.
+    // The open sprint (current, or on its last day) gets a solid badge bottom-left, and its
+    // countdown sits on the dates line.
+    const now=cur||ph==="grace", sub=x&&x.submitted;
+    const note=!now ? "" : sub ? " · submitted" : ph==="grace" ? " · submit today" : sp.end ? " · "+daysLeftLabel(sp) : "";
+    const phaseTag=now ? `<span class="sp-badge">${ph==="grace"?"Last day":"Current"}</span>`
+      : `<span class="sp-tag">${sub?"Submitted":{upcoming:"Upcoming",closed:"Past"}[ph]||""}</span>`;
     return `<button class="sprint-panel ${st}" data-sprint-open="${t.id}:${sp.id}">
-      <span class="sp-head"><b>${esc(sp.name||("Sprint "+sp.n))}</b><span class="sp-tag${cur||ph==="grace"?" cur":""}">${x&&x.submitted?"Submitted":(ph==="current" && sp.end ? daysLeftLabel(sp) : {current:"Current",grace:"Last day to submit",upcoming:"Upcoming",closed:"Past"}[ph])}</span></span>
-      <span class="sp-dates">${start&&end?`${esc(fmtD(start))} – ${esc(fmtD(end))}`:"&nbsp;"}</span>
+      <span class="sp-bar"><b>${esc(sp.name||("Sprint "+sp.n))}</b><span class="sp-bar-st"><span class="d"></span>${esc(STATUS_LABEL[st])}</span></span>
+      <span class="sp-dates"><span>${start&&end?`${esc(fmtD(start))} – ${esc(fmtD(end))}`:"&nbsp;"}${esc(note)}</span>
+        ${x&&moodOf(x.mood)?`<span class="sp-mood" title="Felt: ${esc(moodOf(x.mood).l)}">${moodOf(x.mood).e}</span>`:""}</span>
       <span class="sp-body">${hoursRingSVG(x?x.hours:null, targetOf(sp))}
         <span class="sp-stats">
           <span><b>${x?`${x.done}/${x.goals}`:"…"}</b>goals done</span>
           ${usesRepo(t)?`<span><b>${commits==null?"—":commits}</b>commits</span>`:""}</span></span>
-      <span class="sp-foot"><span class="sp-foot-l"><span class="pill ${st}"><span class="d"></span>${STATUS_LABEL[st]}</span>
-        ${x&&x.newFeedback?`<span class="sp-new">New feedback</span>`:""}</span>
-        ${x&&moodOf(x.mood)?`<span class="sp-mood" title="Felt: ${esc(moodOf(x.mood).l)}">${moodOf(x.mood).e}</span>`:""}</span>
-      ${(cur||ph==="grace")&&x&&!x.goals&&!x.submitted?`<span class="sp-nudge">Enter goals to get started →</span>`:""}
+      <span class="sp-foot"><span class="sp-foot-l">${phaseTag}
+        ${x&&x.newFeedback?`<span class="sp-new">New feedback</span>`:""}</span></span>
+      ${(cur||ph==="grace")&&x&&!x.goals&&!x.submitted?`<span class="sp-nudge">Add your main goal to get started →</span>`:""}
     </button>`;}).join("")}</div>`;
 }
 // Hours, goals and rating for every sprint of one project. Reloaded whenever its
