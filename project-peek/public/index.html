@@ -760,6 +760,25 @@
   .card.team-head .thead .project{ margin-top:0; }
   .card.team-head .chips{ margin-bottom:0; }
   .ov-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+  /* Sprint review grade (instructor): one row per student. */
+  .gr-table{ min-width:760px; }
+  .gr-table tbody tr{ cursor:default; } .gr-table tbody tr:hover{ background:transparent; }
+  .gr-table td{ vertical-align:top; }
+  .gr-who{ font-weight:600; }
+  .gr-table small{ display:block; margin-top:5px; max-width:200px; font-size:var(--fs-sm); font-weight:400; color:var(--ink-faint); }
+  .gr-c.needs-review small{ color:var(--watch); }
+  .gr-n, .gr-total b{ font-family:var(--font-mono); font-size:var(--fs-h2); font-variant-numeric:tabular-nums; }
+  .gr-sel{ font:inherit; font-size:var(--fs-sm); padding:5px 6px; border:1px dashed var(--line); border-radius:6px;
+    background:var(--field); color:var(--ink); }
+  .gr-sel.set{ border:1px solid var(--healthy); }
+  .gr-note{ margin:12px 0 0; }
+  .rt-grade{ display:flex; flex-wrap:wrap; align-items:flex-end; gap:10px 18px; margin:12px 0 4px; padding:12px 14px;
+    border:1px solid var(--line); border-radius:10px; background:var(--surface-2); font-size:var(--fs-sm); color:var(--ink-soft); }
+  .rt-grade label{ display:flex; flex-direction:column; gap:4px; }
+  .rt-title{ width:100%; font-weight:700; color:var(--ink); font-size:var(--fs-md); }
+  .rt-auto b, .rt-total b{ font-family:var(--font-mono); font-size:var(--fs-h2); color:var(--ink); }
+  .rt-total{ margin-left:auto; text-align:right; }
+  .rt-total small{ display:block; color:var(--ink-faint); }
   .ov-table{ min-width:0; width:auto; }
   .ov-table thead th{ vertical-align:bottom; white-space:nowrap; }
   .ov-table th.ov-sprint span{ display:block; color:var(--ink); font-size:var(--fs-sm); }
@@ -795,6 +814,18 @@
   .ov-mood{ font-size:18px; line-height:1; }
   .ov-review{ font-size:var(--fs-sm); color:var(--ink-faint); }
   .ov-legend{ font-size:var(--fs-sm); margin-top:12px; }
+  /* Summary column: pinned to the right edge while the sprints scroll. */
+  .ov-table .ov-sum{ position:sticky; right:0; z-index:1; background:var(--surface); border-left:1px solid var(--line);
+    min-width:200px; vertical-align:top; padding:10px 14px; }
+  .ov-table thead .ov-sum{ background:var(--surface-2); vertical-align:bottom; }
+  .ov-table thead .ov-sum span{ display:block; color:var(--ink); font-size:var(--fs-sm); }
+  .ov-table thead .ov-sum small{ display:block; font-family:var(--font-sans); letter-spacing:0; text-transform:none; font-size:var(--fs-sm); font-weight:400; }
+  .ovs{ display:flex; flex-direction:column; gap:5px; font-size:var(--fs-sm); color:var(--ink-soft); }
+  .ovs-line b{ font-family:var(--font-mono); font-size:var(--fs-md); color:var(--ink); font-variant-numeric:tabular-nums; }
+  .ovs-line b.ok{ color:var(--healthy); } .ovs-line b.low{ color:var(--risk); }
+  .ovs .rs-bar{ margin:2px 0; }
+  .ovs .rs-mood{ margin-top:2px; }
+  @media (max-width:860px){ .ov-table .ov-sum{ position:static; } }
   .ov-key{ display:inline-block; width:10px; height:10px; border-radius:3px; margin:0 4px 0 2px; vertical-align:-1px; }
   .ov-key.healthy{ background:var(--healthy); } .ov-key.watch{ background:var(--watch); }
   .ov-key.risk{ background:var(--risk); } .ov-key.noaccess{ background:var(--noaccess); }
@@ -919,6 +950,7 @@ let SPRINT_STATS={}, RETROS={};
 // Instructor project page: teams whose summary panel / add-hours form is open. Kept across re-renders.
 const SHOW_SUMMARY=new Set(), TIME_FORM_OPEN=new Set();
 let PREV_ACTIONS={};
+let GRADES={};  // instructor: {"teamId|email": saved rubric picks} for the selected sprint
 let PREV_TEAM_ACTIONS={};  // instructor view: {teamId: [{email, actions}]} from the previous sprint's retrospectives  // student view: {teamId: [action text]} from their previous sprint's retrospective
 let EDITING_TIME="";
 let RETRO_HISTORY={};  // student view: {teamId: [{sprint, retro, goals, entry}]}, oldest first   // "teamId:timeId" while a time entry is open for editing
@@ -1293,8 +1325,12 @@ async function rollSprints(){
   }
 }
 async function loadEntries(){
-  ENTRIES={}; GOALS={}; TIME_ENTRIES={}; RETROS={}; PREV_ACTIONS={}; PREV_TEAM_ACTIONS={}; EDITING_TIME="";
+  ENTRIES={}; GOALS={}; TIME_ENTRIES={}; RETROS={}; PREV_ACTIONS={}; PREV_TEAM_ACTIONS={}; GRADES={}; EDITING_TIME="";
   if(!SPRINT) return;
+  if(IS_ADMIN){
+    const gs=await getDocs(query(collection(db,`${cpath()}/grades`), where("sprintId","==",SPRINT.id))).catch(e=>{ console.error("grades:", e); return null; });
+    if(gs) gs.forEach(d=>{ const x=d.data(); GRADES[`${x.teamId}|${x.email}`]=x; });
+  }
   const prev=prevSprint();
   if(prev && IS_ADMIN) await Promise.all(TEAMS.map(async t=>{
     const snap=await getDocs(collection(db,`${cpath()}/sprints/${prev.id}/entries/${t.id}/retro`)).catch(()=>null);
@@ -1476,7 +1512,7 @@ async function ensureOverview(){
           goals: goals.size, done: goals.docs.filter(d=>d.data().result==="done"||d.data().completed).length,
           partial: goals.docs.filter(d=>d.data().result==="partial").length,
           notdone: goals.docs.filter(d=>d.data().result==="notdone").length,
-          submitted: rs.length>0, mood: rs.length ? rs[0].mood : null,
+          submitted: rs.length>0, mood: rs.length ? rs[0].mood : null, moods: rs.map(r=>Number(r.mood)).filter(Boolean),
           wentWell: rs.length ? rs[0].wentWell||"" : "", improve: rs.length ? rs[0].improve||"" : "",
           actions: rs.length ? rs[0].actions||[] : [], followUp: rs.length ? rs[0].followUp||[] : [],
           status: e.status||"unrated", review: e.review||"", reviewDate: e.reviewDate||"" };
@@ -1486,6 +1522,29 @@ async function ensureOverview(){
     OVERVIEW={ course, loadedAt:new Date(), cells };
   }catch(err){ console.error("overview load failed:", err); if(body) body.innerHTML=`<p class="muted">Couldn't load the overview: ${esc(err.message||err)}</p>`; return; }
   const el=$("overview-body"); if(el) el.innerHTML=overviewBodyHTML();
+}
+/* Course overview summary per project, matching the student's Retrospectives summary:
+   hours averaged over finished sprints and totalled against their targets, status counts
+   and goal rate over started sprints, and mood per sprint (a team project averages its
+   students). */
+function overviewSummaryHTML(row){
+  const fmtH=n=>String(Math.round(n*10)/10), seg=(n,c)=>n?`<span class="${c}" style="flex:${n}"></span>`:"";
+  const started=SPRINTS.filter(sp=>sprintPhase(sp)!=="upcoming" && row[sp.id]);
+  const done=started.filter(sp=>isPast(sp));
+  const entered=done.reduce((n,sp)=>n+row[sp.id].hours,0), required=done.reduce((n,sp)=>n+targetOf(sp),0);
+  const sc={}; started.forEach(sp=>{ const st=row[sp.id].status; if(st!=="unrated") sc[st]=(sc[st]||0)+1; });
+  const ranks=["healthy","watch","risk","noaccess"].filter(k=>sc[k]);
+  let gd=0, counted=0;
+  started.forEach(sp=>{ const c=row[sp.id], marked=c.done+c.partial+c.notdone; gd+=c.done; counted+=isPast(sp) ? c.goals : marked; });
+  const moods=started.map(sp=>{ const ms=row[sp.id].moods||[]; return ms.length ? chartMood(ms.reduce((a,b)=>a+b,0)/ms.length) : null; });
+  return `<td class="ov-sum"><div class="ovs">
+    ${done.length ? `<span class="ovs-line"><b>${fmtH(entered/done.length)} h</b> avg per sprint</span>
+      <span class="ovs-line"><b class="${entered>=required?"ok":"low"}">${fmtH(entered)} / ${fmtH(required)} h</b> total</span>`
+      : `<span class="ovs-line muted">No finished sprints yet</span>`}
+    ${ranks.length ? `<span class="rs-bar" title="${ranks.map(k=>`${sc[k]} ${STATUS_LABEL[k]}`).join(" · ")}">${ranks.map(k=>seg(sc[k],k)).join("")}</span>` : ""}
+    ${counted ? `<span class="ovs-line"><b>${Math.round(100*gd/counted)}%</b> goals done</span>` : ""}
+    ${moodLineSVG(moods, started.map(sp=>sp.name||("Sprint "+sp.n)), {w:170, h:60})}
+  </div></td>`;
 }
 function overviewBodyHTML(){
   if(!SPRINTS.length) return `<p class="muted">No sprints yet.</p>`;
@@ -1514,9 +1573,10 @@ function overviewBodyHTML(){
           <span class="ov-goals">${c.goals?`${c.done}/${c.goals} goals`:`<span class="muted">no goals</span>`}</span>
           <span class="ov-foot">${sub}${m?`<span class="ov-mood" title="Felt: ${esc(m.l)}">${m.e}</span>`:""}</span>
           ${c.reviewDate?`<span class="ov-review">Review ${esc(dowOf(c.reviewDate))} ${esc(fmtD(c.reviewDate))}</span>`:""}
-        </button></td>`; }).join("")}</tr>`;
+        </button></td>`; }).join("")}${overviewSummaryHTML(row)}</tr>`;
   }).join("");
-  return `<div class="tablewrap ov-wrap"><table class="ov-table"><thead><tr><th class="ov-name">${L().Unit}</th>${head}</tr></thead>
+  return `<div class="tablewrap ov-wrap"><table class="ov-table"><thead><tr><th class="ov-name">${L().Unit}</th>${head}
+      <th class="ov-sum"><span>Summary</span><small>finished sprints</small></th></tr></thead>
     <tbody>${rows}</tbody></table></div>
     <p class="muted ov-legend">${["healthy","watch","risk","noaccess"].map(k=>`<span class="ov-key ${k}"></span>${esc(STATUS_LABEL[k])}`).join(" · ")}
       · Updated ${esc(fmtWhen(OVERVIEW.loadedAt))}</p>`;
@@ -1548,10 +1608,16 @@ async function exportOverviewCSV(){
         inSprint, after].map(cell).join(","));
     }
   }
+  saveCSV(lines, "sprints");
+}
+// Rows of cells → a CSV download. UTF-8 with a BOM so Excel keeps emoji and accented names.
+function csvCell(v){ const t=v==null?"":String(v); return /[",\n\r]/.test(t) ? `"${t.replace(/"/g,'""')}"` : t; }
+function downloadCSV(rows, kind){ saveCSV(rows.map(r=>r.map(csvCell).join(",")), kind); }
+function saveCSV(lines, kind){
   const blob=new Blob(["\uFEFF"+lines.join("\r\n")], {type:"text/csv;charset=utf-8"});
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
-  a.download=`${(COURSE.code||COURSE.id).replace(/[^\w-]+/g,"_")}-sprints-${TODAY}.csv`;
+  a.download=`${(COURSE.code||COURSE.id).replace(/[^\w-]+/g,"_")}-${kind}-${TODAY}.csv`;
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
 }
@@ -1797,7 +1863,7 @@ function retroViewHTML(r){
 function wrapUpHTML(t){
   if(instructorView()){
     const rs=RETROS[t.id]||[];
-    return `<div class="card"><h2>Sprint retrospective</h2>${rs.length?rs.map(r=>retroViewHTML(r)+
+    return `<div class="card" id="retro-${t.id}"><h2>Sprint retrospective</h2>${rs.length?rs.map(r=>retroViewHTML(r)+retroGradeHTML(t,r)+
       `<div class="panel-actions"><button class="linkbtn" data-reopen="${t.id}:${esc(r.studentEmail)}">Reopen sprint for ${esc(r.studentEmail)}</button></div>`).join("")
       :`<p class="muted">Not submitted yet.</p>`}</div>`;
   }
@@ -1875,6 +1941,146 @@ function afterEndHTML(t){
   return `<div class="after-end${n?" has":""}">${n?`<b>${n}</b> commit${n===1?"":"s"} since this sprint ended (${esc(fmtD(SPRINT.end))})`
     :`No commits since this sprint ended (${esc(fmtD(SPRINT.end))})`}</div>`;
 }
+/* ---------- grading (instructor) ----------
+   Scores the Sprint Review (rubrics/sprint-review.md, 20 pts) and the Retrospective
+   (rubrics/retrospective.md, 10 pts) per student. Hours are calculated from logged time;
+   demo follows the instructor's sprint rating (goals until it's rated) and board follows the
+   Trello sync, both as suggestions until the instructor picks a score; meeting preparedness and the written retrospective answers are never guessed.
+   Picks are saved in courses/{c}/grades, which only the instructor can read. */
+const REVIEW_CRIT=[
+  {k:"demo", l:"Demo", max:8, opts:[[8,"Exceeds"],[5,"Satisfactory"],[2,"Needs improvement"],[0,"No evidence"]]},
+  {k:"hours", l:"Hours", max:6},
+  {k:"board", l:"Board", max:3, opts:[[3,"Meets"],[0,"Does not meet"]]},
+  {k:"meeting", l:"Meeting", max:3, opts:[[3,"On time & prepared"],[0,"Late / unprepared"]]}];
+function gradeId(sid,tid,email){ return `${sid}__${tid}__${email}`; }
+const fmtHrs=v=>String(Math.round(v*10)/10);
+// Rubric tiers as a share of the sprint's target: 100% → 6, 50% → 4, 25% → 2.
+function hoursPoints(h,target){ const p=target?h/target:0; return p>=1?6:p>=.5?4:p>=.25?2:0; }
+// Each suggestion is {v: points, or null when the app can't tell, why: the evidence}.
+function suggestHours(hours,sp){
+  const t=targetOf(sp), why=hours?`${fmtHrs(hours)} / ${t} h (${t?Math.round(100*hours/t):0}%)`:"no hours documented";
+  return { v:hoursPoints(hours,t), why:isPast(sp)?why:why+" · sprint still open" };
+}
+// The sprint rating is made after seeing the demo, so it maps straight to the rubric's levels.
+const DEMO_BY_STATUS={healthy:8, watch:5, risk:2, noaccess:0};
+function suggestDemo(goals,status){
+  if(status in DEMO_BY_STATUS) return {v:DEMO_BY_STATUS[status], why:`sprint rated ${STATUS_LABEL[status]}`};
+  const g=suggestGoalDemo(goals); return {...g, why:g.why+(g.v!=null?" · not rated yet":"")};
+}
+function suggestGoalDemo(goals){
+  if(!goals.length) return {v:0, why:"no sprint goals"};
+  const r=g=>g.result||(g.completed?"done":""), n=goals.length, main=r(goals[0]);
+  if(!goals.some(r)) return {v:null, why:"goals not marked yet"};
+  const done=goals.filter(g=>r(g)==="done").length, part=goals.filter(g=>r(g)==="partial").length;
+  const v = main==="done" && done/n>=2/3 ? 8 : main==="done" || main==="partial" || (done+part)/n>=.5 ? 5 : 2;
+  return {v, why:`main goal ${main?RESULTS[main].toLowerCase():"not marked"} · ${done}/${n} done${part?` · ${part} partly`:""}`};
+}
+// The sync keeps the board's last 14 days of activity, so older sprints go to the instructor.
+function suggestBoard(t,sp){
+  if(!t.trello) return {v:null, why:"no Trello board linked"};
+  const tr=t.act&&t.act.trello, ac=tr&&tr.activity, days=(ac&&ac.window_days)||14;
+  if(!ac || !tr.date) return {v:null, why:"board couldn't be read"};
+  if(sp.end && sp.end < addDays(tr.date,-days)) return {v:null, why:"board history doesn't reach this sprint"};
+  const moves=ac.moves||0, made=ac.created||0, to=`in the ${days} days to ${fmtD(tr.date)}`;
+  return moves+made ? {v:3, why:`${moves} card moves, ${made} created ${to}`} : {v:0, why:`no board activity ${to}`};
+}
+// One student's review. Each criterion: {v, why, src: confirmed | suggested | calculated | needs review}.
+function reviewGrade(t,sp,goals,hours,saved,status){
+  const sug={ demo:suggestDemo(goals,status), hours:suggestHours(hours,sp), board:suggestBoard(t,sp), meeting:{v:null, why:"set by instructor"} };
+  const out={};
+  REVIEW_CRIT.forEach(c=>{ const s=sug[c.k], pick=c.opts && saved && typeof saved[c.k]==="number" ? saved[c.k] : null;
+    out[c.k] = pick!=null ? {v:pick, why:s.why, src:"confirmed"}
+      : s.v!=null ? {v:s.v, why:s.why, src:c.opts?"suggested":"calculated"} : {v:null, why:s.why, src:"needs review"}; });
+  out.total=REVIEW_CRIT.reduce((n,c)=>n+(out[c.k].v||0),0);
+  out.open=REVIEW_CRIT.filter(c=>out[c.k].v==null).map(c=>c.l);
+  return out;
+}
+// Retrospective: the rating point is automatic once submitted; the three written answers are
+// scored 3 or 0 by the instructor (binary, per the rubric) and are never suggested.
+const RETRO_CRIT=[{k:"retroWell", l:"What went well"}, {k:"retroImprove", l:"What could be improved"}, {k:"retroActions", l:"Action items"}];
+function retroGrade(r, saved){
+  if(!r) return {submitted:false, rating:0, total:0, open:[], picks:{}};
+  const rating=moodOf(r.mood)?1:0, picks={};
+  RETRO_CRIT.forEach(c=>{ if(saved && typeof saved[c.k]==="number") picks[c.k]=saved[c.k]; });
+  return {submitted:true, rating, picks, total:rating+Object.values(picks).reduce((a,b)=>a+b,0),
+    open:RETRO_CRIT.filter(c=>!(c.k in picks)).map(c=>c.l)};
+}
+function retroGradeHTML(t,r){
+  const em=r.studentEmail, g=retroGrade(r, GRADES[`${t.id}|${em}`]);
+  return `<div class="rt-grade"><span class="rt-title">Retrospective grade</span>
+    ${RETRO_CRIT.map(c=>`<label>${c.l}<select class="gr-sel${c.k in g.picks?" set":""}" data-grade="${t.id}|${esc(em)}|${c.k}">
+      <option value="">Choose…</option>${[[3,"Full marks"],[0,"No marks"]].map(([v,l])=>
+        `<option value="${v}"${g.picks[c.k]===v?" selected":""}>${v} · ${l}</option>`).join("")}</select></label>`).join("")}
+    <span class="rt-auto">Rating <b>${g.rating}</b> / 1</span>
+    <span class="rt-total"><b>${g.total}</b> / 10${g.open.length?`<small>to grade: ${esc(g.open.join(", "))}</small>`:""}</span></div>`;
+}
+function studentGoals(tid,em){ return (GOALS[tid]||[]).filter(g=>g.studentEmail===em); }
+function studentHours(tid,em){ return (TIME_ENTRIES[tid]||[]).filter(x=>x.studentEmail===em).reduce((n,x)=>n+(Number(x.hours)||0),0); }
+function gradeCardHTML(t){
+  if(!instructorView() || !SPRINT) return "";
+  const students=t.studentEmails||[], many=students.length>1;
+  const rows=students.map(em=>{
+    const g=reviewGrade(t,SPRINT,studentGoals(t.id,em),studentHours(t.id,em),GRADES[`${t.id}|${em}`],entryOf(t.id).status||"unrated");
+    const ctl=c=>{ const x=g[c.k];
+      if(!c.opts) return `<b class="gr-n">${x.v}</b>`;
+      const set=x.src==="confirmed";
+      return `<select class="gr-sel${set?" set":""}" data-grade="${t.id}|${esc(em)}|${c.k}" aria-label="${c.l} score for ${esc(em)}">
+        <option value="">${x.src==="suggested"?`${x.v} · suggested`:"Choose…"}</option>
+        ${c.opts.map(([v,l])=>`<option value="${v}"${set&&x.v===v?" selected":""}>${v} · ${l}</option>`).join("")}</select>`; };
+    return `<tr><td class="gr-who">${esc(many?em:(t.team||em))}${many?"":`<small>${esc(em)}</small>`}</td>
+      ${REVIEW_CRIT.map(c=>`<td class="gr-c ${g[c.k].src.replace(" ","-")}">${ctl(c)}<small>${esc(g[c.k].why)}</small></td>`).join("")}
+      <td class="gr-total"><b>${g.total}</b> / 20${g.open.length?`<small>to set: ${esc(g.open.join(", "))}</small>`:""}</td></tr>`; }).join("");
+  return `<div class="card" id="grade-${t.id}"><div class="notes-head"><h2>Sprint review grade</h2><span class="muted">20 points · per student · only you see this</span></div>
+    <div class="tablewrap gr-wrap"><table class="gr-table"><thead><tr><th>Student</th>${REVIEW_CRIT.map(c=>`<th>${c.l} /${c.max}</th>`).join("")}<th>Total</th></tr></thead>
+    <tbody>${rows||`<tr><td colspan="6" class="muted">No students assigned yet.</td></tr>`}</tbody></table></div>
+    <p class="muted gr-note">Demo follows your sprint rating (goals until it's rated) and board follows the Trello sync; pick a score to confirm it. Hours are calculated from logged time. Meeting is yours to set.</p></div>`;
+}
+async function saveGrade(key,val){
+  const [tid,email,k]=key.split("|"), v=val==="" ? null : Number(val);
+  await setDoc(doc(db,`${cpath()}/grades/${gradeId(SPRINT.id,tid,email)}`),
+    {sprintId:SPRINT.id, teamId:tid, email, [k]:v, updatedAt:serverTimestamp()}, {merge:true});
+  (GRADES[`${tid}|${email}`] ||= {})[k]=v;
+  const t=TEAMS.find(x=>x.id===tid); if(!t) return;
+  if(RETRO_CRIT.some(c=>c.k===k)){ const el=$("retro-"+tid); if(el) el.outerHTML=wrapUpHTML(t); }
+  else { const el=$("grade-"+tid); if(el) el.outerHTML=gradeCardHTML(t); }
+}
+// CSV for grading: one row per student per started sprint, both rubrics, with the evidence
+// behind each score and what's still left for the instructor.
+async function exportGradesCSV(){
+  const sprints=SPRINTS.filter(sp=>sprintPhase(sp)!=="upcoming");
+  if(!sprints.length){ alert("No sprints have started yet."); return; }
+  const saved={}; (await getDocs(collection(db,`${cpath()}/grades`))).forEach(d=>saved[d.id]=d.data());
+  const teams=[...TEAMS].sort((a,b)=>(a.team||"").localeCompare(b.team||""));
+  const cols=["Course","Student","Email","Project","Sprint","Start","End",
+    "Demo (8)","Demo basis","Hours (6)","Hours basis","Board (3)","Board basis","Meeting (3)","Meeting basis",
+    "Review points (20)","Review still to set",
+    "Retrospective submitted","Rating (1)","What went well (3)","What could be improved (3)","Action items (3)",
+    "Retrospective points (10)","Retrospective still to grade",
+    "What went well (answer)","What could be improved (answer)","Actions for next sprint (answer)"];
+  const blocks=await Promise.all(teams.map(async (t,ti)=>Promise.all(sprints.map(async (sp,si)=>{
+    const students=t.studentEmails||[]; if(!students.length) return [];
+    const base=`${cpath()}/sprints/${sp.id}/entries/${t.id}`;
+    const [entry,goals,time,retro]=await Promise.all([getDoc(doc(db,base)), getDocs(collection(db,`${base}/goals`)),
+      getDocs(collection(db,`${base}/time`)), getDocs(collection(db,`${base}/retro`))]);
+    const gs=goals.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.createdAt?.seconds||0)-(b.createdAt?.seconds||0));
+    const ts=time.docs.map(d=>d.data()), rs=retro.docs.map(d=>d.data()), status=(entry.exists()&&entry.data().status)||"unrated";
+    return students.map(em=>{
+      const hours=ts.filter(x=>x.studentEmail===em).reduce((n,x)=>n+(Number(x.hours)||0),0);
+      const g=reviewGrade(t,sp,gs.filter(x=>x.studentEmail===em),hours,saved[gradeId(sp.id,t.id,em)],status);
+      const r=rs.find(x=>x.studentEmail===em)||null, rg=retroGrade(r, saved[gradeId(sp.id,t.id,em)]);
+      const pick=k=>!r ? 0 : k in rg.picks ? rg.picks[k] : "";
+      const crit=k=>[g[k].v==null?"":g[k].v, `${g[k].src}: ${g[k].why}`];
+      return [COURSE.code||COURSE.id, students.length>1?em:(t.team||em), em, t.project||"",
+        sp.name||("Sprint "+sp.n), sp.start||"", sp.end||"",
+        ...crit("demo"), ...crit("hours"), ...crit("board"), ...crit("meeting"),
+        g.total, g.open.join("; "),
+        rg.submitted?"Yes":"No", rg.rating, pick("retroWell"), pick("retroImprove"), pick("retroActions"),
+        rg.total, rg.open.join("; "),
+        r?r.wentWell||"":"", r?r.improve||"":"", r?(r.actions||[]).join("; "):""];
+    });
+  }))));
+  downloadCSV([cols, ...blocks.flat(2)], "grades");
+}
 function sprintCardHTML(t){
   if(!SPRINT) return "";
   const e=entryOf(t.id), ro=frozen()?" disabled":"";
@@ -1901,7 +2107,7 @@ function sprintCardHTML(t){
     ${teamActionsHTML(t)}
     <label class="nlbl" for="rev-${t.id}">Sprint review</label>
     <textarea id="rev-${t.id}" data-sp="${t.id}:review" placeholder="What did they demo? Progress vs. sprint goal, blockers, action items…"${ro}>${esc(e.review||"")}</textarea>
-  </div>${wrapUpHTML(t)}${goalsHTML(t)}${timeHTML(t)}`;
+  </div>${gradeCardHTML(t)}${wrapUpHTML(t)}${goalsHTML(t)}${timeHTML(t)}`;
 }
 // A student lands here until the project is set up; afterwards they get the normal
 // project page. The instructor always sees the real page, set up or not.
@@ -2046,6 +2252,7 @@ function setPageTitle(view){
   const title = view==="overview" ? "Course overview" : view==="manage" ? `Manage ${L().units}` : t ? (t.team||t.project||"") : "Dashboard";
   el.innerHTML = `<h1>${esc(title)}</h1>` + (view==="overview" ? `<span class="ov-actions">
     <button class="btn secondary" data-ov-export>⬇ Export CSV</button>
+    <button class="btn secondary" data-grades-export>⬇ Export grades</button>
     <button class="btn secondary" data-ov-refresh>↻ Refresh</button></span>` : "");
 }
 function refreshInstructorBar(){ document.querySelectorAll(".icon-circle[data-sync]").forEach(b=>b.outerHTML=syncCircleHTML()); }
@@ -2194,15 +2401,18 @@ function retroSummaryCells(rows, ph){
 }
 // Mood per sprint as a line, faces on the vertical scale; a sprint with no check-in leaves a gap.
 function moodTrendSVG(rows){
-  const pts=rows.map(r=>r.retro?chartMood(r.retro.mood):null);
+  return moodLineSVG(rows.map(r=>r.retro?chartMood(r.retro.mood):null), rows.map(r=>r.sprint.name||("Sprint "+r.sprint.n)));
+}
+// pts: one mood (2-5, may be fractional for a team average) or null per sprint; names label the dots.
+function moodLineSVG(pts, names, {w=190, h=100}={}){
   if(!pts.some(Boolean)) return `<span class="muted">No check-ins yet</span>`;
-  const w=190, h=100, left=26, right=8, top=10, bot=10, n=pts.length;
+  const left=26, right=8, top=10, bot=10, n=pts.length;
   const x=i=>n===1 ? (left+w-right)/2 : left+i*(w-left-right)/(n-1), y=v=>top+(5-v)*(h-top-bot)/3;
   let path="", pen=false;
   pts.forEach((v,i)=>{ if(!v){ pen=false; return; } path+=`${pen?"L":"M"}${x(i).toFixed(1)},${y(v).toFixed(1)} `; pen=true; });
   const faces=MOODS.filter(m=>!m.retired).map(m=>`<text x="0" y="${y(m.v)+5}" class="rs-face">${m.e}</text>
     <line x1="${left}" y1="${y(m.v)}" x2="${w-right}" y2="${y(m.v)}" class="rs-grid"/>`).join("");
-  const dots=pts.map((v,i)=>v?`<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="4" class="rs-dot"><title>${esc(rows[i].sprint.name||("Sprint "+rows[i].sprint.n))}: ${esc(moodOf(v).l)}</title></circle>`:"").join("");
+  const dots=pts.map((v,i)=>v?`<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="${h<80?3:4}" class="rs-dot"><title>${esc(names[i])}: ${esc(moodOf(Math.round(v)).l)}</title></circle>`:"").join("");
   return `<svg class="rs-mood" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img" aria-label="Mood by sprint">${faces}<path d="${path}" class="rs-line"/>${dots}</svg>`;
 }
 function retroHistoryHTML(tid){
@@ -2735,6 +2945,7 @@ async function onMainClick(e){
   const ov = e.target.closest("[data-ov-open]"); if (ov) { const [tid,sid]=ov.dataset.ovOpen.split(":"); await openTeamSprint(tid,sid); return; }
   if (e.target.closest("[data-ov-refresh]")) { OVERVIEW=null; await ensureOverview(); return; }
   if (e.target.closest("[data-ov-export]")) { await exportOverviewCSV(); return; }
+  if (e.target.closest("[data-grades-export]")) { try{ await exportGradesCSV(); }catch(err){ console.error(err); alert("Couldn't export grades: "+(err.message||err)); } return; }
   const sp = e.target.closest("[data-sprint-open]"); if (sp) { const [tid,sid]=sp.dataset.sprintOpen.split(":"); await openSprint(tid,sid); return; }
   const addList=e.target.closest("[data-list-add]"); if(addList){ const [tid,field]=addList.dataset.listAdd.split(":"); await addProjectListItem(tid,field); return; }
   const removeList=e.target.closest("[data-list-remove]"); if(removeList){ const [tid,field,index]=removeList.dataset.listRemove.split(":"); await removeProjectListItem(tid,field,index); return; }
@@ -3145,6 +3356,8 @@ $("main").addEventListener("keydown", e=>{   // Enter in an add field = click it
   if(btn){ e.preventDefault(); btn.click(); }
 });
 $("main").addEventListener("change", async e=>{   // goal status dropdown (student during the sprint, instructor on review)
+  const gr=e.target.closest("[data-grade]");
+  if(gr){ try{ await saveGrade(gr.dataset.grade, gr.value); }catch(err){ console.error(err); alert("Couldn't save the score: "+(err.message||err)); } return; }
   const sel=e.target.closest("[data-goal-result]"); if(!sel) return;
   const [tid,gid]=sel.dataset.goalResult.split(":");
   try{ await setGoalResult(tid,gid,sel.value); }catch(err){ console.error(err); alert("Couldn't save: "+(err.message||err)); }
