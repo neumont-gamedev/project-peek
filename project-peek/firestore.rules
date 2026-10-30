@@ -43,6 +43,12 @@ service cloud.firestore {
       return l is list && l.size() <= 3 && okFollow(l, 0) && okFollow(l, 1) && okFollow(l, 2);
     }
 
+    // A dropped goal carries a one-line reason (up to 200 characters).
+    function okDropReason(d) {
+      return d.get('dropReason', '') is string && d.get('dropReason', '').size() <= 200
+        && (d.get('result', '') != 'dropped' || d.get('dropReason', '').size() > 0);
+    }
+
     function coursePath(ownerUid, courseId) {
       return /databases/$(database)/documents/users/$(ownerUid)/courses/$(courseId);
     }
@@ -165,15 +171,22 @@ service cloud.firestore {
                 && request.resource.data.studentEmail == email()
                 && request.resource.data.completed == false;
               // Students edit their goal text and mark their own result until they submit.
+              // A goal they carried over can still be dropped after the sprint has closed
+              // (a pivot found at the next sprint's planning), and nothing else.
               allow update: if isTeamStudent(ownerUid, courseId, teamId)
-                && !submitted(ownerUid, courseId, sprintId, teamId)
-                && sprintOpen(ownerUid, courseId, sprintId)
                 && resource.data.studentEmail == email()
                 && request.resource.data.studentEmail == resource.data.studentEmail
                 && request.resource.data.completed == resource.data.completed
-                && request.resource.data.diff(resource.data).affectedKeys()
-                  .hasOnly(['text', 'result', 'updatedAt'])
-                && request.resource.data.get('result', '') in ['', 'done', 'partial', 'notdone'];
+                && okDropReason(request.resource.data)
+                && ((!submitted(ownerUid, courseId, sprintId, teamId)
+                    && sprintOpen(ownerUid, courseId, sprintId)
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                      .hasOnly(['text', 'result', 'dropReason', 'updatedAt'])
+                    && request.resource.data.get('result', '') in ['', 'done', 'partial', 'carried', 'dropped', 'notdone'])
+                  || (resource.data.get('result', '') == 'carried'
+                    && request.resource.data.get('result', '') == 'dropped'
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                      .hasOnly(['result', 'dropReason', 'updatedAt'])));
               allow delete: if isTeamStudent(ownerUid, courseId, teamId)
                 && !submitted(ownerUid, courseId, sprintId, teamId)
                 && sprintOpen(ownerUid, courseId, sprintId)
